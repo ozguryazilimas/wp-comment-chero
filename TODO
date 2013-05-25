@@ -1,11 +1,10 @@
 
 
-
-- Switch to another db table
-- Create script to convert old db
++ Switch to another db table
++ Create script to convert old db
 - Make sure unread comments are highlighted in posts
 - Add a page to list many many comments
-- Beautify widget
+/ Beautify widget
 - i18n
 
 

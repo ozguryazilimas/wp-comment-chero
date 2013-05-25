@@ -1,11 +1,11 @@
 <?php
-/**
+/*
  * Copyright (c) 2013, Onur Küçük <onur@ozguryazilim.com.tr>
  * @license http://www.gnu.org/licenses/gpl-2.0.html  GPLv2
  */
 
-/**
- * WP Unread Comments Widget Class
+/*
+ * WP Commet Chero Widget Class
  */
 class WP_Comment_Chero_Widget extends WP_Widget {
     function WP_Comment_Chero_Widget() {
@@ -13,6 +13,7 @@ class WP_Comment_Chero_Widget extends WP_Widget {
         $control_ops = array('width' => 350);
         $this->WP_Widget('comment_chero', __('Comment Chero', 'wp-cc'), $widget_ops, $control_ops);
     }
+
 
     function widget($args, $instance) {
         global $comments, $comment, $user_ID, $wpdb;
@@ -35,122 +36,61 @@ class WP_Comment_Chero_Widget extends WP_Widget {
         extract($args, EXTR_SKIP);
 
         $output = '';
-        $title = apply_filters( 'widget_title', empty( $instance['title'] ) ? __( 'Unread Comments' ) : $instance['title'], $instance, $this->id_base );
+        $title = apply_filters('widget_title', empty( $instance['title'] ) ? __( 'Unread Comments' ) : $instance['title'], $instance, $this->id_base);
 
-        $order='asc';
-        $from_time = 10; // ignore comments older than 10 days ago
-        $number = 10; // only get 10 comments for login user
-
-        $postlistquery = "SELECT comment_post_ID as post_id, count(comment_post_ID) as comment_count, max(comment_date) as latest_comment
-                          FROM $wpdb->comments
-                          GROUP BY comment_post_ID
-                          ORDER BY max(comment_date) DESC
-                          LIMIT $number;";
-
-        $postlist = $wpdb->get_results($postlistquery);
+        $login_user_limit = 10; // only get 10 comments for login user
+        $poststats = comment_chero_post_statistics($login_user_limit);
 
         $output .= $before_widget;
-        if ( $title ) {
+        if ($title) {
             $output .= $before_title . $title . $after_title;
         }
 
         $output .= '<ul id="recentcomments">';
-        // $postarray=array();
-        $commentarray=array();
-        $number = $instance['number_unread'];
+        $login_user_limit = $instance['number_unread'];
 
         if ($show_text) {
             $output.= '<li class="'.$rcclass.'">' . $custom_text . '</li>';
         }
 
-        /*
-        if ( $comments ) {
-            foreach ( (array) $comments as $comment) {
-                if($user_ID=='') {
-                    if($show_recent) {
-                        $output.='<li class="'.$rcclass.'">' . sprintf(_x('%1$s on %2$s', 'widgets'), get_comment_author_link(), '<a href="' . esc_url( get_comment_link($comment->comment_ID) ) . '">' . get_the_title($comment->comment_post_ID) . '</a>') . '</li>';
-                    }
-                } else {
-                    $rcclass='recentcomments';
-                    $post_id = $comment->comment_post_ID;
-                    $post_key = 'wuc_post_id'.$post_id;
-                    $ts_a = strtotime(get_user_meta( $user_ID, $post_key, true ));
-
-                    $comment_time = strtotime($comment->comment_date_gmt);
-                    //if(!in_array($post_id, $postarray))
-                    //{
-                    //    array_push($postarray, $post_id);
-                    array_push($commentarray, '<li class="'.$rcclass.'">' . 
-                        sprintf(_x('%1$s', 'widgets'),  '<a href="' . esc_url( get_comment_link($comment->comment_ID) ) . '">' . get_the_title($comment->comment_post_ID) . '</a>') . '</li>');
-                    //}
-                    if($number>0 && count($commentarray) >= $number) break;
-                }
-            }
-        }
-        */
-
-        foreach ($postlist as $latestpost) {
+        foreach ($poststats as $latestpost) {
             $post_id = $latestpost->post_id;
             $post_permalink = esc_url(get_permalink($post_id));
             $post_title =  get_the_title($post_id);
 
-            if($user_ID=='') {
+            if ($user_ID == '') {
                 if($show_recent) {
-                    $output.='<li class="'.$rcclass.'">' . sprintf(_x('%1$s on %2$s', 'widgets'), get_comment_author_link(), '<a href="' . $post_permalink . '">' . $post_title . '</a>') . '</li>';
+                    $output .= '<li class="' . $rcclass . '">' .
+                                    sprintf(_x('%1$s on %2$s', 'widgets'), get_comment_author_link(), '<a href="' . $post_permalink . '">' . $post_title . '</a>') .
+                               '</li>';
                 }
             } else {
-                $rcclass='recentcomments';
-                $post_key = 'wuc_post_id'.$post_id;
-                // $ts_a = strtotime(get_user_meta( $user_ID, $post_key, true ));
-                $comment_time = strtotime($latestpost->latest_comment);
+                $rcclass = 'recentcomments';
 
-                // TODO: Currently using JOIN causes a 0.12 sec query to become a 1.20 sec query as we need to do custom
-                // string CONCAT in sql. Convert the SQL to a sane one when we switch to our own table
-                // comment_date > $latestpost->latest_comment
-                $unread_comment_query = "SELECT count(*)
-                                  FROM $wpdb->comments
-                                  WHERE comment_post_ID=$post_id
-                                        AND
-                                        comment_date >= IFNULL(
-                                                            (SELECT meta_value
-                                                             FROM $wpdb->usermeta
-                                                             WHERE user_id=$user_ID
-                                                                   AND
-                                                                   $wpdb->usermeta.meta_key=CONCAT('wuc_post_id', comment_post_ID)
-                                                            ),
-                                                        0)
-                                 ";
-                $unread_comment_count = $wpdb->get_var($unread_comment_query);
-
-                if ($unread_comment_count > 0) {
-                    // $unread_found_class = 'class="comment-chero-widget-unread"';
+                if ($latestpost->unread_comment_count > 0) {
                     // $rcclass .= " comment-chero-widget-unread";
-                    $unreadclass = ' class="comment-chero-widget-unread"';
-                    $unread_comment_status = " $unread_comment_count yeni";
+                    $unreadclass = 'class="comment-chero-widget-unread"';
+                    $unread_comment_status = " $latestpost->unread_comment_count yeni";
                 } else {
-                    // $unread_found_class = '';
                     $unread_comment_status = '';
                     $unreadclass = '';
                 }
 
-                array_push($commentarray, '<li class="'.$rcclass.'">' .
-                    sprintf(_x('%1$s', 'widgets'),  '<a href="' . $post_permalink . '"' . $unreadclass . '>' . $post_title . '</a>') . '(' . $latestpost->comment_count . ')' . $unread_comment_status .  '</li>');
-                // if($number>0 && count($commentarray) >= $number) break;
+                $output .= '<li class="' . $rcclass . '">' .
+                               sprintf(_x('%1$s', 'widgets'),  '<a href="' . $post_permalink . '" ' . $unreadclass . '>' . $post_title . '</a>') .
+                               '(' . $latestpost->comment_count . ')' .
+                               $unread_comment_status .
+                           '</li>';
             }
         }
 
-        if ($user_ID !='') {
-            for ($i = count($commentarray) - 1; $i >=0 ; $i--) {
-                $output .= $commentarray[$i];
-            }
-            if(count($commentarray)==0) $output.='<li class="recentcomments">Okumadığınız yorum kalmamış ki...</li>';
-
+        if ($user_ID != '' && count($poststats) == 0) {
+            $output .= '<li class="recentcomments">Okumadığınız yorum kalmamış ki...</li>';
         }
 
         $output .= '</ul>';
         $output .= $after_widget;
         echo $output;
-
     }
 
     function update($new_instance, $old_instance) {
@@ -169,7 +109,7 @@ class WP_Comment_Chero_Widget extends WP_Widget {
     }
 
     function form($instance) {
-        global $wp_uc;
+        global $wp_cc;
 
         $instance_name = strip_tags($instance['instance']);
 
@@ -222,6 +162,72 @@ class WP_Comment_Chero_Widget extends WP_Widget {
 <?php
     }
 }
+
+function comment_chero_post_statistics($postcount) {
+    /*
+     * Returns array of objects containing
+     *
+     * [post_id] => 12345
+     * [comment_count] => 203
+     * [latest_comment] => 2013-05-04 12:43:16
+     * [unread_comment_count] => 3
+     *
+     * TODO: Move everything into one sql if it runs faster
+     *       Make this stuff smarter
+     *
+     */
+
+    global $user_ID, $wpdb, $comment_chero_db_post_reads, $comments, $comment;
+
+    $post_ids = array();
+    $unread_comments = array();
+
+    $postlistquery = $wpdb->prepare("SELECT comment_post_ID as post_id,
+                                            count(comment_post_ID) as comment_count,
+                                            max(comment_date_gmt) as latest_comment
+                                     FROM $wpdb->comments
+                                     GROUP BY comment_post_ID
+                                     ORDER BY max(comment_date_gmt) DESC
+                                     LIMIT $postcount");
+
+    $postlistquery_result = $wpdb->get_results($postlistquery);
+
+    foreach($postlistquery_result as $plqr) {
+        array_push($post_ids, $plqr->post_id);
+    }
+
+    $post_sql_array = implode(", ", $post_ids);
+    $unread_comment_query = $wpdb->prepare("SELECT count(*) as unread_count,comment_post_ID
+                                            FROM $wpdb->comments
+                                            WHERE comment_post_ID in ($post_sql_array)
+                                                AND
+                                                    user_id != $user_ID
+                                                AND
+                                                    comment_date_gmt >= IFNULL(
+                                                                          (
+                                                                            SELECT read_time
+                                                                            FROM $comment_chero_db_post_reads
+                                                                            WHERE user_id=$user_ID
+                                                                                AND
+                                                                                  post_id=comment_post_ID
+                                                                          ),
+                                                                        0)
+                                            GROUP BY comment_post_ID");
+
+    $unread_comment_query_result = $wpdb->get_results($unread_comment_query);
+
+    foreach($unread_comment_query_result as $u) {
+        $unread_comments[$u->comment_post_ID] = $u->unread_count;
+    }
+
+    foreach($postlistquery_result as $p) {
+        $p->unread_comment_count = $unread_comments[$p->post_id];
+    }
+
+
+    return $postlistquery_result;
+}
+
 
 function comment_chero_init() {
     register_widget('WP_Comment_Chero_Widget');

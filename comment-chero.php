@@ -25,6 +25,7 @@ License: GPL2
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+    define('COMMENT_CHERO_SHOW_COUNT', 10);
     require_once(dirname(__FILE__) . '/includes/class-wp-cc-widget.php');
     $wp_cc = new WP_Comment_Chero_Widget();
 

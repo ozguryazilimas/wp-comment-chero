@@ -38,7 +38,7 @@ class WP_Comment_Chero_Widget extends WP_Widget {
         $output = '';
         $title = apply_filters('widget_title', empty( $instance['title'] ) ? __('Unread Comments', 'comment-chero') : $instance['title'], $instance, $this->id_base);
 
-        $login_user_limit = 10; // only get 10 comments for login user
+        $login_user_limit = empty($instance['number_unread']) ? COMMENT_CHERO_SHOW_COUNT : (int) $instance['number_unread'];
         $poststats = comment_chero_post_statistics($login_user_limit);
 
         $output .= $before_widget;
@@ -47,7 +47,6 @@ class WP_Comment_Chero_Widget extends WP_Widget {
         }
 
         $output .= '<ul id="recentcomments">';
-        $login_user_limit = $instance['number_unread'];
 
         if ($show_text) {
             $output.= '<li class="'.$rcclass.'">' . $custom_text . '</li>';
@@ -114,10 +113,10 @@ class WP_Comment_Chero_Widget extends WP_Widget {
         $instance_name = strip_tags($instance['instance']);
 
         $title = (isset($instance['title'])) ? strip_tags($instance['title']) : '';
-        $number_unread = empty($instance['number_unread']) ? 10 : (int) $instance['number_unread'];
+        $number_unread = empty($instance['number_unread']) ? COMMENT_CHERO_SHOW_COUNT : (int) $instance['number_unread'];
         $highlight = (isset($instance['highlight'])) ? true : false;
         $title_recent = (isset($instance['title_recent'])) ? strip_tags($instance['title_recent']) : __('Recent Comments', 'comment-chero');
-        $number_recent = empty($instance['number_recent']) ? 10 : (int) $instance['number_recent'];
+        $number_recent = empty($instance['number_recent']) ? COMMENT_CHERO_SHOW_COUNT : (int) $instance['number_recent'];
         $show_recent = (isset($instance['show_recent'])) ? true : false;
         $show_text = (isset($instance['show_text'])) ? true : false;
         $custom_text = (isset($instance['custom_text'])) ? strip_tags($instance['custom_text']) : __('You must be logged in to view unread comments', 'comment-chero');

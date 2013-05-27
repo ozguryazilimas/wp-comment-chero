@@ -139,4 +139,10 @@ License: GPL2
         return $classes;
     }
 
+    function comment_chero_init() {
+        // load_plugin_textdomain('comment-chero', false, dirname(plugin_basename(__FILE__)) . '/languages' );
+        load_plugin_textdomain('comment-chero', false, basename(dirname(__FILE__)) . '/languages' );
+        register_widget('WP_Comment_Chero_Widget');
+    }
+
 ?>

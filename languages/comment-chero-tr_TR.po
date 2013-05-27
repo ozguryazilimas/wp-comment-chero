@@ -1,0 +1,84 @@
+# Copyright (C) 2013,
+# This file is distributed under the same license as Comment Chero package.
+#
+# Onur Küçük <onur@ozguryazilim.com.tr>, 2013.
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-05-27 21:59+0300\n"
+"PO-Revision-Date: 2013-05-27 22:05+0300\n"
+"Last-Translator: Onur Küçük <onur@ozguryazilim.com.tr>\n"
+"Language-Team: \n"
+"Language: Turkish \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 1.2\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: includes/class-wp-cc-widget.php:12
+msgid "Show a list of unread comments."
+msgstr "Okunmamış yorumların listesini göster."
+
+#: includes/class-wp-cc-widget.php:14
+msgid "Comment Chero"
+msgstr "Comment Chero"
+
+#: includes/class-wp-cc-widget.php:39
+msgid "Unread Comments"
+msgstr "Okumamış Yorumlar"
+
+#: includes/class-wp-cc-widget.php:73
+#, php-format
+msgid "%d new"
+msgstr "%d yeni"
+
+#: includes/class-wp-cc-widget.php:88
+msgid "You don't have any unread comments..."
+msgstr "Okumadığınız yorum kalmamış ki..."
+
+#: includes/class-wp-cc-widget.php:119
+msgid "Recent Comments"
+msgstr "Güncel Yorumlar"
+
+#: includes/class-wp-cc-widget.php:123
+msgid "You must be logged in to view unread comments"
+msgstr "Okunmamış yorumları okumak için giriş yapmalısınız"
+
+#: includes/class-wp-cc-widget.php:128
+msgid "Title:"
+msgstr "Başlık:"
+
+#: includes/class-wp-cc-widget.php:132
+msgid "Number of unread comments to show (default 10):"
+msgstr "Gösterilecek okunmamış yorum adedi (öntanımlı 10):"
+
+#: includes/class-wp-cc-widget.php:136
+msgid "Highlight unread comments"
+msgstr "Okunmamış yorumları işaretle"
+
+#: includes/class-wp-cc-widget.php:139
+msgid "Options for users who aren't logged in:"
+msgstr "Giriş yapmamış kullanıcı seçenekleri:"
+
+#: includes/class-wp-cc-widget.php:142
+msgid "Title for users who are not logged in:"
+msgstr "Giriş yapmamış kullanıcılara gösterilecek başlık:"
+
+#: includes/class-wp-cc-widget.php:147
+msgid "Show recent comments if users are not logged in"
+msgstr "Giriş yapmamış kullanıcıya güncel yorumları göster"
+
+#: includes/class-wp-cc-widget.php:150
+msgid "Number of recent comments to show (default 10):"
+msgstr "Gösterilecek güncel yorum adedi (öntanımlı 10):"
+
+#: includes/class-wp-cc-widget.php:155
+msgid "Show custom text if users are not logged in"
+msgstr "Giriş yapmamış kullanıcılara özel metin göster"
+
+#: includes/class-wp-cc-widget.php:158
+msgid "Custom Text:"
+msgstr "Özel Metin:"
+

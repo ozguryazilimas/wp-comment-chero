@@ -2,8 +2,8 @@
 /*
  * Script to migrate from wp-unread-comments plugin to comment-chero
  *
- * You can keep the old wuc usermeta entries by commenting out query($cleanup_query)
- * if you like
+ * You can delete the old wuc usermeta entries by setting $cleanup_query to true
+ *
  *
  * Copyright (C) 2013, Onur Küçük <onur@ozguryazilim.com.tr>
  * Licensed under GNU GPLv2
@@ -21,7 +21,7 @@ require_once($wp_header_file);
 
 global $wpdb, $comment_chero_db_post_reads;
 $wuckey = 'wuc_post_id';
-$cleanup = true; // Cleanup old entries
+$cleanup = false; // Cleanup old entries
 
 
 $count_query = "SELECT count(*) FROM $wpdb->usermeta

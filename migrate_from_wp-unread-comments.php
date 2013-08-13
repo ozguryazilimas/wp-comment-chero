@@ -2,7 +2,7 @@
 /*
  * Script to migrate from wp-unread-comments plugin to comment-chero
  *
- * You can keep the old wuc entries by commenting out query($cleanup_query)
+ * You can keep the old wuc usermeta entries by commenting out query($cleanup_query)
  * if you like
  *
  * Copyright (C) 2013, Onur Küçük <onur@ozguryazilim.com.tr>

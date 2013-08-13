@@ -39,55 +39,15 @@ class WP_Comment_Chero_Widget extends WP_Widget {
         $title = apply_filters('widget_title', empty( $instance['title'] ) ? __('Unread Comments', 'comment-chero') : $instance['title'], $instance, $this->id_base);
 
         $login_user_limit = empty($instance['number_unread']) ? COMMENT_CHERO_SHOW_COUNT : (int) $instance['number_unread'];
-        $poststats = comment_chero_post_statistics($login_user_limit);
+        $poststats = comment_chero_post_statistics($login_user_limit, 0);
 
         $output .= $before_widget;
         if ($title) {
             $output .= $before_title . $title . $after_title;
         }
 
-        $output .= '<ul id="recentcomments">';
+        $output .= display_unread_comments($poststats, true);
 
-        if ($show_text) {
-            $output.= '<li class="'.$rcclass.'">' . $custom_text . '</li>';
-        }
-
-        foreach ($poststats as $latestpost) {
-            $post_id = $latestpost->post_id;
-            $post_permalink = esc_url(get_permalink($post_id));
-            $post_title =  get_the_title($post_id);
-
-            if ($user_ID == '') {
-                if($show_recent) {
-                    $output .= '<li class="' . $rcclass . '">' .
-                                    sprintf(_x('%1$s on %2$s', 'widgets'), get_comment_author_link(), '<a href="' . $post_permalink . '">' . $post_title . '</a>') .
-                               '</li>';
-                }
-            } else {
-                $rcclass = 'recentcomments';
-
-                if ($latestpost->unread_comment_count > 0) {
-                    // $rcclass .= " comment-chero-widget-unread";
-                    $unreadclass = 'class="comment-chero-widget-unread"';
-                    $unread_comment_status = ' ' . sprintf(__("%d new", 'comment-chero'),  $latestpost->unread_comment_count);
-                } else {
-                    $unread_comment_status = '';
-                    $unreadclass = '';
-                }
-
-                $output .= '<li class="' . $rcclass . '">' .
-                               sprintf(_x('%1$s', 'widgets'),  '<a href="' . $post_permalink . '" ' . $unreadclass . '>' . $post_title . '</a>') .
-                               '(' . $latestpost->comment_count . ')' .
-                               $unread_comment_status .
-                           '</li>';
-            }
-        }
-
-        if ($user_ID != '' && count($poststats) == 0) {
-            $output .= '<li class="recentcomments">' . __('You don\'t have any unread comments...', 'comment-chero') . '</li>';
-        }
-
-        $output .= '</ul>';
         $output .= $after_widget;
         echo $output;
     }
@@ -161,7 +121,61 @@ class WP_Comment_Chero_Widget extends WP_Widget {
     }
 }
 
-function comment_chero_post_statistics($postcount) {
+function display_unread_comments($poststats, $show_more) {
+        global $user_ID;
+        $output = '<div id="recentcomments">';
+        $rcclass = '';
+
+        if ($show_text) {
+            $output.= '<div class="'.$rcclass.'">' . $custom_text . '</div>';
+        }
+
+        foreach ($poststats as $latestpost) {
+            $post_id = $latestpost->post_id;
+            $post_permalink = esc_url(get_permalink($post_id));
+            $post_title =  get_the_title($post_id);
+
+            if ($user_ID == '') {
+                if($show_recent) {
+                    $output .= '<div class="' . $rcclass . '">' .
+                                    sprintf(_x('%1$s on %2$s', 'widgets'), get_comment_author_link(), '<a href="' . $post_permalink . '">' . $post_title . '</a>') .
+                               '</div>';
+                }
+            } else {
+                $rcclass = 'recentcomments';
+
+                if ($latestpost->unread_comment_count > 0) {
+                    $unreadclass = 'class="comment_chero_widget_unread"';
+                    $unread_comment_status = ' ' . sprintf(__("%d new", 'comment-chero'),  $latestpost->unread_comment_count);
+                } else {
+                    $unread_comment_status = '';
+                    $unreadclass = 'class="comment_chero_widget_read"';
+                }
+
+                $output .= '<div class="' . $rcclass . '">' .
+                               sprintf(_x('%1$s', 'widgets'),  '<a href="' . $post_permalink . '" ' . $unreadclass . '>' . $post_title . '</a>') .
+                               ' (' . $latestpost->comment_count . ')' .
+                               $unread_comment_status .
+                           '</div>';
+            }
+        }
+
+        if ($user_ID != '') {
+            if ($show_more) {
+                $output .= '<a href="/commentchero" class="comment_chero_widget_unread" style="float: right;">' . __('more', 'comment-chero') . '</a>';
+            }
+
+            if (count($poststats) == 0) {
+                $output .= '<div class="recentcomments">' . __('You don\'t have any unread comments...', 'comment-chero') . '</div>';
+            }
+        }
+
+        $output .= '</div>';
+
+        return $output;
+}
+
+function comment_chero_post_statistics($postcount, $offset) {
     /*
      * Returns array of objects containing
      *
@@ -180,13 +194,19 @@ function comment_chero_post_statistics($postcount) {
     $post_ids = array();
     $unread_comments = array();
 
+
+    $sql_limit = ($postcount > 0) ? "LIMIT $postcount" : '';
+    $sql_offset = ($offset && $offset > 0) ? "OFFSET $offset" : '';
+
+
     $postlistquery = $wpdb->prepare("SELECT comment_post_ID as post_id,
                                             count(comment_post_ID) as comment_count,
                                             max(comment_date_gmt) as latest_comment
                                      FROM $wpdb->comments
                                      GROUP BY comment_post_ID
                                      ORDER BY max(comment_date_gmt) DESC
-                                     LIMIT $postcount");
+                                     $sql_limit
+                                     $sql_offset");
 
     $postlistquery_result = $wpdb->get_results($postlistquery);
 
@@ -222,7 +242,16 @@ function comment_chero_post_statistics($postcount) {
         $p->unread_comment_count = $unread_comments[$p->post_id];
     }
 
+    return $postlistquery_result;
+}
 
+function comment_chero_post_with_comment_count() {
+    global $wpdb;
+
+    $postlistquery = $wpdb->prepare("SELECT COUNT(DISTINCT(comment_post_ID))
+                                     FROM $wpdb->comments");
+
+    $postlistquery_result = $wpdb->get_var($postlistquery);
     return $postlistquery_result;
 }
 

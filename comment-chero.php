@@ -133,7 +133,7 @@ License: GPL2
             $comment_time = strtotime($comment->comment_date_gmt);
 
             if ($comment_time > $ts_a) {
-                $classes [] = 'comment-chero';
+                $classes [] = 'comment_chero_comment_unread';
             }
         }
 
@@ -144,6 +144,17 @@ License: GPL2
         // load_plugin_textdomain('comment-chero', false, dirname(plugin_basename(__FILE__)) . '/languages' );
         load_plugin_textdomain('comment-chero', false, basename(dirname(__FILE__)) . '/languages' );
         register_widget('WP_Comment_Chero_Widget');
+    }
+
+    add_action('template_redirect', 'cc_custom_page_template_redirect');
+    function cc_custom_page_template_redirect() {
+        global $wp_query;
+
+        if ($wp_query->query_vars['name'] == 'commentchero') {
+            $wp_query->is_404 = false;
+            include(ABSPATH . 'wp-content/plugins/comment-chero/comment-chero-full-list.php');
+            exit;
+        }
     }
 
 ?>

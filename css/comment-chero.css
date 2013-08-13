@@ -1,8 +1,129 @@
-.comment-chero {
-  background-color: #A8CDD6 !important;
+.comment_chero_comment_unread {
+  background-color: #E9FAFF !important;
 }
 
-.comment-chero-widget-unread {
-  background-color: #EDED1C !important;
+.comment_chero_widget_unread {
+  background-color: #D0DDDD !important;
+  color: #505050 !important;
+}
+
+.comment_chero_widget_read {
+  color: #505050 !important;
+}
+
+div.cc_navigation span {
+  font: normal 16px/22px museo, helvetica,Arial;
+}
+
+div.cc_full_list {
+  padding: 4px;
+}
+
+div.cc_full_list div {
+  padding: 4px;
+}
+
+#cc_page_numbers li form.dropdownPage select {
+  padding: 3px 8px 3px 8px;
+  margin-left: 2px;
+  margin-right: 2px;
+  display: block;
+  color: #343434;
+  background: #F2F2F2;
+  border: 0 solid #bfbfbf;
+  border-radius: 3px;
+}
+
+#cc_page_numbers li form.dropdownPage select:hover,
+#cc_page_numbers li form.dropdownPage select:focus {
+  background: #7F7F7F;
+  color: #FFF;
+}
+
+#cc_page_numbers ul, #cc_page_numbers li, #cc_page_numbers a {
+  background: white;
+  padding: 0;
+  margin: 0;
+  border: none;
+  text-decoration: none;
+  font-weight: normal;
+  font-style: normal;
+  list-style: none;
+  text-transform: none;
+  text-indent: 0px;
+  font-variant: normal;
+  text-align: left;
+  line-height: 12px;
+  letter-spacing: 0px;
+  word-spacing: 0px;
+  font-size: 12px;
+  font-weight: bold;
+  font-family: Helvetica Neue, Helvetica, Arial;
+}
+
+#cc_page_numbers {
+  margin-top: 10px;
+  width: 100%;
+  background: white;
+  margin-bottom: 10px;
+}
+
+#cc_page_numbers ul {
+  width: 100%;
+}
+
+#cc_page_numbers li {
+  float: left;
+  display: block;
+  margin-bottom: 2px;
+}
+
+#cc_page_numbers a {
+  padding: 5px 8px 6px 8px;
+  margin-left: 2px;
+  margin-right: 2px;
+  display: block;
+  color: #343434;
+  background: #F2F2F2;
+  border: 0 solid #bfbfbf;
+  border-radius: 3px;
+}
+
+#cc_page_numbers li a:hover {
+  background: #7F7F7F;
+  color: #FFF;
+}
+
+#cc_page_numbers li.space {
+  padding: 6px;
+  padding-left: 2px;
+  padding-right: 2px;
+}
+
+#cc_page_numbers li.first_last_page {
+  font-style: italic;
+}
+
+#cc_page_numbers li.active_page a {
+  background-color: #20AADB;
+  color: #FFF;
+}
+
+#cc_page_numbers li.active_page a:hover  {
+  color: black; /* IE fix */
+  text-decoration: underline;
+  border-color: #BA0000;
+}
+
+#cc_page_numbers li.page_info {
+  float: left;
+  display: block;
+  padding: 3px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin-right: 2px;
+  color: #666;
+  font-size: 11px;
+  border: 1px solid #bfbfbf;
 }
 

@@ -11,7 +11,7 @@
  */
 
 
-$wp_header_file = dirname($_ENV['PWD']) . '/../../wp-blog-header.php';
+$wp_header_file = dirname($_ENV['PWD']) . '/../../../wp-blog-header.php';
 if (!file_exists($wp_header_file)) {
     exit("Could not find $wp_header_file. Plese run the script in WORDPRESS_ROOT/wp-content/plugins/comment-chero directory\n");
 }

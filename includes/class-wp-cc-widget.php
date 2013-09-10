@@ -123,7 +123,7 @@ class WP_Comment_Chero_Widget extends WP_Widget {
 
 function display_unread_comments($poststats, $show_more) {
         global $user_ID;
-        $output = '<div id="recentcomments">';
+        $output = '<ul id="recentcomments">';
         $rcclass = '';
 
         if ($show_text) {
@@ -146,17 +146,24 @@ function display_unread_comments($poststats, $show_more) {
 
                 if ($latestpost->unread_comment_count > 0) {
                     $unreadclass = 'class="comment_chero_widget_unread"';
-                    $unread_comment_status = ' ' . sprintf(__("%d new", 'comment-chero'),  $latestpost->unread_comment_count);
+                    $unread_comment_status = ' ' . sprintf(__("%d", 'comment-chero'),  $latestpost->unread_comment_count);
                 } else {
                     $unread_comment_status = '';
                     $unreadclass = 'class="comment_chero_widget_read"';
                 }
-
-                $output .= '<div class="' . $rcclass . '">' .
-                               sprintf(_x('%1$s', 'widgets'),  '<a href="' . $post_permalink . '" ' . $unreadclass . '>' . $post_title . '</a>') .
-                               ' (' . $latestpost->comment_count . ')' .
-                               $unread_comment_status .
-                           '</div>';
+                if(!empty($unread_comment_status)){
+                    $output .= '<li class="' . $rcclass . '">' .
+                        sprintf(_x('%1$s', 'widgets'),  '<div class="commentUnread"><a href="' . $post_permalink . '" ' . $unreadclass . '>' . $post_title . '</a>') .
+                        '<span class="allUnreadComment">' . $latestpost->comment_count . '</span></div>' .
+                        '<span class="unreadAllComment">'.$unread_comment_status .'</span>'.
+                    '</li>';
+                }
+                else{
+                    $output .= '<li class="' . $rcclass . '">' .
+                        sprintf(_x('%1$s', 'widgets'),  '<a href="' . $post_permalink . '" ' . $unreadclass . '>' . $post_title . '</a>') .
+                        '<span class="read"> ' . $latestpost->comment_count . '</span>' .
+                    '</li>';
+                }
             }
         }
 
@@ -166,11 +173,11 @@ function display_unread_comments($poststats, $show_more) {
             }
 
             if (count($poststats) == 0) {
-                $output .= '<div class="recentcomments">' . __('You don\'t have any unread comments...', 'comment-chero') . '</div>';
+                $output .= '<li class="recentcomments">' . __('You don\'t have any unread comments...', 'comment-chero') . '</li>';
             }
         }
 
-        $output .= '</div>';
+        $output .= '</ul>';
 
         return $output;
 }

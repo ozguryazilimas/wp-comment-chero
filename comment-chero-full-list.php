@@ -34,9 +34,11 @@
         // $output .= "<h3>" . sprintf(__("Post comments for %s", 'comment-chero'), $current_user->display_name) . "</h3>";
         // echo("<h3> current_page=" . $current_page . " </h3>");
         // echo("<br>");
-
+        $output .='<div class="leftpane article-page content">
+                        <article class="post-page cl">                
+                            <div class="article-body">';
         $output .= '<div class="cc_full_list">';
-        $output .= '<div style="padding:16px;"><h3>' . __('All Comments', 'comment-chero') . '</h3></div>';
+        $output .= '<hgroup><div style="padding:16px;"><h3 class="page-title">' . __('All Comments', 'comment-chero') . '</h3></div></hgroup>';
         $output .= display_unread_comments($unread_posts, false);
         $output .= '</div>';
 
@@ -77,7 +79,7 @@
         // go to last page, a.k.a. last entry in pagination
         $output .= '<li><a href="?paged=' . $pagination_count . '">' . __('Last page', 'comment-chero') . '</li>';
         $output .= '</ul></div>';
-        $output .= '</div>';
+        $output .= '</div></article></div>';
 
         echo $output;
     }

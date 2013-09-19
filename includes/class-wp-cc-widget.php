@@ -134,7 +134,16 @@ function display_unread_comments($poststats, $show_more) {
             $post_id = $latestpost->post_id;
             $post_permalink = esc_url(get_permalink($post_id));
             $post_title =  get_the_title($post_id);
-
+            if($show_more){
+                $count = strlen($post_title);
+                if($count >= 21)
+                    $post_title = mb_substr($post_title, 0,21)."...";
+            }
+            else{
+                $count = strlen($post_title);
+                if($count >= 69)
+                    $post_title = mb_substr($post_title, 0,69)."...";
+            }
             if ($user_ID == '') {
                 if($show_recent) {
                     $output .= '<div class="' . $rcclass . '">' .
@@ -154,14 +163,14 @@ function display_unread_comments($poststats, $show_more) {
                 if(!empty($unread_comment_status)){
                     $output .= '<li class="' . $rcclass . '">' .
                         sprintf(_x('%1$s', 'widgets'),  '<div class="commentUnread"><a href="' . $post_permalink . '" ' . $unreadclass . '>' . $post_title . '</a>') .
-                        '<span class="allUnreadComment">' . $latestpost->comment_count . '</span></div>' .
-                        '<span class="unreadAllComment">'.$unread_comment_status .'</span>'.
+                        '<span class="allUnreadComment" title="'.__('All Comments', 'comment-chero').'">' . $latestpost->comment_count . '</span></div>' .
+                        '<span class="unreadAllComment" title="'.__('Unread Comments', 'comment-chero').'">'.$unread_comment_status .'</span>'.
                     '</li>';
                 }
                 else{
                     $output .= '<li class="' . $rcclass . '">' .
                         sprintf(_x('%1$s', 'widgets'),  '<a href="' . $post_permalink . '" ' . $unreadclass . '>' . $post_title . '</a>') .
-                        '<span class="read"> ' . $latestpost->comment_count . '</span>' .
+                        '<span class="read"title="'.__('All Comments', 'comment-chero').'">' . $latestpost->comment_count . '</span>' .
                     '</li>';
                 }
             }

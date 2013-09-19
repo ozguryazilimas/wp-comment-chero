@@ -164,6 +164,9 @@ div.cc_full_list div {
 .recentcomments span.read{
   color: #D7DDEB;
 }
-ul#recentcomments{
-  list-style-type: none;
+ul#recentcomments, li.recentcomments{
+  list-style-type: none !important;
+}
+#comment_chero-2 ul li{
+  margin: 5px 0;
 }

@@ -95,7 +95,10 @@ msgstr "%d yeni"
 msgid "more"
 msgstr "devamı"
 
+#: includes/class-wp-cc-widget.php:166
+msgid "All Comment"
+msgstr "Tüm Yorumlar"
+
 #: includes/class-wp-cc-widget.php:169
 msgid "You don't have any unread comments..."
 msgstr "Okumadığınız yorum kalmamış ki..."
-

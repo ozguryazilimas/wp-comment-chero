@@ -94,6 +94,10 @@ msgstr ""
 msgid "more"
 msgstr ""
 
+#: includes/class-wp-cc-widget.php:166
+msgid "All Comment"
+msgstr ""
+
 #: includes/class-wp-cc-widget.php:169
 msgid "You don't have any unread comments..."
 msgstr ""

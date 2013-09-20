@@ -133,6 +133,7 @@ div.cc_full_list div {
   -webkit-border-radius: 5px 0 0 5px;
   -moz-border-radius: 5px 0 0 5px;
   -o-border-radius: 5px 0 0 5px;
+  border-radius: 5px 0 0 5px;
 }
 .commentUnread span.allUnreadComment{
   background: #90D5F8;
@@ -149,6 +150,29 @@ div.cc_full_list div {
   color: white !important;
   text-decoration: none;
   font-weight: bolder;
+}
+@-moz-document url-prefix()
+{
+  section ul#recentcomments{
+    margin: 0 5px !important;
+  }
+  section ul .recentcomments span.unreadAllComment{
+    padding: 11px 7px 6px 0 !important;
+  }
+  .commentUnread a{
+    font-weight: normal; 
+  }
+  .recentcomments span.unreadAllComment{
+    background: #CCCCCC;
+    padding: 10px 7px 4px 0 !important;
+    -o-border-radius: 0px 5px 13px 0px;
+    -moz-border-radius: 0px 5px 13px 0px;
+    -webkit-border-radius: 0px 5px 13px 0px;
+    border-radius: 0px 5px 13px 0px;
+    color: #84858B;
+    font-weight: bold;
+    font-size: 90%;
+  }
 }
 .recentcomments span.unreadAllComment{
   background: #CCCCCC;

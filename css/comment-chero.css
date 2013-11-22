@@ -176,7 +176,7 @@ div.cc_full_list div {
 }
 .recentcomments span.unreadAllComment{
   background: #CCCCCC;
-  padding: 10px 7px 6px 0;
+  padding: 12px 7px 7px 0;
   -o-border-radius: 0px 5px 13px 0px;
   -moz-border-radius: 0px 5px 13px 0px;
   -webkit-border-radius: 0px 5px 13px 0px;
@@ -187,6 +187,7 @@ div.cc_full_list div {
 }
 .recentcomments span.read{
   color: #D7DDEB;
+  margin-left: 5px;
 }
 ul#recentcomments, li.recentcomments{
   list-style-type: none !important;

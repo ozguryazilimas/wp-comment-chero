@@ -40,7 +40,9 @@ div.cc_full_list div {
   color: #FFF;
 }
 
-#cc_page_numbers ul, #cc_page_numbers li, #cc_page_numbers a {
+#cc_page_numbers ul,
+#cc_page_numbers li,
+#cc_page_numbers a {
   background: white;
   padding: 0;
   margin: 0;
@@ -126,7 +128,8 @@ div.cc_full_list div {
   font-size: 11px;
   border: 1px solid #bfbfbf;
 }
-.commentUnread{
+
+.commentUnread {
   display: inline-table;
   background-color: #20AADB;
   padding: 6px 5px 2px !important;
@@ -135,7 +138,8 @@ div.cc_full_list div {
   -o-border-radius: 5px 0 0 5px;
   border-radius: 5px 0 0 5px;
 }
-.commentUnread span.allUnreadComment{
+
+.commentUnread span.allUnreadComment {
   background: #90D5F8;
   float: right;
   margin-left: 4px;
@@ -146,23 +150,46 @@ div.cc_full_list div {
   font-size: 90%;
   margin-top: -1px;
 }
-.commentUnread a{
+
+.commentUnread a {
   color: white !important;
   text-decoration: none;
   font-weight: bolder;
 }
+
+.commentRead {
+  display: inline-table;
+  background-color: #CCCCCC;
+  padding: 6px 5px 2px !important;
+  -webkit-border-radius: 5px 0 0 5px;
+  -moz-border-radius: 5px 0 0 5px;
+  -o-border-radius: 5px 0 0 5px;
+  border-radius: 5px 0 0 5px;
+}
+
+.commentRead a {
+  color: gray !important;
+  text-decoration: none;
+  font-weight: bolder;
+}
+
 @-moz-document url-prefix()
 {
-  section ul#recentcomments{
+  section ul#recentcomments {
     margin: 0 5px !important;
   }
-  section ul .recentcomments span.unreadAllComment{
+
+  section ul .recentcomments span.readAllComment,
+  section ul .recentcomments span.unreadAllComment {
     padding: 12px 7px 7px 0 !important;
   }
-  .commentUnread a{
-    font-weight: normal; 
+
+  .commentUnread a {
+    font-weight: normal;
   }
-  .recentcomments span.unreadAllComment{
+
+  .recentcomments span.readAllComment,
+  .recentcomments span.unreadAllComment {
     background: #CCCCCC;
     padding: 12px 7px 6px 0 !important;
     -o-border-radius: 0px 5px 13px 0px;
@@ -174,7 +201,9 @@ div.cc_full_list div {
     font-size: 90%;
   }
 }
-.recentcomments span.unreadAllComment{
+
+.recentcomments span.readAllComment,
+.recentcomments span.unreadAllComment {
   background: #CCCCCC;
   padding: 12px 7px 7px 0;
   -o-border-radius: 0px 5px 13px 0px;
@@ -185,13 +214,17 @@ div.cc_full_list div {
   font-weight: bold;
   font-size: 90%;
 }
-.recentcomments span.read{
+
+.recentcomments span.read {
   color: #D7DDEB;
   margin-left: 5px;
 }
-ul#recentcomments, li.recentcomments{
+
+ul#recentcomments, li.recentcomments {
   list-style-type: none !important;
 }
-#comment_chero-2 ul li{
+
+#comment_chero-2 ul li {
   margin: 5px 0;
 }
+

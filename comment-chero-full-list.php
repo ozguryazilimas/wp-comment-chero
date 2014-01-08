@@ -32,6 +32,10 @@
         $pagination_count = (($unread_post_count - 1) / $per_page) + 1;
         $mark_all_unread = isset($_POST['mark_all_unread']);
 
+        if ($mark_all_unread) {
+            mark_all_as_read($current_user->ID);
+        }
+
         // $output .= "<h3>" . sprintf(__("Post comments for %s", 'comment-chero'), $current_user->display_name) . "</h3>";
         // echo("<h3> current_page=" . $current_page . " </h3>");
         // echo("<br>");

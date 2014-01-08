@@ -271,4 +271,19 @@ function comment_chero_post_with_comment_count() {
     return $postlistquery_result;
 }
 
+function mark_all_as_read($user_id) {
+    global $wpdb, $comment_chero_db_post_reads;
+
+    $post_time = current_time('mysql', 1);
+
+    $mark_as_read_query_str = "INSERT INTO $comment_chero_db_post_reads (post_id, user_id, read_time)
+                                   SELECT DISTINCT ID, '$user_id', '$post_time'
+                                       FROM $wpdb->posts
+                                       WHERE post_type IN ('page', 'post')
+                               ON DUPLICATE KEY UPDATE read_time='$post_time';";
+
+    $mark_as_read_query = $wpdb->prepare($mark_as_read_query_str);
+    $success = $wpdb->query($mark_as_read_query);
+}
+
 ?>

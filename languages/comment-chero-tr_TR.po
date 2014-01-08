@@ -22,6 +22,10 @@ msgstr ""
 msgid "All Comments"
 msgstr "Tüm Yorumlar"
 
+#: comment-chero-full-list.php:44
+msgid "Mark all as read"
+msgstr "Hepsini okunmuş işaretle"
+
 #: comment-chero-full-list.php:47
 msgid "First page"
 msgstr "İlk sayfa"

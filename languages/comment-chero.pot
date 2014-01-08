@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-08-14 00:00+0300\n"
+"POT-Creation-Date: 2014-01-09 00:20+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,15 +17,20 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: comment-chero-full-list.php:39
+#: comment-chero-full-list.php:42 includes/class-wp-cc-widget.php:168
+#: includes/class-wp-cc-widget.php:173
 msgid "All Comments"
 msgstr ""
 
-#: comment-chero-full-list.php:47
+#: comment-chero-full-list.php:44
+msgid "Mark all as read"
+msgstr ""
+
+#: comment-chero-full-list.php:55
 msgid "First page"
 msgstr ""
 
-#: comment-chero-full-list.php:78
+#: comment-chero-full-list.php:86
 msgid "Last page"
 msgstr ""
 
@@ -37,7 +42,7 @@ msgstr ""
 msgid "Comment Chero"
 msgstr ""
 
-#: includes/class-wp-cc-widget.php:39
+#: includes/class-wp-cc-widget.php:39 includes/class-wp-cc-widget.php:167
 msgid "Unread Comments"
 msgstr ""
 
@@ -85,19 +90,15 @@ msgstr ""
 msgid "Custom Text:"
 msgstr ""
 
-#: includes/class-wp-cc-widget.php:149
+#: includes/class-wp-cc-widget.php:158
 #, php-format
-msgid "%d new"
+msgid "%d"
 msgstr ""
 
-#: includes/class-wp-cc-widget.php:165
+#: includes/class-wp-cc-widget.php:181
 msgid "more"
 msgstr ""
 
-#: includes/class-wp-cc-widget.php:166
-msgid "All Comment"
-msgstr ""
-
-#: includes/class-wp-cc-widget.php:169
+#: includes/class-wp-cc-widget.php:185
 msgid "You don't have any unread comments..."
 msgstr ""

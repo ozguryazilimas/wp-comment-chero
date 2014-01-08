@@ -24,6 +24,19 @@ div.cc_full_list div {
   padding: 4px;
 }
 
+div.cc_title {
+  padding:16px;
+  border-bottom: 1px dashed #CCCCCC;
+  margin-bottom: 24px;
+}
+
+h3.cc_page_title {
+  margin-left: 14px;
+  color: #323232;
+  font-weight: bolder;
+  font-family: Helvetica Neue, Helvetica, Arial;
+}
+
 #cc_page_numbers li form.dropdownPage select {
   padding: 3px 8px 3px 8px;
   margin-left: 2px;
@@ -228,4 +241,22 @@ ul#recentcomments, li.recentcomments {
 #comment_chero-2 ul li {
   margin: 5px 0;
 }
+
+input.markasread {
+    float: right;
+    background: linear-gradient(#FF0000, #C00000) repeat scroll 0 0 #FF0000;
+    border-color: #7EBA7C #578E57 #447D43;
+    border-radius: 20px 20px 20px 20px;
+    border-style: solid;
+    border-width: 1px;
+    box-shadow: 0 0 1px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.3) inset;
+    color: #EEEEEE;
+    cursor: pointer;
+    font: bold 14px Arial,Helvetica;
+    height: 35px;
+    margin: 0 0 0 10px;
+    // padding: 0;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
 

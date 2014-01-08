@@ -30,6 +30,7 @@
         $unread_posts = comment_chero_post_statistics($per_page, $offset);
         $unread_post_count = comment_chero_post_with_comment_count();
         $pagination_count = (($unread_post_count - 1) / $per_page) + 1;
+        $mark_all_unread = isset($_POST['mark_all_unread']);
 
         // $output .= "<h3>" . sprintf(__("Post comments for %s", 'comment-chero'), $current_user->display_name) . "</h3>";
         // echo("<h3> current_page=" . $current_page . " </h3>");
@@ -37,8 +38,13 @@
         $output .='<div class="leftpane article-page content">
                         <article class="post-page cl">                
                             <div class="article-body">';
+        $output .= '<hgroup><div class="cc_title">';
+        $output .= '<h3 class="cc_page_title">' . __('All Comments', 'comment-chero') . '</h3>';
+        $output .= '<form name="ccform" method="POST" action="commentchero">';
+        $output .= '<input type="Submit" name="mark_all_unread" class="markasread" value="' . __('Mark all as read', 'comment-chero') . '">';
+        $output .= '</form>';
+        $output .= '</div></hgroup>';
         $output .= '<div class="cc_full_list">';
-        $output .= '<hgroup><div style="padding:16px;"><h3 class="page-title">' . __('All Comments', 'comment-chero') . '</h3></div></hgroup>';
         $output .= display_unread_comments($unread_posts, false);
         $output .= '</div>';
 

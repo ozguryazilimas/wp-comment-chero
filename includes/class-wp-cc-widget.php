@@ -127,23 +127,24 @@ function display_unread_comments($poststats, $show_more) {
         $rcclass = '';
 
         if ($show_text) {
-            $output.= '<div class="'.$rcclass.'">' . $custom_text . '</div>';
+            $output .= '<div class="'.$rcclass.'">' . $custom_text . '</div>';
         }
 
         foreach ($poststats as $latestpost) {
             $post_id = $latestpost->post_id;
             $post_permalink = esc_url(get_permalink($post_id));
             $post_title =  get_the_title($post_id);
+
             if($show_more){
                 $count = strlen($post_title);
                 if($count >= 21)
                     $post_title = mb_substr($post_title, 0,21)."...";
-            }
-            else{
+            } else {
                 $count = strlen($post_title);
                 if($count >= 69)
                     $post_title = mb_substr($post_title, 0,69)."...";
             }
+
             if ($user_ID == '' && $show_recent) {
                 $output .= '<div class="' . $rcclass . '">' .
                                 sprintf(_x('%1$s on %2$s', 'widgets'), get_comment_author_link(), '<a href="' . $post_permalink . '">' . $post_title . '</a>') .
@@ -174,11 +175,11 @@ function display_unread_comments($poststats, $show_more) {
             }
         }
 
-        if ($user_ID != '') {
-            if ($show_more) {
-                $output .= '<a href="/commentchero" class="comment_chero_widget_unread" style="float: right;">' . __('more', 'comment-chero') . '</a>';
-            }
+        if ($show_more) {
+            $output .= '<a href="/commentchero" class="comment_chero_widget_unread" style="float: right;">' . __('more', 'comment-chero') . '</a>';
+        }
 
+        if ($user_ID != '') {
             if (count($poststats) == 0) {
                 $output .= '<li class="recentcomments">' . __('You don\'t have any unread comments...', 'comment-chero') . '</li>';
             }

@@ -42,7 +42,7 @@
         // echo("<h3> current_page=" . $current_page . " </h3>");
         // echo("<br>");
         $output .='<div class="leftpane article-page content">
-                        <article class="post-page cl">                
+                        <article class="post-page cl">
                             <div class="article-body">';
         $output .= '<hgroup><div class="cc_title">';
         $output .= '<h3 class="cc_page_title">' . __('All Comments', 'comment-chero') . '</h3>';

@@ -105,15 +105,17 @@ License: GPL2
     function comment_chero_set_time() {
         global $wpdb, $user_ID, $comment_chero_db_post_reads;
 
-        $post_id = $_SESSION['comment_chero_post_id'];
-        $post_time = $_SESSION['comment_chero_post_time'];
+        if ($user_ID != '') {
+            $post_id = $_SESSION['comment_chero_post_id'];
+            $post_time = $_SESSION['comment_chero_post_time'];
 
-        $post_read_query = "INSERT INTO $comment_chero_db_post_reads
-                            (post_id,user_id,read_time)
-                            VALUES ($post_id, $user_ID, '$post_time')
-                            ON DUPLICATE KEY UPDATE read_time='$post_time';";
+            $post_read_query = "INSERT INTO $comment_chero_db_post_reads
+                                (post_id,user_id,read_time)
+                                VALUES ($post_id, $user_ID, '$post_time')
+                                ON DUPLICATE KEY UPDATE read_time='$post_time';";
 
-        $success = $wpdb->query($post_read_query);
+            $success = $wpdb->query($post_read_query);
+        }
     }
 
     // Adds the unread class to every matched comment

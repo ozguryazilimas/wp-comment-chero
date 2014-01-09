@@ -144,12 +144,10 @@ function display_unread_comments($poststats, $show_more) {
                 if($count >= 69)
                     $post_title = mb_substr($post_title, 0,69)."...";
             }
-            if ($user_ID == '') {
-                if($show_recent) {
-                    $output .= '<div class="' . $rcclass . '">' .
-                                    sprintf(_x('%1$s on %2$s', 'widgets'), get_comment_author_link(), '<a href="' . $post_permalink . '">' . $post_title . '</a>') .
-                               '</div>';
-                }
+            if ($user_ID == '' && $show_recent) {
+                $output .= '<div class="' . $rcclass . '">' .
+                                sprintf(_x('%1$s on %2$s', 'widgets'), get_comment_author_link(), '<a href="' . $post_permalink . '">' . $post_title . '</a>') .
+                           '</div>';
             } else {
                 $rcclass = 'recentcomments';
 

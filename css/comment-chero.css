@@ -1,3 +1,4 @@
+
 .comment_chero_comment_unread {
   background-color: #E9FAFF !important;
 }
@@ -26,7 +27,7 @@ div.cc_full_list div {
 
 div.cc_title {
   padding:16px;
-  border-bottom: 1px dashed #CCCCCC;
+  border-bottom: 2px dashed #CCCCCC;
   margin-bottom: 24px;
 }
 
@@ -145,7 +146,7 @@ h3.cc_page_title {
 
 .commentUnread {
   display: inline-table;
-  background-color: #20AADB;
+  background-color: #F56E00;
   padding: 6px 5px 2px !important;
   -webkit-border-radius: 5px 0 0 5px;
   -moz-border-radius: 5px 0 0 5px;
@@ -154,7 +155,7 @@ h3.cc_page_title {
 }
 
 .commentUnread span.allUnreadComment {
-  background: #90D5F8;
+  background: #FFD200;
   float: right;
   margin-left: 4px;
   border-radius: 5px;
@@ -173,7 +174,7 @@ h3.cc_page_title {
 
 .commentRead {
   display: inline-table;
-  background-color: #CCCCCC;
+  background-color: #EEEEEE;
   padding: 6px 5px 2px !important;
   -webkit-border-radius: 5px 0 0 5px;
   -moz-border-radius: 5px 0 0 5px;
@@ -182,9 +183,9 @@ h3.cc_page_title {
 }
 
 .commentRead a {
-  color: gray !important;
-  text-decoration: none;
+  color: #F56E00 !important;
   font-weight: bolder;
+  text-decoration: none;
 }
 
 @-moz-document url-prefix()
@@ -195,17 +196,24 @@ h3.cc_page_title {
 
   section ul .recentcomments span.readAllComment,
   section ul .recentcomments span.unreadAllComment {
-    padding: 12px 7px 7px 0 !important;
+    padding: 12px 7px 6px 4px !important;
   }
 
-  .commentUnread a {
-    font-weight: normal;
-  }
-
-  .recentcomments span.readAllComment,
-  .recentcomments span.unreadAllComment {
+  .recentcomments span.readAllComment {
     background: #CCCCCC;
-    padding: 12px 7px 6px 0 !important;
+    padding: 12px 7px 6px 4px !important;
+    -o-border-radius: 0px 5px 13px 0px;
+    -moz-border-radius: 0px 5px 13px 0px;
+    -webkit-border-radius: 0px 5px 13px 0px;
+    border-radius: 0px 5px 13px 0px;
+    color: #333333;
+    font-weight: bold;
+    font-size: 90%;
+  }
+
+  .recentcomments span.unreadAllComment {
+    background: #FFFFFF;
+    padding: 12px 7px 6px 4px !important;
     -o-border-radius: 0px 5px 13px 0px;
     -moz-border-radius: 0px 5px 13px 0px;
     -webkit-border-radius: 0px 5px 13px 0px;
@@ -216,15 +224,26 @@ h3.cc_page_title {
   }
 }
 
-.recentcomments span.readAllComment,
-.recentcomments span.unreadAllComment {
-  background: #CCCCCC;
-  padding: 12px 7px 7px 0;
+.recentcomments span.readAllComment {
+  background: #DDDDDD;
+  padding: 12px 7px 7px 4px;
   -o-border-radius: 0px 5px 13px 0px;
   -moz-border-radius: 0px 5px 13px 0px;
   -webkit-border-radius: 0px 5px 13px 0px;
   border-radius: 0px 5px 13px 0px;
-  color: #84858B;
+  color: #333333;
+  font-weight: bold;
+  font-size: 90%;
+}
+
+.recentcomments span.unreadAllComment {
+  background: #333333;
+  padding: 12px 7px 6px 4px;
+  -o-border-radius: 0px 5px 13px 0px;
+  -moz-border-radius: 0px 5px 13px 0px;
+  -webkit-border-radius: 0px 5px 13px 0px;
+  border-radius: 0px 5px 13px 0px;
+  color: #EEEEEE;
   font-weight: bold;
   font-size: 90%;
 }

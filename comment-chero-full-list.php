@@ -1,17 +1,3 @@
-<script language="javascript" type="text/javascript">
-//<![CDATA[
-  function go_to_page() {
-    var target_page = document.pagination_form.pagination_select.value;
-
-    if (target_page != undefined && target_page != null) {
-      document.location.href = target_page;
-    }
-
-    return false;
-  }
-//]]>
-</script>
-
 <?php
     global $wp_query, $current_user;
     $per_page = 100;
@@ -27,19 +13,7 @@
     $unread_posts = comment_chero_post_statistics($per_page, $offset);
     $unread_post_count = comment_chero_post_with_comment_count();
     $pagination_count = (($unread_post_count - 1) / $per_page) + 1;
-    $mark_all_unread = isset($_POST['mark_all_unread']);
 
-    if ($current_user->ID != '') {
-        if ($mark_all_unread) {
-            $success = mark_all_as_read($current_user->ID);
-            //wp_redirect('/commentchero');
-            //exit;
-        }
-    }
-
-    // $output .= "<h3>" . sprintf(__("Post comments for %s", 'comment-chero'), $current_user->display_name) . "</h3>";
-    // echo("<h3> current_page=" . $current_page . " </h3>");
-    // echo("<br>");
     $output .='<div class="leftpane article-page content">
                     <article class="post-page cl">
                         <div class="article-body">';
@@ -47,9 +21,7 @@
     $output .= '<h3 class="cc_page_title">' . __('All Comments', 'comment-chero') . '</h3>';
 
     if ($current_user->ID != '') {
-        $output .= '<form name="ccform" method="POST" action="commentchero">';
-        $output .= '<input type="Submit" name="mark_all_unread" class="markasread" value="' . __('Mark all as read', 'comment-chero') . '">';
-        $output .= '</form>';
+        $output .= '<input type="Submit" name="mark_all_read" class="markasread" value="' . __('Mark all as read', 'comment-chero') . '">';
     }
 
     $output .= '</div></hgroup>';
@@ -100,3 +72,44 @@
 
     get_footer();
 ?>
+
+<script language="javascript" type="text/javascript">
+//<![CDATA[
+
+    jQuery(document).ready(function() {
+      function go_to_page() {
+        var target_page = document.pagination_form.pagination_select.value;
+
+        if (target_page != undefined && target_page != null) {
+          document.location.href = target_page;
+        }
+
+        return false;
+      }
+
+<?php
+    if ($current_user->ID != '') {
+        // echo "var wp_plugin_url = '" . WP_PLUGIN_URL . "';";
+        echo "\n";
+?>
+    jQuery('input[name=mark_all_read]').on('click', function() {
+        jQuery.post(
+            '/wp-admin/admin-ajax.php',
+            {
+                'action': 'comment_chero_mark_all_read'
+            },
+            function(response) {
+                // console.log('The server responded: ' + response);
+                window.location.reload(true);
+            }
+        );
+
+        return false;
+      });
+    });
+<?php
+    }
+?>
+
+//]]>
+</script>

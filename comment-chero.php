@@ -159,4 +159,11 @@ License: GPL2
         }
     }
 
+    add_action('wp_ajax_comment_chero_mark_all_read', 'comment_chero_mark_all_read');
+    function comment_chero_mark_all_read() {
+        global $wpdb, $user_ID;
+        $success = mark_all_as_read($user_ID);
+        die($success);
+    }
+
 ?>

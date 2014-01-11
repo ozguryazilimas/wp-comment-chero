@@ -134,20 +134,21 @@ function display_unread_comments($poststats, $show_more) {
             $post_id = $latestpost->post_id;
             $post_permalink = esc_url(get_permalink($post_id));
             $post_title =  get_the_title($post_id);
+            $post_title_trimmed = $post_title;
 
             if($show_more){
                 $count = strlen($post_title);
                 if($count >= 21)
-                    $post_title = mb_substr($post_title, 0,21)."...";
+                    $post_title_trimmed = mb_substr($post_title, 0,21)."...";
             } else {
                 $count = strlen($post_title);
-                if($count >= 69)
-                    $post_title = mb_substr($post_title, 0,69)."...";
+                if($count >= 50)
+                    $post_title_trimmed = mb_substr($post_title, 0,50)."...";
             }
 
             if ($user_ID == '' && $show_recent) {
                 $output .= '<div class="' . $rcclass . '">' .
-                                sprintf(_x('%1$s on %2$s', 'widgets'), get_comment_author_link(), '<a href="' . $post_permalink . '">' . $post_title . '</a>') .
+                                sprintf(_x('%1$s on %2$s', 'widgets'), get_comment_author_link(), '<a href="' . $post_permalink . '" title="' . $post_title . '">' . $post_title_trimmed . '</a>') .
                            '</div>';
             } else {
                 $rcclass = 'recentcomments';
@@ -162,13 +163,13 @@ function display_unread_comments($poststats, $show_more) {
 
                 if(!empty($unread_comment_status)) {
                     $output .= '<li class="' . $rcclass . '">' .
-                        sprintf(_x('%1$s', 'widgets'),  '<div class="commentUnread"><a href="' . $post_permalink . '" ' . $unreadclass . '>' . $post_title . '</a>') .
+                        sprintf(_x('%1$s', 'widgets'),  '<div class="commentUnread"><a href="' . $post_permalink . '" title="' . $post_title . '" ' . $unreadclass . '>' . $post_title_trimmed . '</a>') .
                         '<span class="allUnreadComment" title="'.__('Unread Comments', 'comment-chero').'">'.$unread_comment_status .'</span></div>'.
                         '<span class="unreadAllComment" title="'.__('All Comments', 'comment-chero').'">' . $latestpost->comment_count . '</span>' .
                     '</li>';
                 } else {
                     $output .= '<li class="' . $rcclass . '">' .
-                        sprintf(_x('%1$s', 'widgets'),  '<div class="commentRead"><a href="' . $post_permalink . '" ' . $unreadclass . '>' . $post_title . '</a></div>') .
+                        sprintf(_x('%1$s', 'widgets'),  '<div class="commentRead"><a href="' . $post_permalink . '" title="' . $post_title . '" ' . $unreadclass . '>' . $post_title_trimmed . '</a></div>') .
                         '<span class="readAllComment" title="'.__('All Comments', 'comment-chero').'">' . $latestpost->comment_count . '</span>' .
                     '</li>';
                 }

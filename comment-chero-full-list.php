@@ -76,7 +76,6 @@
 <script language="javascript" type="text/javascript">
 //<![CDATA[
 
-    jQuery(document).ready(function() {
       function go_to_page() {
         var target_page = document.pagination_form.pagination_select.value;
 
@@ -86,6 +85,8 @@
 
         return false;
       }
+
+    jQuery(document).ready(function() {
 
 <?php
     if ($current_user->ID != '') {

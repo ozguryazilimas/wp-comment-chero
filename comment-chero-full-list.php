@@ -70,6 +70,7 @@
 
     echo $output;
 
+
     get_footer();
 ?>
 
@@ -90,12 +91,12 @@
 
 <?php
     if ($current_user->ID != '') {
-        // echo "var wp_plugin_url = '" . WP_PLUGIN_URL . "';";
+        echo "var ajaxpath = '" . get_option('siteurl') . "/wp-admin/admin-ajax.php';";
         echo "\n";
 ?>
     jQuery('input[name=mark_all_read]').on('click', function() {
         jQuery.post(
-            '/wp-admin/admin-ajax.php',
+            ajaxpath,
             {
                 'action': 'comment_chero_mark_all_read'
             },

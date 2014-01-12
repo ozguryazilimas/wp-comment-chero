@@ -136,6 +136,7 @@ function display_unread_comments($poststats, $show_more) {
             $post_title =  get_the_title($post_id);
             $post_title_trimmed = $post_title;
 
+
             if($show_more){
                 $count = strlen($post_title);
                 if($count >= 18)
@@ -156,20 +157,22 @@ function display_unread_comments($poststats, $show_more) {
                 if ($latestpost->unread_comment_count > 0) {
                     $unreadclass = 'class="comment_chero_widget_unread"';
                     $unread_comment_status = ' ' . sprintf(__("%d", 'comment-chero'),  $latestpost->unread_comment_count);
+                    $post_comment_link = esc_url(get_comment_link($latestpost->first_unread_comment_id));
                 } else {
                     $unread_comment_status = '';
                     $unreadclass = 'class="comment_chero_widget_read"';
+                    $post_comment_link = esc_url(get_comment_link($latestpost->latest_comment_id));
                 }
 
                 if(!empty($unread_comment_status)) {
                     $output .= '<li class="' . $rcclass . '">' .
-                        sprintf(_x('%1$s', 'widgets'),  '<div class="commentUnread"><a href="' . $post_permalink . '" title="' . $post_title . '" ' . $unreadclass . '>' . $post_title_trimmed . '</a>') .
+                        sprintf(_x('%1$s', 'widgets'),  '<div class="commentUnread"><a href="' . $post_comment_link . '" title="' . $post_title . '" ' . $unreadclass . '>' . $post_title_trimmed . '</a>') .
                         '<span class="allUnreadComment" title="'.__('Unread Comments', 'comment-chero').'">'.$unread_comment_status .'</span></div>'.
                         '<span class="unreadAllComment" title="'.__('All Comments', 'comment-chero').'">' . $latestpost->comment_count . '</span>' .
                     '</li>';
                 } else {
                     $output .= '<li class="' . $rcclass . '">' .
-                        sprintf(_x('%1$s', 'widgets'),  '<div class="commentRead"><a href="' . $post_permalink . '" title="' . $post_title . '" ' . $unreadclass . '>' . $post_title_trimmed . '</a></div>') .
+                        sprintf(_x('%1$s', 'widgets'),  '<div class="commentRead"><a href="' . $post_comment_link . '" title="' . $post_title . '" ' . $unreadclass . '>' . $post_title_trimmed . '</a></div>') .
                         '<span class="readAllComment" title="'.__('All Comments', 'comment-chero').'">' . $latestpost->comment_count . '</span>' .
                     '</li>';
                 }
@@ -197,8 +200,9 @@ function comment_chero_post_statistics($postcount, $offset) {
      *
      * [post_id] => 12345
      * [comment_count] => 203
-     * [latest_comment] => 2013-05-04 12:43:16
+     * [latest_comment_id] => 2000
      * [unread_comment_count] => 3
+     * [first_unread_comment_id] => 1500
      *
      * TODO: Move everything into one sql if it runs faster
      *       Make this stuff smarter
@@ -217,7 +221,7 @@ function comment_chero_post_statistics($postcount, $offset) {
 
     $postlistquery = $wpdb->prepare("SELECT comment_post_ID as post_id,
                                             count(comment_post_ID) as comment_count,
-                                            max(comment_date_gmt) as latest_comment
+                                            max(comment_ID) as latest_comment_id
                                      FROM $wpdb->comments
                                      GROUP BY comment_post_ID
                                      ORDER BY max(comment_date_gmt) DESC
@@ -231,7 +235,9 @@ function comment_chero_post_statistics($postcount, $offset) {
     }
 
     $post_sql_array = implode(", ", $post_ids);
-    $unread_comment_query = $wpdb->prepare("SELECT count(*) as unread_count,comment_post_ID
+    $unread_comment_query = $wpdb->prepare("SELECT count(*) as unread_count,
+                                                   comment_post_ID,
+                                                   min(comment_ID) as first_unread_comment_id
                                             FROM $wpdb->comments
                                             WHERE comment_post_ID in ($post_sql_array)
                                                 AND
@@ -251,11 +257,12 @@ function comment_chero_post_statistics($postcount, $offset) {
     $unread_comment_query_result = $wpdb->get_results($unread_comment_query);
 
     foreach($unread_comment_query_result as $u) {
-        $unread_comments[$u->comment_post_ID] = $u->unread_count;
+        $unread_comments[$u->comment_post_ID] = array($u->unread_count, $u->first_unread_comment_id);
     }
 
     foreach($postlistquery_result as $p) {
-        $p->unread_comment_count = $unread_comments[$p->post_id];
+        $p->unread_comment_count = $unread_comments[$p->post_id][0];
+        $p->first_unread_comment_id = $unread_comments[$p->post_id][1];
     }
 
     return $postlistquery_result;

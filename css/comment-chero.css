@@ -286,11 +286,12 @@ a#recentcomments_more_button:visited {
     background: -webkit-linear-gradient(top, #F56E00 31%, #B74F00 100%);
     background: -ms-linear-gradient(top, #F56E00 31%, #B74F00 100%);
     background: linear-gradient(top, #F56E00 31%, #B74F00 100%);
+    font-size: 12px;
     font-weight: bold;
     border-radius: 5px;
     box-shadow: 2px 2px 2px #b74f00;
     text-decoration: none;
-    padding: 5px;
+    padding: 7px 10px;
     margin: 0 0 0 180px;
     line-height: 40px;
 }

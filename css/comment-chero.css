@@ -146,7 +146,6 @@ h3.cc_page_title {
 
 .commentUnread {
   display: inline-table;
-  background-color: #F56E00;
   padding: 6px 5px 2px !important;
   -webkit-border-radius: 5px 0 0 5px;
   -moz-border-radius: 5px 0 0 5px;
@@ -262,46 +261,53 @@ ul#recentcomments, li.recentcomments {
 }
 
 input.markasread {
-    float: right;
-    background: linear-gradient(#FF0000, #C00000) repeat scroll 0 0 #FF0000;
-    border-color: #7EBA7C #578E57 #447D43;
-    border-radius: 20px 20px 20px 20px;
-    border-style: solid;
-    border-width: 1px;
-    box-shadow: 0 0 1px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.3) inset;
-    color: #EEEEEE;
-    cursor: pointer;
-    font: bold 14px Arial,Helvetica;
-    height: 35px;
-    margin: 0 0 0 10px;
-    // padding: 0;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  float: right;
+  background: linear-gradient(#FF0000, #C00000) repeat scroll 0 0 #FF0000;
+  border-color: #7EBA7C #578E57 #447D43;
+  border-radius: 20px 20px 20px 20px;
+  border-style: solid;
+  border-width: 1px;
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.3) inset;
+  color: #EEEEEE;
+  cursor: pointer;
+  font: bold 14px Arial,Helvetica;
+  height: 35px;
+  margin: 0 0 0 10px;
+  // padding: 0;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 a#recentcomments_more_button:link,
 a#recentcomments_more_button:visited {
-    color: #FFF;
-    background: -o-linear-gradient(top, #F56E00 31%, #B74F00 100%);
-    background: -moz-linear-gradient(top, #F56E00 31%, #B74F00 100%);
-    background: -webkit-linear-gradient(top, #F56E00 31%, #B74F00 100%);
-    background: -ms-linear-gradient(top, #F56E00 31%, #B74F00 100%);
-    background: linear-gradient(top, #F56E00 31%, #B74F00 100%);
-    font-size: 12px;
-    font-weight: bold;
-    border-radius: 5px;
-    box-shadow: 2px 2px 2px #b74f00;
-    text-decoration: none;
-    padding: 7px 10px;
-    margin: 0 0 0 180px;
-    line-height: 40px;
+  color: #FFF;
+  font-size: 12px;
+  font-weight: bold;
+  border-radius: 5px;
+  box-shadow: 2px 2px 2px #b74f00;
+  text-decoration: none;
+  padding: 7px 10px;
+  margin: 0 0 0 180px;
+  line-height: 40px;
 }
 
+.commentUnread,
+a#recentcomments_more_button:link,
+a#recentcomments_more_button:visited {
+   background: -o-linear-gradient(top, #F56E00 31%, #D05A00 100%);
+   background: -moz-linear-gradient(top, #F56E00 31%, #D05A00 100%);
+   background: -moz-linear-gradient(top, #F56E00 31%, #D05A00 100%);
+   background: -webkit-linear-gradient(top, #F56E00 31%, #D05A00 100%);
+   background: -ms-linear-gradient(top, #F56E00 31%, #D05A00 100%);
+   background: linear-gradient(top, #F56E00 31%, #D05A00 100%);
+}
+
+.commentUnread:hover,
 a#recentcomments_more_button:hover {
-    background: -o-linear-gradient(top, #B74F00 31%, #F56E00 100%);
-    background: -moz-linear-gradient(top, #B74F00 31%, #F56E00 100%);
-    background: -webkit-linear-gradient(top, #B74F00 31%, #F56E00 100%);
-    background: -ms-linear-gradient(top, #B74F00 31%, #F56E00 100%);
-    background: linear-gradient(top, #B74F00 31%, #F56E00 100%);
+  background: -o-linear-gradient(top, #D05A00 31%, #F56E00 100%);
+  background: -moz-linear-gradient(top, #D05A00 31%, #F56E00 100%);
+  background: -webkit-linear-gradient(top, #D05A00 31%, #F56E00 100%);
+  background: -ms-linear-gradient(top, #D05A00 31%, #F56E00 100%);
+  background: linear-gradient(top, #D05A00 31%, #F56E00 100%);
 }
 
 

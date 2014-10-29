@@ -179,10 +179,6 @@ function display_unread_comments($poststats, $show_more) {
             }
         }
 
-        if ($show_more) {
-            $output .= '<a href="/commentchero" class="comment_chero_widget_unread" style="float: right;">' . __('more', 'comment-chero') . '</a>';
-        }
-
         if ($user_ID != '') {
             if (count($poststats) == 0) {
                 $output .= '<li class="recentcomments">' . __('You don\'t have any unread comments...', 'comment-chero') . '</li>';
@@ -190,6 +186,10 @@ function display_unread_comments($poststats, $show_more) {
         }
 
         $output .= '</ul>';
+
+        if ($show_more) {
+            $output .= '<a id="recentcomments_more_button" href="/commentchero">' . __('more', 'comment-chero') . '</a>';
+        }
 
         return $output;
 }

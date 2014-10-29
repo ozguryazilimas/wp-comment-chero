@@ -278,4 +278,29 @@ input.markasread {
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
+a#recentcomments_more_button:link,
+a#recentcomments_more_button:visited {
+    color: #FFF;
+    background: -o-linear-gradient(top, #F56E00 31%, #B74F00 100%);
+    background: -moz-linear-gradient(top, #F56E00 31%, #B74F00 100%);
+    background: -webkit-linear-gradient(top, #F56E00 31%, #B74F00 100%);
+    background: -ms-linear-gradient(top, #F56E00 31%, #B74F00 100%);
+    background: linear-gradient(top, #F56E00 31%, #B74F00 100%);
+    font-weight: bold;
+    border-radius: 5px;
+    box-shadow: 2px 2px 2px #b74f00;
+    text-decoration: none;
+    padding: 5px;
+    margin: 0 0 0 180px;
+    line-height: 40px;
+}
+
+a#recentcomments_more_button:hover {
+    background: -o-linear-gradient(top, #B74F00 31%, #F56E00 100%);
+    background: -moz-linear-gradient(top, #B74F00 31%, #F56E00 100%);
+    background: -webkit-linear-gradient(top, #B74F00 31%, #F56E00 100%);
+    background: -ms-linear-gradient(top, #B74F00 31%, #F56E00 100%);
+    background: linear-gradient(top, #B74F00 31%, #F56E00 100%);
+}
+
 

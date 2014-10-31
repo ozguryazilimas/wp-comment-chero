@@ -21,7 +21,7 @@
     $output .= '<h3 class="cc_page_title">' . __('All Comments', 'comment-chero') . '</h3>';
 
     if ($current_user->ID != '') {
-        $output .= '<input type="Submit" name="mark_all_read" class="markasread" value="' . __('Mark all as read', 'comment-chero') . '">';
+        $output .= '<a id="comment_chero_mark_all_read" class="markasread">' . __('Mark all as read', 'comment-chero') . '</a>';
     }
 
     $output .= '</div></hgroup>';
@@ -94,7 +94,7 @@
         echo "var ajaxpath = '" . get_option('siteurl') . "/wp-admin/admin-ajax.php';";
         echo "\n";
 ?>
-    jQuery('input[name=mark_all_read]').on('click', function() {
+    jQuery('a#comment_chero_mark_all_read').on('click', function() {
         jQuery.post(
             ajaxpath,
             {

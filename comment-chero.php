@@ -3,7 +3,7 @@
 Plugin Name: Comment Chero
 Plugin URI: http://www.ozguryazilim.com.tr
 Description: This plugin displays unread comments in a sidebar widget and can highlight unread comments in comment lists. Influenced by wp-unread-comments plugin.
-Version: 0.7.0
+Version: 0.7.1
 Author: Onur Küçük
 Author URI: http://www.delipenguen.net
 License: GPL2
@@ -154,6 +154,7 @@ License: GPL2
 
         if ($wp_query->query_vars['name'] == 'commentchero') {
             $wp_query->is_404 = false;
+            status_header(200);
             include(ABSPATH . 'wp-content/plugins/comment-chero/comment-chero-full-list.php');
             exit;
         }

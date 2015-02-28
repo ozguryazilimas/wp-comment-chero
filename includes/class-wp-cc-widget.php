@@ -57,12 +57,7 @@ class WP_Comment_Chero_Widget extends WP_Widget {
         $instance['title'] = strip_tags($new_instance['title']);
         $instance['number_unread'] = $new_instance['number_unread'];
         $instance['highlight'] = $new_instance['highlight'];
-        $instance['title_recent'] = strip_tags($new_instance['title_recent']);
-        $instance['number_recent'] = $new_instance['number_recent'];
-        $instance['show_recent'] = $new_instance['show_recent'];
-        $instance['show_text'] = $new_instance['show_text'];
-        $instance['custom_text'] = strip_tags($new_instance['custom_text']);
-        update_option( 'comment-chero-highlight', $instance['highlight'], '', 'yes' );
+        update_option('comment-chero-highlight', $instance['highlight'], '', 'yes');
 
         return $instance;
     }
@@ -75,12 +70,6 @@ class WP_Comment_Chero_Widget extends WP_Widget {
         $title = (isset($instance['title'])) ? strip_tags($instance['title']) : '';
         $number_unread = empty($instance['number_unread']) ? COMMENT_CHERO_SHOW_COUNT : (int) $instance['number_unread'];
         $highlight = (isset($instance['highlight'])) ? true : false;
-        $title_recent = (isset($instance['title_recent'])) ? strip_tags($instance['title_recent']) : __('Recent Comments', 'comment-chero');
-        $number_recent = empty($instance['number_recent']) ? COMMENT_CHERO_SHOW_COUNT : (int) $instance['number_recent'];
-        $show_recent = (isset($instance['show_recent'])) ? true : false;
-        $show_text = (isset($instance['show_text'])) ? true : false;
-        $custom_text = (isset($instance['custom_text'])) ? strip_tags($instance['custom_text']) : __('You must be logged in to view unread comments', 'comment-chero');
-
 
 ?>
         <p>
@@ -88,34 +77,11 @@ class WP_Comment_Chero_Widget extends WP_Widget {
             <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo esc_attr($title); ?>" />
         </p>
         <p>
-            <label for="<?php echo $this->get_field_id('number_unread'); ?>"><?php _e('Number of unread comments to show (default 10):', 'comment-chero') ?></label>
+            <label for="<?php echo $this->get_field_id('number_unread'); ?>"><?php _e('Number of recently commented posts to show, starting from last commented (default 10):', 'comment-chero') ?></label>
             <input id="<?php echo $this->get_field_id('number_unread'); ?>" name="<?php echo $this->get_field_name('number_unread'); ?>" type="text" value="<?php echo $number_unread; ?>" size="3" />
         </p>
             <input class="checkbox" type="checkbox" <?php checked($highlight, true); ?> id="<?php echo $this->get_field_id('highlight'); ?>" name="<?php echo $this->get_field_name('highlight'); ?>" />
             <label for="<?php echo $this->get_field_id('highlight'); ?>"><?php _e('Highlight unread comments', 'comment-chero'); ?></label>
-        </p>
-        <p>
-            <b><?php _e("Options for users who aren't logged in:", 'comment-chero') ?></b>
-        </p>
-        <p>
-            <label for="<?php echo $this->get_field_id('title_recent'); ?>"><?php _e('Title for users who are not logged in:', 'comment-chero'); ?></label>
-            <input class="widefat" id="<?php echo $this->get_field_id('title_recent'); ?>" name="<?php echo $this->get_field_name('title_recent'); ?>" type="text" value="<?php echo esc_attr($title_recent); ?>" />
-        </p>
-        <p>
-            <input class="checkbox" type="checkbox" <?php checked($show_recent, true); ?> id="<?php echo $this->get_field_id('show_recent'); ?>" name="<?php echo $this->get_field_name('show_recent'); ?>" />
-            <label for="<?php echo $this->get_field_id('show_recent'); ?>"><?php _e('Show recent comments if users are not logged in', 'comment-chero'); ?></label>
-        </p>
-        <p>
-            <label for="<?php echo $this->get_field_id('number_recent'); ?>"><?php _e('Number of recent comments to show (default 10):', 'comment-chero') ?></label>
-            <input id="<?php echo $this->get_field_id('number_recent'); ?>" name="<?php echo $this->get_field_name('number_recent'); ?>" type="text" value="<?php echo $number_recent; ?>" size="3" />
-        </p>
-        <p>
-            <input class="checkbox" type="checkbox" <?php checked($show_text, true); ?> id="<?php echo $this->get_field_id('show_text'); ?>" name="<?php echo $this->get_field_name('show_text'); ?>" />
-            <label for="<?php echo $this->get_field_id('show_recent'); ?>"><?php _e('Show custom text if users are not logged in', 'comment-chero'); ?></label>
-        </p>
-        <p>
-            <label for="<?php echo $this->get_field_id('custom_text'); ?>"><?php _e('Custom Text:', 'comment-chero'); ?></label>
-            <input class="widefat" id="<?php echo $this->get_field_id('custom_text'); ?>" name="<?php echo $this->get_field_name('custom_text'); ?>" type="text" value="<?php echo esc_attr($custom_text); ?>" />
         </p>
 <?php
     }
@@ -125,10 +91,6 @@ function display_unread_comments($poststats, $show_more) {
         global $user_ID;
         $output = '<ul id="recentcomments">';
         $rcclass = '';
-
-        if ($show_text) {
-            $output .= '<div class="'.$rcclass.'">' . $custom_text . '</div>';
-        }
 
         foreach ($poststats as $latestpost) {
             $post_id = $latestpost->post_id;

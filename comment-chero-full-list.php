@@ -1,4 +1,9 @@
 <?php
+/*
+ * Copyright (c) 2013, Onur Küçük <onur@ozguryazilim.com.tr>
+ * @license http://www.gnu.org/licenses/gpl-2.0.html  GPLv2
+ */
+
     global $wp_query, $current_user;
     $per_page = 100;
     $pagination_range = 3;

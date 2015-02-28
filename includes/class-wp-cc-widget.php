@@ -125,7 +125,6 @@ function display_unread_comments($poststats, $show_more) {
         global $user_ID;
         $output = '<ul id="recentcomments">';
         $rcclass = '';
-        $custom_comment_pagination = true;
 
         if ($show_text) {
             $output .= '<div class="'.$rcclass.'">' . $custom_text . '</div>';
@@ -159,7 +158,7 @@ function display_unread_comments($poststats, $show_more) {
                     $unreadclass = 'class="comment_chero_widget_unread"';
                     $unread_comment_status = ' ' . sprintf(__("%d", 'comment-chero'),  $latestpost->unread_comment_count);
 
-                    if ($custom_comment_pagination) {
+                    if (COMMENT_CHERO_CUSTOM_COMMENT_PAGINATION) {
                       $comment_per_page_count = get_option('comments_per_page');
 
                       if ($comment_per_page_count > $latestpost->comment_count) {

@@ -26,6 +26,11 @@ License: GPL2
 */
 
     define('COMMENT_CHERO_SHOW_COUNT', 10);
+
+    if (!defined('COMMENT_CHERO_CUSTOM_COMMENT_PAGINATION')) {
+      define('COMMENT_CHERO_CUSTOM_COMMENT_PAGINATION', FALSE);
+    }
+
     require_once(dirname(__FILE__) . '/includes/class-wp-cc-widget.php');
     $wp_cc = new WP_Comment_Chero_Widget();
 

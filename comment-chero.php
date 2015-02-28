@@ -121,7 +121,7 @@ License: GPL2
     // Adds the unread class to every matched comment
     function comment_chero_unread_class($classes = array()) {
         global $comment, $wpdb, $user_ID, $comment_chero_db_post_reads, $wp_cc;
-        $highlight = get_option( 'comment-chero-highlight' );
+        $highlight = get_option('comment-chero-highlight');
 
         if ($highlight) {
             $post_id = $comment->comment_post_ID;

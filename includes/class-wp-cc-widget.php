@@ -125,6 +125,7 @@ function display_unread_comments($poststats, $show_more) {
         global $user_ID;
         $output = '<ul id="recentcomments">';
         $rcclass = '';
+        $custom_comment_pagination = true;
 
         if ($show_text) {
             $output .= '<div class="'.$rcclass.'">' . $custom_text . '</div>';
@@ -157,7 +158,27 @@ function display_unread_comments($poststats, $show_more) {
                 if ($latestpost->unread_comment_count > 0) {
                     $unreadclass = 'class="comment_chero_widget_unread"';
                     $unread_comment_status = ' ' . sprintf(__("%d", 'comment-chero'),  $latestpost->unread_comment_count);
-                    $post_comment_link = esc_url(get_comment_link($latestpost->first_unread_comment_id));
+
+                    if ($custom_comment_pagination) {
+                      $comment_per_page_count = get_option('comments_per_page');
+
+                      if ($comment_per_page_count > $latestpost->comment_count) {
+                        $page_position = 0;
+                      } else {
+                        $comment_position = $latestpost->comment_count - $latestpost->unread_comment_count;
+                        $first_page_count = $latestpost->comment_count % $comment_per_page_count;
+                        $real_offset = ($comment_position - $first_page_count) / $comment_per_page_count;
+                        $page_position = ceil($real_offset) + 1;
+                      }
+
+                      $comment_page_args = array('page' => $page_position);
+                      $post_comment_link = esc_url(get_comment_link(
+                        $latestpost->first_unread_comment_id,
+                        $comment_page_args
+                      ));
+                    } else {
+                      $post_comment_link = esc_url(get_comment_link($latestpost->first_unread_comment_id));
+                    }
                 } else {
                     $unread_comment_status = '';
                     $unreadclass = 'class="comment_chero_widget_read"';

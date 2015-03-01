@@ -1,10 +1,9 @@
 
 
-+ Switch to another db table
-+ Create script to convert old db
-- Make sure unread comments are highlighted in posts
-- Add a page to list many many comments
-/ Beautify widget
-- i18n
++ Create script to convert from other plugins
++ Make sure unread comments are highlighted in posts
++ Add a page to list many many comments
++ Beautify widget
++ i18n
 
 

@@ -134,7 +134,11 @@ function display_unread_comments($poststats, $show_more) {
             $first_page_count = $latestpost->comment_count % $comment_per_page_count;
             $real_offset = ($comment_position - $first_page_count) / $comment_per_page_count;
 
-            $page_position = ceil($real_offset) + 1;
+            if ($first_page_count == 0) {
+              $page_position = ceil($real_offset);
+            } else {
+              $page_position = ceil($real_offset) + 1;
+            }
           }
 
           $comment_page_args = array('page' => $page_position);

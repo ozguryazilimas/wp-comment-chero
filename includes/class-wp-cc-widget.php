@@ -119,14 +119,13 @@ function display_unread_comments($poststats, $show_more) {
         '</div>';
     } else {
       $rcclass = 'recentcomments';
+      $comment_per_page_count = get_option('comments_per_page');
 
       if ($latestpost->unread_comment_count > 0) {
         $unreadclass = 'class="comment_chero_widget_unread"';
         $unread_comment_status = ' ' . sprintf(__("%d", 'comment-chero'),  $latestpost->unread_comment_count);
 
         if (COMMENT_CHERO_CUSTOM_COMMENT_PAGINATION) {
-          $comment_per_page_count = get_option('comments_per_page');
-
           if ($comment_per_page_count > $latestpost->comment_count) {
             $page_position = 0;
           } else {
@@ -159,9 +158,9 @@ function display_unread_comments($poststats, $show_more) {
           $real_offset = $latestpost->comment_count / $comment_per_page_count;
 
           if ($first_page_count == 0) {
-            $page_position = ceil($real_offset);
+            $page_position = floor($real_offset);
           } else {
-            $page_position = ceil($real_offset) + 1;
+            $page_position = floor($real_offset) + 1;
           }
 
           $comment_page_args = array('page' => $page_position);

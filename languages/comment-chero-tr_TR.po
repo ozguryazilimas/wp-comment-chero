@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-08-14 00:00+0300\n"
-"PO-Revision-Date: 2013-08-14 00:05+0300\n"
+"POT-Creation-Date: 2015-03-01 02:40+0200\n"
+"PO-Revision-Date: 2015-03-01 02:05+0300\n"
 "Last-Translator: Onur Küçük <onur@ozguryazilim.com.tr>\n"
 "Language-Team: \n"
 "Language: Turkish \n"
@@ -18,19 +18,20 @@ msgstr ""
 "X-Generator: Vim 7.5\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: comment-chero-full-list.php:39
+#: comment-chero-full-list.php:26 includes/class-wp-cc-widget.php:159
+#: includes/class-wp-cc-widget.php:164
 msgid "All Comments"
 msgstr "Tüm Yorumlar"
 
-#: comment-chero-full-list.php:44
+#: comment-chero-full-list.php:29
 msgid "Mark all as read"
 msgstr "Hepsini okunmuş işaretle"
 
-#: comment-chero-full-list.php:47
+#: comment-chero-full-list.php:41
 msgid "First page"
 msgstr "İlk sayfa"
 
-#: comment-chero-full-list.php:78
+#: comment-chero-full-list.php:72
 msgid "Last page"
 msgstr "Son sayfa"
 
@@ -38,71 +39,36 @@ msgstr "Son sayfa"
 msgid "Show a list of unread comments."
 msgstr "Okunmamış yorumların listesini göster."
 
-#: includes/class-wp-cc-widget.php:14
-msgid "Comment Chero"
-msgstr "Comment Chero"
-
-#: includes/class-wp-cc-widget.php:39
+#: includes/class-wp-cc-widget.php:39 includes/class-wp-cc-widget.php:158
 msgid "Unread Comments"
 msgstr "Okunmamış Yorumlar"
 
-#: includes/class-wp-cc-widget.php:78
-msgid "Recent Comments"
-msgstr "Güncel Yorumlar"
-
-#: includes/class-wp-cc-widget.php:82
-msgid "You must be logged in to view unread comments"
-msgstr "Okunmamış yorumları okumak için giriş yapmalısınız"
-
-#: includes/class-wp-cc-widget.php:87
+#: includes/class-wp-cc-widget.php:76
 msgid "Title:"
 msgstr "Başlık:"
 
-#: includes/class-wp-cc-widget.php:91
-msgid "Number of unread comments to show (default 10):"
-msgstr "Gösterilecek okunmamış yorum adedi (öntanımlı 10):"
+#: includes/class-wp-cc-widget.php:80
+msgid ""
+"Number of recently commented posts to show, starting from last commented "
+"(default 10):"
+msgstr ""
+"Gösterilecek yazı adedi, en son yorumlanan yazıdan başlayarak sıralanır "
+"(öntanımlı 10):"
 
-#: includes/class-wp-cc-widget.php:95
+#: includes/class-wp-cc-widget.php:84
 msgid "Highlight unread comments"
 msgstr "Okunmamış yorumları renklendir"
 
-#: includes/class-wp-cc-widget.php:98
-msgid "Options for users who aren't logged in:"
-msgstr "Giriş yapmamış kullanıcı seçenekleri:"
-
-#: includes/class-wp-cc-widget.php:101
-msgid "Title for users who are not logged in:"
-msgstr "Giriş yapmamış kullanıcılara gösterilecek başlık:"
-
-#: includes/class-wp-cc-widget.php:106
-msgid "Show recent comments if users are not logged in"
-msgstr "Giriş yapmamış kullanıcıya güncel yorumları göster"
-
-#: includes/class-wp-cc-widget.php:109
-msgid "Number of recent comments to show (default 10):"
-msgstr "Gösterilecek güncel yorum adedi (öntanımlı 10):"
-
-#: includes/class-wp-cc-widget.php:114
-msgid "Show custom text if users are not logged in"
-msgstr "Giriş yapmamış kullanıcılara özel metin göster"
-
-#: includes/class-wp-cc-widget.php:117
-msgid "Custom Text:"
-msgstr "Özel Metin:"
-
-#: includes/class-wp-cc-widget.php:149
+#: includes/class-wp-cc-widget.php:125
 #, php-format
-msgid "%d new"
-msgstr "%d yeni"
+msgid "%d"
+msgstr "%d"
 
-#: includes/class-wp-cc-widget.php:165
+#: includes/class-wp-cc-widget.php:172
+msgid "You don't have any unread comments..."
+msgstr "Okumadığınız yorum kalmamış ki..."
+
+#: includes/class-wp-cc-widget.php:179
 msgid "more"
 msgstr "devamı"
 
-#: includes/class-wp-cc-widget.php:166
-msgid "All Comment"
-msgstr "Tüm Yorumlar"
-
-#: includes/class-wp-cc-widget.php:169
-msgid "You don't have any unread comments..."
-msgstr "Okumadığınız yorum kalmamış ki..."

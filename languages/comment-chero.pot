@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-01-09 00:20+0200\n"
+"POT-Creation-Date: 2015-03-01 02:44+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,20 +17,20 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: comment-chero-full-list.php:42 includes/class-wp-cc-widget.php:168
-#: includes/class-wp-cc-widget.php:173
+#: comment-chero-full-list.php:26 includes/class-wp-cc-widget.php:159
+#: includes/class-wp-cc-widget.php:164
 msgid "All Comments"
 msgstr ""
 
-#: comment-chero-full-list.php:44
+#: comment-chero-full-list.php:29
 msgid "Mark all as read"
 msgstr ""
 
-#: comment-chero-full-list.php:55
+#: comment-chero-full-list.php:41
 msgid "First page"
 msgstr ""
 
-#: comment-chero-full-list.php:86
+#: comment-chero-full-list.php:72
 msgid "Last page"
 msgstr ""
 
@@ -38,67 +38,33 @@ msgstr ""
 msgid "Show a list of unread comments."
 msgstr ""
 
-#: includes/class-wp-cc-widget.php:14
-msgid "Comment Chero"
-msgstr ""
-
-#: includes/class-wp-cc-widget.php:39 includes/class-wp-cc-widget.php:167
+#: includes/class-wp-cc-widget.php:39 includes/class-wp-cc-widget.php:158
 msgid "Unread Comments"
 msgstr ""
 
-#: includes/class-wp-cc-widget.php:78
-msgid "Recent Comments"
-msgstr ""
-
-#: includes/class-wp-cc-widget.php:82
-msgid "You must be logged in to view unread comments"
-msgstr ""
-
-#: includes/class-wp-cc-widget.php:87
+#: includes/class-wp-cc-widget.php:76
 msgid "Title:"
 msgstr ""
 
-#: includes/class-wp-cc-widget.php:91
-msgid "Number of unread comments to show (default 10):"
+#: includes/class-wp-cc-widget.php:80
+msgid ""
+"Number of recently commented posts to show, starting from last commented "
+"(default 10):"
 msgstr ""
 
-#: includes/class-wp-cc-widget.php:95
+#: includes/class-wp-cc-widget.php:84
 msgid "Highlight unread comments"
 msgstr ""
 
-#: includes/class-wp-cc-widget.php:98
-msgid "Options for users who aren't logged in:"
-msgstr ""
-
-#: includes/class-wp-cc-widget.php:101
-msgid "Title for users who are not logged in:"
-msgstr ""
-
-#: includes/class-wp-cc-widget.php:106
-msgid "Show recent comments if users are not logged in"
-msgstr ""
-
-#: includes/class-wp-cc-widget.php:109
-msgid "Number of recent comments to show (default 10):"
-msgstr ""
-
-#: includes/class-wp-cc-widget.php:114
-msgid "Show custom text if users are not logged in"
-msgstr ""
-
-#: includes/class-wp-cc-widget.php:117
-msgid "Custom Text:"
-msgstr ""
-
-#: includes/class-wp-cc-widget.php:158
+#: includes/class-wp-cc-widget.php:125
 #, php-format
 msgid "%d"
 msgstr ""
 
-#: includes/class-wp-cc-widget.php:181
-msgid "more"
+#: includes/class-wp-cc-widget.php:172
+msgid "You don't have any unread comments..."
 msgstr ""
 
-#: includes/class-wp-cc-widget.php:185
-msgid "You don't have any unread comments..."
+#: includes/class-wp-cc-widget.php:179
+msgid "more"
 msgstr ""

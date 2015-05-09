@@ -237,6 +237,8 @@ function comment_chero_post_statistics($postcount, $offset) {
                                         ON wc.comment_post_ID = wp.ID
                                    WHERE
                                         wp.post_status = 'publish'
+                                        AND
+                                        wc.comment_approved = 1
                                    GROUP BY comment_post_ID
                                    ORDER BY max(comment_date_gmt) DESC
                                    $sql_limit
@@ -256,6 +258,8 @@ function comment_chero_post_statistics($postcount, $offset) {
                                           WHERE comment_post_ID in ($post_sql_array)
                                               AND
                                                   user_id != $user_ID
+                                              AND
+                                                  comment_approved = 1
                                               AND
                                                   comment_date_gmt >= IFNULL(
                                                                         (
@@ -286,7 +290,8 @@ function comment_chero_post_with_comment_count() {
   global $wpdb;
 
   $postlistquery = $wpdb->prepare("SELECT COUNT(DISTINCT(comment_post_ID))
-                                   FROM $wpdb->comments");
+                                   FROM $wpdb->comments
+                                   WHERE comment_approved = 1");
 
   $postlistquery_result = $wpdb->get_var($postlistquery);
   return $postlistquery_result;

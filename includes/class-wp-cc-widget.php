@@ -102,15 +102,15 @@ function display_unread_comments($poststats, $show_more) {
     if ($show_more) {
       $count = strlen($post_title);
 
-      if ($count >= 18) {
-        $post_title_trimmed = mb_substr($post_title, 0, 18) . "...";
-      }
+      # if ($count >= 18) {
+      #   $post_title_trimmed = mb_substr($post_title, 0, 18) . "...";
+      # }
     } else {
       $count = strlen($post_title);
 
-      if ($count >= 50) {
-        $post_title_trimmed = mb_substr($post_title, 0, 50) . "...";
-      }
+      # if ($count >= 50) {
+      #   $post_title_trimmed = mb_substr($post_title, 0, 50) . "...";
+      # }
     }
 
     if ($user_ID == '' && $show_recent) {

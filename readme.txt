@@ -4,7 +4,7 @@ Donate link:
 Tags: chero, comment chero, comments, unread comments, unread comments widgets, wordpress unread comments, view unread comments
 Requires at least: 3.3.1
 Tested up to: 4.1.1
-Stable tag: 1.0.0
+Stable tag: 1.2.0
 
 This plugin displays unread comments in a sidebar widget and can highlight unread comments in comment lists.
 

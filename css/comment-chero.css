@@ -168,6 +168,8 @@ h3.cc_page_title {
 
 .commentUnread a {
   color: white !important;
+  text-decoration: none;
+  font-weight: bolder;
 }
 
 .commentRead {
@@ -195,25 +197,8 @@ h3.cc_page_title {
 
 .commentRead a {
   color: #F56E00 !important;
-}
-
-div.cc_full_list .commentRead a,
-div.cc_full_list .commentUnread a {
-  width: 480px;
-}
-
-.commentRead a,
-.commentUnread a {
-  text-decoration: none;
   font-weight: bolder;
-  height: 15px;
-  line-height: 16px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 190px;
-  display: inline-block;
-  white-space: nowrap;
-
+  text-decoration: none;
 }
 
 @-moz-document url-prefix()
@@ -250,13 +235,6 @@ div.cc_full_list .commentUnread a {
     font-weight: bold;
     font-size: 90%;
   }
-}
-
-div.cc_full_list .recentcomments span.readAllComment,
-div.cc_full_list .recentcomments span.unreadAllComment {
-  line-height: 14px;
-  height: 15px;
-  display: inline-block;
 }
 
 .recentcomments span.readAllComment {
@@ -303,7 +281,7 @@ a#comment_chero_mark_all_read.markasread {
     box-shadow: 2px 2px 2px black;
     // text-shadow: 0 2px 2px rgba(255, 255, 255, 0.8);
     padding: 10px;
-    margin: 0 10px 20px;
+    margin: 0px;
     border-radius: 5px;
     text-decoration: none;
     float: right;

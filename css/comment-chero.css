@@ -199,7 +199,7 @@ h3.cc_page_title {
 
 div.cc_full_list .commentRead a,
 div.cc_full_list .commentUnread a {
-  width: 470px;
+  width: 480px;
 }
 
 .commentRead a,
@@ -210,7 +210,7 @@ div.cc_full_list .commentUnread a {
   line-height: 16px;
   overflow: hidden;
   text-overflow: ellipsis;
-  width: 180px;
+  width: 190px;
   display: inline-block;
   white-space: nowrap;
 

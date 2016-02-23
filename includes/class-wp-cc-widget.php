@@ -87,26 +87,45 @@ class WP_Comment_Chero_Widget extends WP_Widget {
   }
 }
 
+function post_titles_from_post_stats($poststats) {
+  global $wpdb;
+  $post_titles = array();
+  $post_ids = array();
+
+  foreach($poststats as $p) {
+    array_push($post_ids, $p->post_id);
+  }
+
+  $post_title_data = $wpdb->get_results("SELECT ID, post_title FROM $wpdb->posts WHERE ID IN (" . join(',', $post_ids) . ")");
+  foreach($post_title_data as $p) {
+    $post_titles[$p->ID] = $p->post_title;
+  }
+
+  return $post_titles;
+}
+
 function display_unread_comments($poststats, $show_more) {
   global $user_ID;
   $output = '<ul id="recentcomments">';
   $rcclass = '';
+  // we manually select post titles since get_the_title converts special chars to html code
+  $post_title_list = post_titles_from_post_stats($poststats);
 
   foreach ($poststats as $latestpost) {
     $post_id = $latestpost->post_id;
     $post_permalink = esc_url(get_permalink($post_id));
-    $post_title =  get_the_title($post_id);
+    // $post_title =  get_the_title($post_id);
+    $post_title = $post_title_list[$post_id];
     $post_title_trimmed = $post_title;
 
-
     if ($show_more) {
-      $count = strlen($post_title);
+      $count = mb_strlen($post_title);
 
       if ($count >= 18) {
         $post_title_trimmed = mb_substr($post_title, 0, 18) . "...";
       }
     } else {
-      $count = strlen($post_title);
+      $count = mb_strlen($post_title);
 
       if ($count >= 50) {
         $post_title_trimmed = mb_substr($post_title, 0, 50) . "...";

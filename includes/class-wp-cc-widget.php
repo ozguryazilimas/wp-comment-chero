@@ -8,12 +8,11 @@
  * WP Commet Chero Widget Class
  */
 class WP_Comment_Chero_Widget extends WP_Widget {
-  function WP_Comment_Chero_Widget() {
+  function __construct() {
     $widget_ops = array('classname' => 'wp-cc-widget', 'description' => __('Show a list of unread comments.', 'comment-chero'));
     $control_ops = array('width' => 350);
-    $this->WP_Widget('comment_chero', 'Comment Chero', $widget_ops, $control_ops);
+    parent::__construct('comment_chero', 'Comment Chero', $widget_ops, $control_ops);
   }
-
 
   function widget($args, $instance) {
     global $comments, $comment, $user_ID, $wpdb;

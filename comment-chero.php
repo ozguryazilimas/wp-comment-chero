@@ -34,8 +34,8 @@ if (!defined('COMMENT_CHERO_CUSTOM_COMMENT_PAGINATION')) {
 require_once(dirname(__FILE__) . '/includes/class-wp-cc-widget.php');
 $wp_cc = new WP_Comment_Chero_Widget();
 
-$comment_chero_db_version = "1.0";
 global $comment_chero_db_version;
+$comment_chero_db_version = "1.0";
 
 global $wpdb;
 global $comment_chero_db_post_reads;

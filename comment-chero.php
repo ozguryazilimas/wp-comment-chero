@@ -38,6 +38,7 @@ $comment_chero_db_version = "1.0";
 global $comment_chero_db_version;
 
 global $wpdb;
+global $comment_chero_db_post_reads;
 $comment_chero_db_post_reads = $wpdb->prefix . "comment_chero_post_reads";
 
 $installed_version = get_option('comment_chero_db_version');

@@ -11,7 +11,7 @@ This plugin displays unread comments in a sidebar widget and can highlight unrea
 
 == Description ==
 
-This plugin displays unread comments in a sidebar widget and can highlight unread comments in comment lists. Developed on systems with 10.000s of posts and optimized for speed and usability. Influenced by wp-unread-comments plugin.
+This plugin displays unread comments in a sidebar widget and can highlight unread comments in comment lists. Developed on systems with 10.000s of posts and optimized for speed and usability.
 
 
 == Installation ==

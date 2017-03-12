@@ -96,9 +96,9 @@ get_footer();
 
 <?php
   if ($current_user->ID != '') {
-    echo "var ajaxpath = '" . get_option('siteurl') . "/wp-admin/admin-ajax.php';";
-    echo "\n";
 ?>
+    var ajaxpath = '<?php echo admin_url('admin-ajax.php'); ?>';
+
     jQuery('a#comment_chero_mark_all_read').on('click', function() {
       jQuery.post(
         ajaxpath,

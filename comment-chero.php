@@ -59,7 +59,7 @@ add_action('comment_chero_set_time', 'comment_chero_set_time');
 add_filter('comment_class', 'comment_chero_unread_class', 10);
 
 // add css
-add_action('init', 'comment_chero_add_css');
+// add_action('init', 'comment_chero_add_css');
 
 register_activation_hook(__FILE__, 'comment_chero_init_db');
 add_action('plugins_loaded', 'comment_chero_update_db_check');
@@ -93,10 +93,12 @@ function comment_chero_update_db_check() {
   }
 }
 
-function comment_chero_add_css() {
+function comment_chero_add_assets() {
   // enqueue WordPress CSS hook
-  wp_enqueue_style('comment-chero', get_option('siteurl') . '/wp-content/plugins/comment-chero/css/comment-chero.css');
+  wp_register_style('comment-chero', plugins_url('css/comment-chero.css', __FILE__));
+  wp_enqueue_style('comment-chero');
 }
+add_action('wp_enqueue_scripts', 'comment_chero_add_assets');
 
 // Update cookie when an user reads a post
 function comment_chero_get_time() {

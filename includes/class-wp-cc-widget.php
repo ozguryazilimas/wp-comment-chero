@@ -247,6 +247,7 @@ function comment_chero_post_statistics($postcount, $offset) {
   $sql_offset = ($offset && $offset > 0) ? "OFFSET $offset" : '';
 
 
+  /* original query, takes longer to work so removed post status checks
   $postlistquery = $wpdb->prepare("SELECT comment_post_ID as post_id,
                                           count(comment_post_ID) as comment_count,
                                           max(comment_ID) as latest_comment_id
@@ -256,6 +257,18 @@ function comment_chero_post_statistics($postcount, $offset) {
                                    WHERE
                                         wp.post_status = 'publish'
                                         AND
+                                        wc.comment_approved = 1
+                                   GROUP BY comment_post_ID
+                                   ORDER BY max(comment_date_gmt) DESC
+                                   $sql_limit
+                                   $sql_offset");
+   */
+
+  $postlistquery = $wpdb->prepare("SELECT comment_post_ID as post_id,
+                                          count(comment_post_ID) as comment_count,
+                                          max(comment_ID) as latest_comment_id
+                                   FROM $wpdb->comments wc
+                                   WHERE
                                         wc.comment_approved = 1
                                    GROUP BY comment_post_ID
                                    ORDER BY max(comment_date_gmt) DESC

@@ -289,7 +289,6 @@ function comment_chero_post_statistics($postcount, $offset) {
 
   $post_sql_array = implode(", ", $post_ids);
 
-  /*
   $unread_comment_query = $wpdb->prepare("SELECT count(*) as unread_count,
                                                  comment_post_ID,
                                                  min(comment_ID) as first_unread_comment_id
@@ -310,8 +309,8 @@ function comment_chero_post_statistics($postcount, $offset) {
                                                                         ),
                                                                       0)
                                           GROUP BY comment_post_ID");
-  */
 
+  /* misses ccpr.read_time null check
   $unread_comment_query = $wpdb->prepare("SELECT count(*) as unread_count,
                                                  wc.comment_post_ID,
                                                  min(wc.comment_ID) as first_unread_comment_id
@@ -328,6 +327,7 @@ function comment_chero_post_statistics($postcount, $offset) {
                                               AND
                                                   wc.comment_date_gmt >= ccpr.read_time
                                               GROUP BY wc.comment_post_ID");
+  */
 
 
   $unread_comment_query_result = $wpdb->get_results($unread_comment_query);

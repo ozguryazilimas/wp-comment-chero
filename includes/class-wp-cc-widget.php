@@ -248,32 +248,32 @@ function comment_chero_post_statistics($postcount, $offset) {
 
 
   /* original query, takes longer to work so removed post status checks
-  $postlistquery = $wpdb->prepare("SELECT comment_post_ID as post_id,
-                                          count(comment_post_ID) as comment_count,
-                                          max(comment_ID) as latest_comment_id
-                                   FROM $wpdb->comments wc
-                                   JOIN $wpdb->posts wp
-                                        ON wc.comment_post_ID = wp.ID
-                                   WHERE
-                                        wp.post_status = 'publish'
-                                        AND
-                                        wc.comment_approved = 1
-                                   GROUP BY comment_post_ID
-                                   ORDER BY max(comment_date_gmt) DESC
-                                   $sql_limit
-                                   $sql_offset");
+  $postlistquery = "SELECT comment_post_ID as post_id,
+                           count(comment_post_ID) as comment_count,
+                           max(comment_ID) as latest_comment_id
+                    FROM $wpdb->comments wc
+                    JOIN $wpdb->posts wp
+                         ON wc.comment_post_ID = wp.ID
+                    WHERE
+                         wp.post_status = 'publish'
+                         AND
+                         wc.comment_approved = 1
+                    GROUP BY comment_post_ID
+                    ORDER BY max(comment_date_gmt) DESC
+                    $sql_limit
+                    $sql_offset";
    */
 
-  $postlistquery = $wpdb->prepare("SELECT comment_post_ID as post_id,
-                                          count(comment_post_ID) as comment_count,
-                                          max(comment_ID) as latest_comment_id
-                                   FROM $wpdb->comments wc
-                                   WHERE
-                                        wc.comment_approved = 1
-                                   GROUP BY comment_post_ID
-                                   ORDER BY max(comment_date_gmt) DESC
-                                   $sql_limit
-                                   $sql_offset");
+  $postlistquery = "SELECT comment_post_ID as post_id,
+                           count(comment_post_ID) as comment_count,
+                           max(comment_ID) as latest_comment_id
+                    FROM $wpdb->comments wc
+                    WHERE
+                         wc.comment_approved = 1
+                    GROUP BY comment_post_ID
+                    ORDER BY max(comment_date_gmt) DESC
+                    $sql_limit
+                    $sql_offset";
 
 
   $transient_key_name = 'commentchero_plqr_' . $sql_limit . '_' . $sql_offset;
@@ -289,44 +289,44 @@ function comment_chero_post_statistics($postcount, $offset) {
 
   $post_sql_array = implode(", ", $post_ids);
 
-  $unread_comment_query = $wpdb->prepare("SELECT count(*) as unread_count,
-                                                 comment_post_ID,
-                                                 min(comment_ID) as first_unread_comment_id
-                                          FROM $wpdb->comments
-                                          WHERE comment_post_ID in ($post_sql_array)
-                                              AND
-                                                  user_id != $user_ID
-                                              AND
-                                                  comment_approved = 1
-                                              AND
-                                                  comment_date_gmt >= IFNULL(
-                                                                        (
-                                                                          SELECT read_time
-                                                                          FROM $comment_chero_db_post_reads
-                                                                          WHERE user_id=$user_ID
-                                                                              AND
-                                                                                post_id=comment_post_ID
-                                                                        ),
-                                                                      0)
-                                          GROUP BY comment_post_ID");
+  $unread_comment_query = "SELECT count(*) as unread_count,
+                                  comment_post_ID,
+                                  min(comment_ID) as first_unread_comment_id
+                           FROM $wpdb->comments
+                           WHERE comment_post_ID in ($post_sql_array)
+                               AND
+                                   user_id != $user_ID
+                               AND
+                                   comment_approved = 1
+                               AND
+                                   comment_date_gmt >= IFNULL(
+                                                         (
+                                                           SELECT read_time
+                                                           FROM $comment_chero_db_post_reads
+                                                           WHERE user_id=$user_ID
+                                                               AND
+                                                                 post_id=comment_post_ID
+                                                         ),
+                                                       0)
+                           GROUP BY comment_post_ID";
 
   /* misses ccpr.read_time null check
-  $unread_comment_query = $wpdb->prepare("SELECT count(*) as unread_count,
-                                                 wc.comment_post_ID,
-                                                 min(wc.comment_ID) as first_unread_comment_id
-                                          FROM $wpdb->comments as wc
-                                          LEFT OUTER JOIN $comment_chero_db_post_reads AS ccpr
-                                            ON ccpr.post_id IN ($post_sql_array)
-                                            AND ccpr.user_id = $user_ID
-                                            AND wc.comment_post_ID = ccpr.post_id
-                                          WHERE wc.comment_post_ID in ($post_sql_array)
-                                              AND
-                                                  wc.user_id != $user_ID
-                                              AND
-                                                  wc.comment_approved = 1
-                                              AND
-                                                  wc.comment_date_gmt >= ccpr.read_time
-                                              GROUP BY wc.comment_post_ID");
+  $unread_comment_query = "SELECT count(*) as unread_count,
+                                  wc.comment_post_ID,
+                                  min(wc.comment_ID) as first_unread_comment_id
+                           FROM $wpdb->comments as wc
+                           LEFT OUTER JOIN $comment_chero_db_post_reads AS ccpr
+                             ON ccpr.post_id IN ($post_sql_array)
+                             AND ccpr.user_id = $user_ID
+                             AND wc.comment_post_ID = ccpr.post_id
+                           WHERE wc.comment_post_ID in ($post_sql_array)
+                               AND
+                                   wc.user_id != $user_ID
+                               AND
+                                   wc.comment_approved = 1
+                               AND
+                                   wc.comment_date_gmt >= ccpr.read_time
+                               GROUP BY wc.comment_post_ID";
   */
 
 
@@ -347,9 +347,9 @@ function comment_chero_post_statistics($postcount, $offset) {
 function comment_chero_post_with_comment_count() {
   global $wpdb;
 
-  $postlistquery = $wpdb->prepare("SELECT COUNT(DISTINCT(comment_post_ID))
-                                   FROM $wpdb->comments
-                                   WHERE comment_approved = 1");
+  $postlistquery = "SELECT COUNT(DISTINCT(comment_post_ID))
+                    FROM $wpdb->comments
+                    WHERE comment_approved = 1";
 
   $postlistquery_result = $wpdb->get_var($postlistquery);
   return $postlistquery_result;
@@ -360,13 +360,12 @@ function mark_all_as_read($user_id) {
 
   $post_time = current_time('mysql', 1);
 
-  $mark_as_read_query_str = "INSERT INTO $comment_chero_db_post_reads (post_id, user_id, read_time)
-                                 SELECT DISTINCT ID, '$user_id', '$post_time'
-                                     FROM $wpdb->posts
-                                     WHERE post_type IN ('page', 'post') AND post_status = 'publish'
-                             ON DUPLICATE KEY UPDATE read_time='$post_time';";
+  $mark_as_read_query = "INSERT INTO $comment_chero_db_post_reads (post_id, user_id, read_time)
+                             SELECT DISTINCT ID, '$user_id', '$post_time'
+                                 FROM $wpdb->posts
+                                 WHERE post_type IN ('page', 'post') AND post_status = 'publish'
+                         ON DUPLICATE KEY UPDATE read_time='$post_time'";
 
-  $mark_as_read_query = $wpdb->prepare($mark_as_read_query_str);
   $success = $wpdb->query($mark_as_read_query);
 }
 

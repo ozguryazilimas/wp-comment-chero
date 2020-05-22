@@ -169,7 +169,7 @@ h3.cc_page_title {
 .commentUnread a {
   color: white !important;
   text-decoration: none;
-  font: bolder 14px/24px Helvetica Neue, Helvetica, Arial
+  font-weight: bolder;
 }
 
 .commentRead {
@@ -197,8 +197,8 @@ h3.cc_page_title {
 
 .commentRead a {
   color: #F56E00 !important;
+  font-weight: bolder;
   text-decoration: none;
-  font: bolder 14px/24px Helvetica Neue, Helvetica, Arial
 }
 
 @-moz-document url-prefix()

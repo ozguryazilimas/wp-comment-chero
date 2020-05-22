@@ -117,16 +117,18 @@ function display_unread_comments($poststats, $show_more) {
     $post_title = $post_title_list[$post_id];
     $post_title_trimmed = $post_title;
 
-    $count = mb_strlen($post_title);
-
     if ($show_more) {
-      $trim_limit = 24;
-    } else {
-      $trim_limit = 65;
-    }
+      $count = mb_strlen($post_title);
 
-    if ($count >= $trim_limit) {
-      $post_title_trimmed = mb_substr($post_title, 0, $trim_limit) . "...";
+      if ($count >= 18) {
+        $post_title_trimmed = mb_substr($post_title, 0, 18) . "...";
+      }
+    } else {
+      $count = mb_strlen($post_title);
+
+      if ($count >= 50) {
+        $post_title_trimmed = mb_substr($post_title, 0, 50) . "...";
+      }
     }
 
     if ($user_ID == '' && $show_recent) {

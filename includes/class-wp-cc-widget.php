@@ -277,6 +277,7 @@ function comment_chero_post_statistics($postcount, $offset) {
 
 
   $transient_key_name = 'commentchero_plqr_' . $sql_limit . '_' . $sql_offset;
+  $transient_key_name = str_replace(' ', '_', $transient_key_name);
 
   if (false === ($postlistquery_result = get_transient($transient_key_name))) {
     $postlistquery_result = $wpdb->get_results($postlistquery);

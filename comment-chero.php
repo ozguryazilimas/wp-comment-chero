@@ -3,7 +3,7 @@
 Plugin Name: Comment Chero
 Plugin URI: http://www.ozguryazilim.com.tr
 Description: This plugin displays unread comments in a sidebar widget and can highlight unread comments in comment lists.
-Version: 1.3.2
+Version: 1.4.0
 Author: Onur Küçük
 Author URI: http://www.delipenguen.net
 License: GPL2
@@ -31,13 +31,12 @@ if (!defined('COMMENT_CHERO_CUSTOM_COMMENT_PAGINATION')) {
   define('COMMENT_CHERO_CUSTOM_COMMENT_PAGINATION', FALSE);
 }
 
-require_once(dirname(__FILE__) . '/includes/class-wp-cc-widget.php');
-$wp_cc = new WP_Comment_Chero_Widget();
+global $wpdb;
+add_action('plugins_loaded', 'comment_chero_init_textdomain');
 
 global $comment_chero_db_version;
 $comment_chero_db_version = "1.0";
 
-global $wpdb;
 global $comment_chero_db_post_reads;
 $comment_chero_db_post_reads = $wpdb->prefix . "comment_chero_post_reads";
 
@@ -45,7 +44,7 @@ $installed_version = get_option('comment_chero_db_version');
 global $installed_version;
 
 //widget
-add_action('widgets_init', 'comment_chero_init');
+add_action('widgets_init', 'comment_chero_init_widgets');
 
 // timestamp functions - activate these 2 calls if you don't call them in your template / theme
 //add_action('get_header', 'comment_chero_get_time');
@@ -150,10 +149,16 @@ function comment_chero_unread_class($classes = array()) {
   return $classes;
 }
 
-function comment_chero_init() {
-  // load_plugin_textdomain('comment-chero', false, dirname(plugin_basename(__FILE__)) . '/languages' );
-  load_plugin_textdomain('comment-chero', false, basename(dirname(__FILE__)) . '/languages' );
+function comment_chero_init_widgets() {
+  global $wp_cc;
+  require_once(dirname(__FILE__) . '/includes/class-wp-cc-widget.php');
+  $wp_cc = new WP_Comment_Chero_Widget();
   register_widget('WP_Comment_Chero_Widget');
+}
+
+function comment_chero_init_textdomain() {
+  // load_plugin_textdomain('comment-chero', false, dirname(plugin_basename(__FILE__)) . '/languages');
+  load_plugin_textdomain('comment-chero', false, basename(dirname(__FILE__)) . '/languages');
 }
 
 add_action('template_redirect', 'cc_custom_page_template_redirect');

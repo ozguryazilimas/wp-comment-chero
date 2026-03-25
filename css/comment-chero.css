@@ -1,7 +1,13 @@
 
-.comment_chero_comment_unread {
+body:not(dark-mode) .comment_chero_comment_unread {
   // background-color: #E9FAFF !important;
   background-color: #CBEAE0 !important;
+}
+
+body.dark-mode .comment_chero_comment_unread {
+  // background-color: #033827!important;
+  background-color: #213d34!important;
+  color: #000;
 }
 
 .comment_chero_widget_unread {
@@ -56,10 +62,11 @@ h3.cc_page_title {
   color: #FFF;
 }
 
+
 #cc_page_numbers ul,
 #cc_page_numbers li,
 #cc_page_numbers a {
-  background: white;
+  // background: white;
   padding: 0;
   margin: 0;
   border: none;
@@ -322,5 +329,4 @@ a#recentcomments_more_button:hover {
   background: -ms-linear-gradient(top, #D05A00 31%, #F56E00 100%);
   background: linear-gradient(top, #D05A00 31%, #F56E00 100%);
 }
-
 

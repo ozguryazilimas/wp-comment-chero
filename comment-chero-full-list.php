@@ -41,7 +41,7 @@ $output .= '<div id="cc_page_numbers"><ul>';
 $output .= '<li><a href="?paged=1">' . __('First page', 'comment-chero') . '</li>';
 
 if ($current_page > 1) {
-  $output .= '<li><a href="?paged=' . ($current_page - 1) . '"><<</a></li>';
+  $output .= '<li><a class="comment_chero_page_link" href="?paged=' . ($current_page - 1) . '"><<</a></li>';
 }
 
 for ($i = $current_page - $pagination_range; $i <= $current_page + $pagination_range; $i++) {
@@ -49,7 +49,7 @@ for ($i = $current_page - $pagination_range; $i <= $current_page + $pagination_r
     if ($current_page == $i) {
       $output .= '<li class="active_page"><a>' . $i . '</a></li>';
     } else {
-      $output .= '<li><a href="?paged=' . $i . '">' . $i . '</a></li>';
+      $output .= '<li><a class="comment_chero_page_link" href="?paged=' . $i . '">' . $i . '</a></li>';
     }
   }
 }

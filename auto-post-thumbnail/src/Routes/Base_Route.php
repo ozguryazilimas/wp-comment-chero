@@ -42,15 +42,6 @@ abstract class Base_Route {
 	}
 
 	/**
-	 * Check if the user has permission to view the log.
-	 *
-	 * @return bool
-	 */
-	final public function logged_in_permissions_check() {
-		return is_user_logged_in();
-	}
-
-	/**
 	 * Check if the user has permission to manage options.
 	 *
 	 * @return bool

@@ -39,7 +39,7 @@ class Log extends Base_Route {
 				'route'               => 'get',
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => [ $this, 'get_log' ],
-				'permission_callback' => [ $this, 'logged_in_permissions_check' ],
+				'permission_callback' => [ $this, 'manage_options_permissions_check' ],
 			],
 			[
 				'route'               => 'delete',
@@ -51,7 +51,7 @@ class Log extends Base_Route {
 				'route'               => 'export',
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => [ $this, 'export_logs' ],
-				'permission_callback' => [ $this, 'logged_in_permissions_check' ],
+				'permission_callback' => [ $this, 'manage_options_permissions_check' ],
 			],
 			[
 				'route'               => 'generation',

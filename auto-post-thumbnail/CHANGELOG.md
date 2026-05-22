@@ -1,3 +1,8 @@
+#####   Version 5.0.4 (2026-05-22)
+
+- Enhanced security
+- Added fix to render root element only when image containers exist
+
 #####   Version 5.0.3 (2026-05-15)
 
 - Improved compatibility with Woody plugin

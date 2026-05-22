@@ -1,4 +1,6 @@
 <?php
+defined( 'ABSPATH' ) || exit;
+
 /**
  * User capabilities View class to output HTML with capabilities assigne to the user
  *

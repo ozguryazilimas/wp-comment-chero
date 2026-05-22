@@ -1,4 +1,5 @@
 <?php
+defined( 'ABSPATH' ) || exit;
 
 /* 
  * User Role Editor Settings page on Screen Help class

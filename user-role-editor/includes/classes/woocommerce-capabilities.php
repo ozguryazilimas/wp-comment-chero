@@ -1,4 +1,6 @@
 <?php
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Class to provide the list of WooCommerce plugin user capabilities
  *

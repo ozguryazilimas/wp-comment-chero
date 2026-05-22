@@ -1,11 +1,13 @@
 <?php
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Role capabilities editor class
  *
  * @package    User-Role-Editor
  * @subpackage Editor
  * @author     Vladimir Garagulya <support@role-editor.com>
- * @copyright  Copyright (c) 2010 - 2021, Vladimir Garagulia
+ * @copyright  Copyright (c) 2010 - 2026, Vladimir Garagulia
  **/
 class URE_Editor {
 
@@ -173,8 +175,7 @@ class URE_Editor {
 
     protected function valid_nonce() {
         
-        if ( empty( $_POST['ure_nonce'] ) || !wp_verify_nonce( $_POST['ure_nonce'], 'user-role-editor' ) ) {
-            echo '<h3>Wrong or older request (invalid nonce value). Action prohibited.</h3>';
+        if ( empty( $_POST['ure_nonce'] ) || !wp_verify_nonce( $_POST['ure_nonce'], 'user-role-editor' ) ) {            
             return false;
         }
         
@@ -470,7 +471,7 @@ class URE_Editor {
         if ( empty( $value ) ) {
             return $this->roles;
         }
-        $blog_roles = unserialize( $value );
+        $blog_roles = maybe_unserialize( $value );
         
         $roles = $this->roles;
         foreach( $leave_roles as $role_id ) {
@@ -531,7 +532,7 @@ class URE_Editor {
                 SET option_value='$roles'
                 WHERE option_name='$option_name'
                 LIMIT 1";
-            $wpdb->query( $query );
+            $wpdb->query( $wpdb->prepare( $query ) );
             if ( $wpdb->last_error ) {
                 return false;
             }
@@ -944,11 +945,11 @@ class URE_Editor {
      */
     public function reset_user_roles() {
         
-        if (!current_user_can('ure_reset_roles')) {            
-            esc_html_e('Insufficient permissions to work with User Role Editor','user-role-editor');
+        if ( !current_user_can('ure_reset_roles') ) {            
             $debug = ( defined('WP_PHP_UNIT_TEST') && WP_PHP_UNIT_TEST==true );
             if ( !$debug ) {
-                die;
+                $message = __('Insufficient permissions to work with User Role Editor','user-role-editor');
+                wp_die( $message );
             } else {
                 return false;
             }
@@ -1374,7 +1375,7 @@ class URE_Editor {
             if ( defined('WP_DEBUG') && WP_DEBUG ) {
                 return false;
             } else {
-                exit;
+                wp_die( __('Wrong or older request (invalid nonce value). Action prohibited.', 'user-role-editor') );
             }
         }
         
@@ -1382,7 +1383,7 @@ class URE_Editor {
         switch ( $action ) {
             case 'reset': {
                 $this->reset_user_roles();
-                exit;            
+                wp_die();            
             }
             case 'change-default-role': {
                 $this->notification = $this->change_default_role();

@@ -1,4 +1,6 @@
 <?php
+defined( 'ABSPATH' ) || exit;
+
 /*
  * Main class of User Role Editor WordPress plugin
  * Author: Vladimir Garagulya

@@ -1,4 +1,6 @@
 <?php
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Project: User Role Editor WordPress plugin
  * Load related files

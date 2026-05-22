@@ -1,4 +1,6 @@
 <?php
+defined( 'ABSPATH' ) || exit;
+
 /*
  * Project: User Role Editor WordPress plugin 
  * Class for Assigning to a user multiple roles
@@ -280,7 +282,8 @@ class URE_User_Other_Roles {
     
     private function is_user_profile_extention_allowed() {
         // Check if we are not at the network admin center
-        $result = stripos($_SERVER['REQUEST_URI'], 'network/user-edit.php') == false;
+        $request_uri = sanitize_url( $_SERVER['REQUEST_URI'] );
+        $result = stripos( $request_uri, 'network/user-edit.php') === false;
         
         return $result;
     }

@@ -41,7 +41,7 @@ function ure_init_controls(context) {
 function ure_update_linked_controls_other_roles(context) {
     var data_value = jQuery('#ure_select_other_roles'+ context).multipleSelect('getSelects');
     var to_save = '';
-    for (i=0; i<data_value.length; i++) {
+    for ( let i=0; i<data_value.length; i++ ) {
         if (to_save!=='') {
             to_save = to_save + ', ';
         }
@@ -51,7 +51,7 @@ function ure_update_linked_controls_other_roles(context) {
     
     var data_text = jQuery('#ure_select_other_roles'+ context).multipleSelect('getSelects', 'text');
     var to_show = '';
-    for (i=0; i<data_text.length; i++) {        
+    for ( let i=0; i<data_text.length; i++) {
         if (to_show!=='') {
             to_show = to_show + ', ';
         }

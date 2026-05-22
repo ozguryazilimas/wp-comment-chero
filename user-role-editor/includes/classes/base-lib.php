@@ -1,4 +1,5 @@
 <?php
+defined( 'ABSPATH' ) || exit;
 
 /*
  * General stuff for usage at WordPress plugins
@@ -52,7 +53,7 @@ class URE_Base_Lib {
     public function get( $property_name ) {
         
         if ( !property_exists( $this, $property_name ) ) {
-            syslog( LOG_ERR, 'Lib class does not have such property '. $property_name );
+            error_log('Lib class does not have such property '. $property_name );
             return null;
         }
         
@@ -64,7 +65,7 @@ class URE_Base_Lib {
     public function set( $property_name, $property_value ) {
         
         if ( !property_exists( $this, $property_name ) ) {
-            syslog( LOG_ERR, 'Lib class does not have such property '. $property_name );
+            error_log('Lib class does not have such property '. $property_name );
         }
         
         $this->$property_name = $property_value;
@@ -112,24 +113,12 @@ class URE_Base_Lib {
     }
     // end of show_message()
     
-
-    /*
-     * Replacer for FILTER_SANITIZE_STRING deprecated with PHP 8.1
-     */
-    public static function filter_string_polyfill( $string ) {
-        
-        $str = preg_replace('/\x00|<[^>]*>?/', '', $string);
-        return str_replace(["'", '"'], ['&#39;', '&#34;'], $str);
-        
-    }
-    // end of filter_string_polyfill()
     
     public static function filter_string_var( $raw_str ) {
+                
+        $value = sanitize_text_field( $raw_str );
         
-        $value1 = filter_var( $raw_str, FILTER_UNSAFE_RAW );
-        $value2 = self::filter_string_polyfill( $value1 );
-        
-        return $value2;
+        return $value;
     }
     // end of filter_string_var()
     
@@ -363,7 +352,7 @@ class URE_Base_Lib {
     }
     // end of get_blog_ids()
     
-    
+        
     /**
      * Prevent cloning of the instance of the *Singleton* instance.
      *

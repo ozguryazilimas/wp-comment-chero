@@ -1,4 +1,6 @@
 <?php
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Class to provide the routine for the own User Role Editor user capabilities list
  *

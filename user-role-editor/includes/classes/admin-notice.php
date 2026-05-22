@@ -1,4 +1,5 @@
 <?php
+defined( 'ABSPATH' ) || exit;
 
 /*
  * admin_notices action support for User Role Editor plugin

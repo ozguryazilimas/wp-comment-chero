@@ -1,4 +1,6 @@
 <?php
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Project: User Role Editor plugin
  * Author: Vladimir Garagulya
@@ -65,6 +67,11 @@ class URE_Grant_Roles {
     
     public static function add_role() {
         
+        $answer = URE_Lib::check_nonce();
+        if ( $answer!==TRUE ) {
+            return $answer;
+        }
+
         if ( !current_user_can('promote_users') ) {            
              $answer = array('result'=>'error', 'message'=>esc_html__('Not enough permissions', 'user-role-editor') );
              return $answer;
@@ -146,6 +153,11 @@ class URE_Grant_Roles {
     
     public static function revoke_role() {
         
+        $answer = URE_Lib::check_nonce();
+        if ( $answer!==TRUE ) {
+            return $answer;
+        }
+
         if ( !current_user_can('promote_users') ) {            
              $answer = array('result'=>'error', 'message'=>esc_html__('Not enough permissions', 'user-role-editor') );
              return $answer;
@@ -197,8 +209,13 @@ class URE_Grant_Roles {
 
 
     private function update_roles() {        
-                
+                        
         if ( empty( $_REQUEST['users'] ) ) {
+            return;
+        }
+
+        $answer = URE_Lib::check_nonce();
+        if ( $answer!==TRUE ) {
             return;
         }
         
@@ -323,33 +340,38 @@ class URE_Grant_Roles {
     
     public static function grant_roles() {
 
+        $answer = URE_Lib::check_nonce();
+        if ( $answer!==TRUE ) {
+            return $answer;
+        }
+
         if ( !current_user_can('promote_users') ) {
             $answer = array('result'=>'error', 'message'=>esc_html__('Not enough permissions', 'user-role-editor'));
             return $answer;
         }
                 
-        $users =  isset( $_POST['users'] ) ? $_POST['users'] : false;
+        $users =  isset( $_POST['users'] ) ? array_map( 'sanitize_key', $_POST['users'] ) : false;
         if ( !self::validate_users( $users ) ) {
             $answer = array('result'=>'error', 'message'=>esc_html__('Can not edit user or invalid data at the users list', 'user-role-editor') );
             return $answer;
         }
 
 // Primary role       
-        $primary_role = $_POST['primary_role'];        
+        $primary_role = isset( $_POST['primary_role'] ) ? sanitize_key( $_POST['primary_role'] ) : '';
         if (!empty($primary_role) && ($primary_role!==self::NO_ROLE_FOR_THIS_SITE) && 
             !self::validate_roles(array($primary_role=>$primary_role))) {
             $answer = array('result'=>'error', 'message'=>esc_html__('Invalid primary role', 'user-role-editor'));
             return $answer;
         }
                 
-        if (self::is_select_primary_role($primary_role)) {            
-            foreach ($users as $user_id) {                
-                self::grant_primary_role_to_user($user_id, $primary_role);
+        if ( self::is_select_primary_role( $primary_role ) ) {            
+            foreach ( $users as $user_id ) {                
+                self::grant_primary_role_to_user( $user_id, $primary_role );
             }            
         }
         
 // Other roles        
-        $other_roles = isset($_POST['other_roles']) ? $_POST['other_roles'] : null;
+        $other_roles = isset($_POST['other_roles']) ? array_map( 'sanitize_key', $_POST['other_roles'] ) : null;
         if (!empty($other_roles) && !self::validate_roles($other_roles)) {
             $answer = array('result'=>'error', 'message'=>esc_html__('Invalid data at the other roles list', 'user-role-editor'));
             return $answer;
@@ -404,7 +426,7 @@ class URE_Grant_Roles {
 <?php            
         // print the full list of roles with the primary one selected.
         wp_dropdown_roles( $primary_role );
-        echo '<option value="'. self::NO_ROLE_FOR_THIS_SITE .'">' . esc_html__('&mdash; No role for this site &mdash;', 'user-role-editor') . '</option>'. PHP_EOL;
+        echo '<option value="'. esc_attr( self::NO_ROLE_FOR_THIS_SITE ) .'">' . esc_html__('&mdash; No role for this site &mdash;', 'user-role-editor') . '</option>'. PHP_EOL;
 ?>        
         </select>
         <hr/>
@@ -434,9 +456,9 @@ class URE_Grant_Roles {
             }
             $selected = ( in_array( $role_id, $other_roles ) ) ? 'checked="checked"': '';
             $role_name = $use_pll ? pll__( $role['name'] ) : $role['name'];
-            echo '<label for="wp_role_' . $role_id . '"><input type="checkbox"	id="wp_role_' . $role_id .
-                 '" name="ure_roles[]" value="' . $role_id . '" '. $selected .'/>&nbsp;' .
-            esc_html( $role_name ) .' ('. $role_id .')</label><br />'. PHP_EOL;
+            echo '<label for="wp_role_' . esc_attr( $role_id ) . '"><input type="checkbox"	id="wp_role_' . esc_attr( $role_id ) .
+                 '" name="ure_roles[]" value="' . esc_attr( $role_id ) . '" '. $selected .'/>&nbsp;' .
+            esc_html( $role_name ) .' ('. esc_html( $role_id ).')</label><br />'. PHP_EOL;
         }
 ?>
         </div>

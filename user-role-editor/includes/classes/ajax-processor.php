@@ -1,5 +1,7 @@
 <?php
 
+defined( 'ABSPATH' ) || exit;
+
 /*
  * User Role Editor WordPress plugin
  * Author: Vladimir Garagulya
@@ -59,7 +61,7 @@ class URE_Ajax_Processor {
     
     protected function valid_nonce() {
         
-        if ( !isset( $_REQUEST['wp_nonce'] ) || !wp_verify_nonce( $_REQUEST['wp_nonce'], 'user-role-editor' ) ) {
+        if ( !isset( $_POST['wp_nonce'] ) || !wp_verify_nonce( $_POST['wp_nonce'], 'user-role-editor' ) ) {
             echo wp_json_encode( array('result'=>'error', 'message'=>'URE: Wrong or expired request') );
             return false;
         } else {

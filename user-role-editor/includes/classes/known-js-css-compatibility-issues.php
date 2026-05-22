@@ -1,4 +1,5 @@
 <?php
+defined( 'ABSPATH' ) || exit;
 
 class URE_Known_JS_CSS_Compatibility_Issues {
     

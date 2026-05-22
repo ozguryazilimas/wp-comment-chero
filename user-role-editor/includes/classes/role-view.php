@@ -1,4 +1,6 @@
 <?php
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Role capabilities View class to output HTML with role capabilities
  *
@@ -167,7 +169,7 @@ class URE_Role_View extends URE_View {
     // end of caps_to_remove_html()
 
     
-    public function role_edit_prepare_html( $select_width=200 ) {
+    public function role_edit_prepare_html( $select_width=250 ) {
         
         $this->role_select_copy_prepare_html( $select_width );
         $multisite = $this->lib->get( 'multisite' );
@@ -187,8 +189,8 @@ class URE_Role_View extends URE_View {
 ?>        
 <script language="javascript" type="text/javascript">
 
-  var ure_current_role = '<?php echo $current_role; ?>';
-  var ure_current_role_name  = "<?php echo $current_role_name; ?>";
+  var ure_current_role = <?php echo json_encode( $current_role ); ?>;
+  var ure_current_role_name  = <?php echo json_encode( $current_role_name ); ?>;
 
 </script>
 

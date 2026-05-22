@@ -1,10 +1,12 @@
 CHANGES LOG (full version).
 ===========================
 
-= [4.64.5] 16.04.2025 =
-* Update: Marked as compatible with WordPress 6.8
-* Update: Minor changes were applied to the CSS/JS loading code to minimize "Plugin Check" tool warnings.
-* Plugin headers were extended at role-editor.php and readme.txt files according to wordpress.org recommendations.
+= [4.65] 21.05.2026 =
+* Update: Marked as compatible with WordPress 7.0
+* Update: Pages markup are modified to correspond WordPress 7.0 CSS changes.
+* Update: "defined('ABSPATH')" guard was added to all PHP files to exclude PHP files direct execution.
+* Update: sanitize_text_field(), sanitize_key(), sanitize_url() functions are used to secure user input before processing.
+* Update: _nonce field checking was added before data update in addition to test made already on the higher level.
 
 = [4.64.4] 15.12.2024 =
 * Security Fix: Users - "Add Role", "Revoke Role" buttons: Cross-Site request forgery to privilege escalation was possible due to missed nonce validation. This issue was discovered and responsibly reported by vgo0.

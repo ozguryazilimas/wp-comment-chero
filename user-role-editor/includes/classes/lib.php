@@ -1,4 +1,6 @@
 <?php
+defined( 'ABSPATH' ) || exit;
+
 /*
  * Stuff specific for User Role Editor WordPress plugin
  * Author: Vladimir Garagulya
@@ -516,7 +518,8 @@ class URE_Lib extends URE_Base_Lib {
         $admin_url = admin_url( $path );   
         $parsed = wp_parse_url( $admin_url );
         $full_path = $parsed['path'];
-        if ( stripos( $_SERVER['REQUEST_URI'], $full_path )===false ) {
+        $request_uri = sanitize_url( $_SERVER['REQUEST_URI'] );
+        if ( stripos( $request_uri, $full_path )===false ) {
             $result = false;
         }
         
@@ -570,6 +573,17 @@ class URE_Lib extends URE_Base_Lib {
         return $taxonomies;
     }
     // end of get_custom_taxonomies()        
+
+    
+    public static function check_nonce() {
+        if ( !isset( $_POST['wp_nonce'] ) || !wp_verify_nonce( $_POST['wp_nonce'], 'user-role-editor' ) ) {
+            $error_message = esc_html__('URE: Wrong or expired request', 'user-role-editor');
+            return array('result'=>'error', 'message'=> $error_message);
+        } else {
+            return TRUE;
+        }
+    }
+    // end of check_nonce()
     
 }
 // end of URE_Lib class

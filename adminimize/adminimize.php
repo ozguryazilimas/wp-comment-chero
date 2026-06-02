@@ -7,15 +7,15 @@
  * Description: Visually compresses the administrative meta-boxes so that more admin page content can be initially seen. The plugin that lets you hide 'unnecessary' items from the WordPress administration menu, for all roles of your install. You can also hide post meta controls on the edit-area to simplify the interface. It is possible to simplify the admin in different for all roles.
  * Author:      WP Media
  * Author URI:  https://wp-media.me
- * Version:     1.11.11
+ * Version:     1.11.12
  * License:     GPLv2+
  *
  * Php Version 5.6
  *
  * @package WordPress
- * @author  Frank Bültge <frank@bueltge.de>
+ * @author  WP Media <contact@wp-media.me>
  * @license http://opensource.org/licenses/gpl-license.php GNU Public License
- * @version 2024-03-15
+ * @version 2024-05-03
  */
 
 /**
@@ -915,7 +915,12 @@ function _mw_adminimize_set_metabox_cp_option() {
 		$post_id = (int) $_POST[ 'post_ID' ];
 	}
 
-	$current_post_type = $GLOBALS[ 'post_type' ];
+	if ( ! isset( $GLOBALS[ 'post_type' ] ) || empty( $GLOBALS[ 'post_type' ] ) ) {
+		$current_post_type = get_post_type();
+	} else  {
+		$current_post_type = $GLOBALS[ 'post_type' ];
+	}
+
 	if ( ! isset( $current_post_type ) ) {
 		$current_post_type = get_post_type( $post_id );
 	}

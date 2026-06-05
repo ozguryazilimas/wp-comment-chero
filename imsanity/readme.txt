@@ -2,8 +2,8 @@
 Contributors: nosilver4u
 Donate link: https://ewww.io/donate/
 Tags: image, scale, resize, space saver, quality
-Tested up to: 6.9
-Stable tag: 2.9.0
+Tested up to: 7.0
+Stable tag: 2.9.1
 License: GPLv3
 
 Automatically resizes huge image uploads. Are contributors uploading huge photos? Tired of manually resizing your images? Imsanity to the rescue!
@@ -105,6 +105,12 @@ Imsanity is short for "Image Sanity Limit". A sanity limit is a term for limitin
 Questions may be posted on the support forum at https://wordpress.org/support/plugin/imsanity but if you don't get an answer, please use https://ewww.io/contact-us/.
 
 == Changelog ==
+
+= 2.9.1 =
+*Release Date - June 4, 2026*
+
+* changed: make the default settings filterable by other plugins/themes
+* fixed: undefined properties for AVIF/WebP quality on multi-site installations
 
 = 2.9.0 =
 *Release Date - February 10, 2026*

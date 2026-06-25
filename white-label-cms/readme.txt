@@ -9,7 +9,7 @@ Author:  Video User Manuals
 Requires at least: 3.3 
 Requires PHP: 5.4
 Tested up to: 7.0
-Stable tag: 2.7.12
+Stable tag: 2.7.13
 
 Customise dashboard panels and branding, hide menus plus lots more.
 
@@ -66,8 +66,8 @@ There is so much that you can do with White Label CMS, but we want the experienc
 
 == Changelog ==
 
-= 2.7.12 =
-* Security fix reported by @asaini
+= 2.7.13 =
+* Security Patch: Props to Tal Kantor (Wordfence) for the responsible disclosure.
 
 == Frequently Asked Questions ==
 = Who is this plugin for?=

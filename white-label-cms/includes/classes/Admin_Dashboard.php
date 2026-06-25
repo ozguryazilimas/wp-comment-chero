@@ -427,13 +427,13 @@ class WLCMS_Admin_Dashboard extends WLCMS_Previewable
         $url = $this->get_settings('rss_feed_address');
 
         if ($introduction) {
-            echo '<p>' . $introduction . '</p>';
+            echo '<p>' . wp_kses_post($introduction) . '</p>';
         }
 
         $rss = fetch_feed($url);
 
         if ($error = is_wp_error($rss)) {
-            echo '<div class="warning-text">' . $rss->get_error_message() . '</div>';
+            echo '<div class="warning-text">' . esc_html($rss->get_error_message()) . '</div>';
 
             wlcms_set_css(
                 '.index-php .warning-text',
@@ -462,7 +462,7 @@ class WLCMS_Admin_Dashboard extends WLCMS_Previewable
             );
 
             if ($show_post_content) :
-                $rss_list .= preg_replace('/<img[^>]+./', '', $item->get_content());
+                $rss_list .= wp_kses_post($item->get_content());
 
             endif;
             $rss_list .= '</li>';

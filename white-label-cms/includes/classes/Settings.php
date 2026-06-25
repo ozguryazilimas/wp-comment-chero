@@ -225,6 +225,15 @@ class WLCMS_Settings
             exit;
         }
 
+        // Validate the JSON schema: only accept keys the plugin actually
+        // recognises so arbitrary options cannot be injected via import.
+        $allowed_keys = array_merge($this->keys(), array('version'));
+        $settings = array_intersect_key($settings, array_flip($allowed_keys));
+
+        // Sanitize imported values the same way the regular save path does
+        // (see store()), so untrusted JSON cannot smuggle in unescaped markup.
+        $settings = wlcms_kses($settings);
+
         $this->setAll($settings);
         $this->save();
 

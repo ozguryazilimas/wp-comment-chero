@@ -2,12 +2,10 @@
 if (!function_exists('wlcms_field_setting')) {
     function wlcms_field_setting($key = "", $default = false)
     {
-        if (isset($_POST)) {
-            if (isset($_POST['wlcms'][$key])) {
-                return $_POST['wlcms'][$key];
-            }
-        }
-
+        // ponytail: no $_POST['wlcms'] shadow here. It let unauthenticated POSTs
+        // reflect arbitrary values into every admin render (reflected XSS). Live
+        // preview persists nonce + manage_options-gated values via
+        // WLCMS_Previewable::store_preview() and reads them back from the DB.
         return wlcms_db_field_setting($key, $default);
     }
 }
@@ -164,7 +162,7 @@ if (!function_exists('wlcms_select_roles')) {
             if (is_array($selected) && in_array($key, $selected)) {
                 $selected_val = ' selected';
             }
-            $return .= '<option value="' . $key . '" ' . $selected_val . '>' . $title . '</option>';
+            $return .= '<option value="' . esc_attr($key) . '" ' . $selected_val . '>' . esc_html($title) . '</option>';
         }
         $return .= '</select>';
 
@@ -203,7 +201,7 @@ if (!function_exists('wlcms_select_pages')) {
                 if ($selected == $key) {
                     $selected_val = ' selected';
                 }
-                $return .= '<option value="' . $key . '" ' . $selected_val . '>' . $title . '</option>';
+                $return .= '<option value="' . esc_attr($key) . '" ' . $selected_val . '>' . esc_html($title) . '</option>';
             }
         endif;
         $return .= '</select>';

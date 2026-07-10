@@ -341,6 +341,9 @@ class WLCMS_Admin_Dashboard extends WLCMS_Previewable
 
     private function has_current_user_role($roles)
     {
+        if (!is_array($roles)) {
+            return false;
+        }
 
         $user_role = wlcms_current_user_roles();
 

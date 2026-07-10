@@ -36,6 +36,13 @@ class WLCMS_Previewable
 
         check_ajax_referer('wlcms_ajax_nonce');
 
+        // A valid nonce proves intent, not authorization. Preview writes touch
+        // the shared wlcms_options row, so require the same capability the
+        // settings screen does.
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(null, 403);
+        }
+
         $settings = wlcms()->Settings();
 
         foreach ($this->settings() as $key => $default) {

@@ -15,7 +15,7 @@ class Welcome_Messages_Html
 
         wp_add_dashboard_widget(
             'custom_vum_widget' . $key,
-            isset($this->settings['title']) ? $this->settings['title'] : '&nbsp;',
+            isset($this->settings['title']) ? esc_html($this->settings['title']) : '&nbsp;',
             array($this, 'welcome_description'),
             null,
             array('desc' => $this->template())

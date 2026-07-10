@@ -1,5 +1,8 @@
 == Changelog ==
 
+= 2.7.13 =
+* Security Patch: Props to Tal Kantor (Wordfence) for the responsible disclosure.
+
 = 2.7.12 =
 * Security fix reported by @asaini
 

@@ -142,8 +142,11 @@ class WLCMS_Admin_Settings
     }
     public function search_initial_pages()
     {
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(null, 403);
+        }
 
-        $ids = [(int) $_GET['q']];
+        $ids = [isset($_GET['q']) ? (int) $_GET['q'] : 0];
         $data = wlcms_get_pages_by_ids($ids);
 
         wp_send_json([
@@ -154,6 +157,9 @@ class WLCMS_Admin_Settings
 
     public function search_pages()
     {
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(null, 403);
+        }
 
         $q = isset($_GET['q']) ? $_GET['q'] : '';
         wp_send_json([

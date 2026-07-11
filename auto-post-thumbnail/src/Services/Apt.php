@@ -321,6 +321,13 @@ class Apt {
 		if ( wp_make_link_relative( $image_url ) === $image_url ) {
 			$image_url = home_url( $image_url );
 		}
+
+		if ( ! $this->is_safe_remote_url( $image_url ) ) {
+			Logger::instance()->debug( "Rejected unsafe image URL ({$image_url})." );
+
+			return null;
+		}
+
 		$image_title = $title;
 
 		// Get the file name — use slug + hash for video thumbnails (matching generated images),
@@ -374,21 +381,8 @@ class Apt {
 			return null;
 		}
 
-		// Move the file to the uploads dir
-		if ( ! ini_get( 'allow_url_fopen' ) ) {
-			$file_data = $this->get_file_contents( $image_url );
-		} else {
-			$arr_context_options = [
-				'ssl' => [
-					'verify_peer'      => false,
-					'verify_peer_name' => false,
-				],
-			];
-
-			// @phpcs:disable
-			$file_data = file_get_contents( $image_url, false, stream_context_create( $arr_context_options ) );
-			// @phpcs:enable
-		}
+		// Move the file to the uploads dir.
+		$file_data = $this->get_file_contents( $image_url );
 
 		if ( ! $file_data ) {
 			Logger::instance()->debug( "Failed to download the file from the link {$image_url}" );
@@ -402,7 +396,9 @@ class Apt {
 
 		$file_mime = mime_content_type( $new_file );
 
-		if ( ! in_array( $wp_filetype['type'], $allow_mime_types, true ) ) {
+		if ( ! $file_mime || ! in_array( $file_mime, $allow_mime_types, true ) ) {
+			Logger::instance()->debug( "Downloaded file from {$image_url} is not a valid image (detected MIME: {$file_mime})." );
+
 			// @phpcs:disable
 			@unlink( $new_file );
 			// @phpcs:enable
@@ -448,18 +444,29 @@ class Apt {
 	}
 
 	/**
-	 * Function to fetch the contents of URL using HTTP API in absence of allow_url_fopen.
+	 * Function to fetch the contents of a remote URL.
 	 *
 	 * @param string $url The URL to fetch.
 	 *
 	 * @return string|false
 	 */
 	private function get_file_contents( $url ) {
-		$response = wp_remote_get( $url );
-		$contents = '';
-		if ( wp_remote_retrieve_response_code( $response ) === 200 ) {
-			$contents = wp_remote_retrieve_body( $response );
+		if ( ! $this->is_safe_remote_url( $url ) ) {
+			return false;
 		}
+
+		$response = wp_safe_remote_get(
+			$url,
+			[
+				'timeout' => 15,
+			]
+		);
+
+		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
+			return false;
+		}
+
+		$contents = wp_remote_retrieve_body( $response );
 
 		return $contents ? $contents : false;
 	}
@@ -610,5 +617,25 @@ class Apt {
 		}
 
 		return new WP_Error( 'apt_attachment', 'File not exists (insert_attachment)' );
+	}
+
+	/**
+	 * Check if the URL is safe to fetch.
+	 *
+	 * @param string $url The URL to check.
+	 *
+	 * @return bool
+	 */
+	private function is_safe_remote_url( $url ) {
+		if ( ! is_string( $url ) || '' === trim( $url ) ) {
+			return false;
+		}
+
+		$url = wp_http_validate_url( $url );
+		if ( ! $url ) {
+			return false;
+		}
+
+		return true;
 	}
 }

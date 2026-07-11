@@ -1,3 +1,7 @@
+#####   Version 5.0.5 (2026-07-10)
+
+- Enhanced security
+
 #####   Version 5.0.4 (2026-05-22)
 
 - Enhanced security

@@ -308,6 +308,12 @@ fb_'.$key.'_sections.each(function(){jQuery(this).find(fb_'.$key.'_select).attr(
 			$bind_parameters['loop'] = false;
 		}
 
+		// FancyBox 2 expects autoSize for iframe sizing.
+		if ( 'PDF' === $key ) {
+			unset( $bind_parameters['autoDimensions'] );
+			$bind_parameters['autoSize'] = false;
+		}
+
 		$fb_handler .= PHP_EOL . 'jQuery(\'' . $value['options']['tag']['default'] . '\').fancybox(jQuery.extend(true,{},fb_opts,' . \json_encode( $bind_parameters, JSON_NUMERIC_CHECK ) . '));';
 	}
 

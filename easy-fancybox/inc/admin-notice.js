@@ -1,5 +1,4 @@
 (function($) {
-	return;
 	$( document ).ready( function() {
 		var container = $('.efb-review-notice');
 		if ( container.length ) {

@@ -13,8 +13,8 @@
  * Plugin Name: Relevanssi
  * Plugin URI: https://www.relevanssi.com/
  * Description: This plugin replaces WordPress search with a relevance-sorting search.
- * Version: 4.27.1
- * Author: comesio Eurodata GmbH
+ * Version: 4.27.2
+ * Author: eurodata comesio solutions GmbH
  * Author URI: https://www.relevanssi.com/
  * Text Domain: relevanssi
  * License: GPLv2 or later
@@ -22,7 +22,7 @@
  */
 
 /**
- * Copyright 2026 comesio Eurodata GmbH  (email: hello@relevanssi.com)
+ * Copyright 2026 eurodata comesio solutions GmbH  (email: hello@relevanssi.com)
  * This file is part of Relevanssi, a search plugin for WordPress.
  *
  * Relevanssi is free software: you can redistribute it and/or modify
@@ -69,7 +69,7 @@ $relevanssi_variables['database_version']                      = 9;
 $relevanssi_variables['file']                                  = __FILE__;
 $relevanssi_variables['plugin_dir']                            = plugin_dir_path( __FILE__ );
 $relevanssi_variables['plugin_basename']                       = plugin_basename( __FILE__ );
-$relevanssi_variables['plugin_version']                        = '4.27.1';
+$relevanssi_variables['plugin_version']                        = '4.27.2';
 
 require_once 'lib/admin-ajax.php';
 require_once 'lib/common.php';

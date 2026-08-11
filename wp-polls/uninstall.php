@@ -1,85 +1,47 @@
 <?php
-/*
- * Uninstall plugin
+/**
+ * Uninstall WP-Polls: drops the three poll tables and deletes every option row.
+ *
+ * The work itself is WP_Polls_Install::uninstall_site(); this file is the entry
+ * point WordPress calls and the loop over sites on a network.
+ *
+ * @package WP-Polls
  */
-if ( !defined( 'WP_UNINSTALL_PLUGIN' ) )
-	exit ();
 
-$option_names = array(
-	'poll_template_voteheader'
-	, 'poll_template_votebody'
-	, 'poll_template_votefooter'
-	, 'poll_template_resultheader'
-	, 'poll_template_resultbody'
-	, 'poll_template_resultbody2'
-	, 'poll_template_resultfooter'
-	, 'poll_template_resultfooter2'
-	, 'poll_template_disable'
-	, 'poll_template_error'
-	, 'poll_currentpoll'
-	, 'poll_latestpoll'
-	, 'poll_archive_perpage'
-	, 'poll_ans_sortby'
-	, 'poll_ans_sortorder'
-	, 'poll_ans_result_sortby'
-	, 'poll_ans_result_sortorder'
-	, 'poll_logging_method'
-	, 'poll_allowtovote'
-	, 'poll_archive_show'
-	, 'poll_archive_url'
-	, 'poll_bar'
-	, 'poll_close'
-	, 'poll_ajax_style'
-	, 'poll_template_pollarchivelink'
-	, 'widget_polls'
-	, 'poll_archive_displaypoll'
-	, 'poll_template_pollarchiveheader'
-	, 'poll_template_pollarchivefooter'
-	, 'poll_cookielog_expiry'
-	, 'poll_options'
-	, 'widget_polls-widget'
-);
-
-
-if ( is_multisite() ) {
-	$ms_sites = wp_get_sites();
-
-	if( 0 < sizeof( $ms_sites ) ) {
-		foreach ( $ms_sites as $ms_site ) {
-			switch_to_blog( $ms_site['blog_id'] );
-			if( sizeof( $option_names ) > 0 ) {
-				foreach( $option_names as $option_name ) {
-					delete_option( $option_name );
-					plugin_uninstalled();
-				}
-			}
-		}
-	}
-
-	restore_current_blog();
-} else {
-	if( sizeof( $option_names ) > 0 ) {
-		foreach( $option_names as $option_name ) {
-			delete_option( $option_name );
-			plugin_uninstalled();
-		}
-	}
+if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
+	exit();
 }
 
-/**
- * Delete plugin table when uninstalled
- *
- * @access public
- * @return void
- */
-function plugin_uninstalled() {
-	global $wpdb;
+require_once __DIR__ . '/includes/class-wp-polls-template.php';
+require_once __DIR__ . '/includes/class-wp-polls-options.php';
+require_once __DIR__ . '/includes/class-wp-polls-install.php';
 
-	$table_names = array( 'pollsq', 'pollsa', 'pollsip' );
-	if( sizeof( $table_names ) > 0 ) {
-		foreach( $table_names as $table_name ) {
-			$table = $wpdb->prefix . $table_name;
-			$wpdb->query( "DROP TABLE IF EXISTS $table" );
-		}
+if ( is_multisite() ) {
+	// get_sites(), not wp_get_sites(): that one is deprecated and capped at 100.
+	//
+	// 'number' => 0 lifts WP_Site_Query's default cap of 100, which would
+	// otherwise stop at the hundredth site and leave every site after it with
+	// its options and tables intact while uninstall still reported success.
+	//
+	// 'fields' => 'ids' because the loop needs the ID and nothing else, so
+	// there is no reason to hydrate a WP_Site object per site.
+	$wp_polls_site_ids = get_sites(
+		array(
+			'fields' => 'ids',
+			'number' => 0,
+		)
+	);
+
+	foreach ( $wp_polls_site_ids as $wp_polls_site_id ) {
+		// restore_current_blog() belongs inside the loop. switch_to_blog()
+		// pushes onto a stack, so switching once per site and restoring once
+		// afterwards leaves the stack unwound by every site but the first.
+		switch_to_blog( (int) $wp_polls_site_id );
+		WP_Polls_Install::uninstall_site();
+		restore_current_blog();
 	}
+
+	unset( $wp_polls_site_ids, $wp_polls_site_id );
+} else {
+	WP_Polls_Install::uninstall_site();
 }

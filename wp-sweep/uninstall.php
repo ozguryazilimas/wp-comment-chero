@@ -1,34 +1,57 @@
 <?php
 /**
- * WP-Sweep uninstall.php
+ * Removes everything WP-Sweep stored.
  *
- * @package wp-sweep
+ * One option row and nothing else: no settings row, no database tables, no
+ * capabilities and no scheduled events. `wp_sweep_version` holds the two
+ * markers; `wp_sweep_options` is a settings row that only a 2.0.0 beta ever
+ * wrote, deleted here for the same reason the upgrade deletes it.
+ *
+ * Before 2.0.0 the plugin stored nothing at all, so uninstalling a 1.2.0 install
+ * finds nothing to remove -- and this file still looped over every site on a
+ * network to call an empty function, a loop that carried three bugs at once,
+ * none of which mattered, because there was nothing to delete.
+ *
+ * Now that there is, the loop is the correct one: get_sites() with
+ * 'fields' => 'ids' so full WP_Site objects are not hydrated to read one
+ * column, 'number' => 0 so it does not silently stop at the default of 100
+ * sites, and restore_current_blog() inside the loop body so the switch stack
+ * does not end up unwound by exactly one.
+ *
+ * @package WP-Sweep
  */
 
+// Exit if WordPress did not initiate this uninstall.
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
 }
 
-if ( is_multisite() ) {
-	$ms_sites = get_sites();
-
-	if ( 0 < count( $ms_sites ) ) {
-		foreach ( $ms_sites as $ms_site ) {
-			switch_to_blog( $ms_site->blog_id );
-			plugin_uninstalled();
-		}
-	}
-
-	restore_current_blog();
-} else {
-	plugin_uninstalled();
-}
-
 /**
- * Delete plugin table when uninstalled
+ * Delete the plugin's option rows on the current site.
  *
- * @access public
+ * The names are written out rather than read from WP_Sweep_Options, because
+ * uninstall.php runs without the plugin loaded.
+ *
  * @return void
  */
-function plugin_uninstalled() {
+function wp_sweep_delete_options() {
+	delete_option( 'wp_sweep_options' );
+	delete_option( 'wp_sweep_version' );
+}
+
+if ( is_multisite() ) {
+	$wp_sweep_site_ids = get_sites(
+		array(
+			'fields' => 'ids',
+			'number' => 0,
+		)
+	);
+
+	foreach ( $wp_sweep_site_ids as $wp_sweep_site_id ) {
+		switch_to_blog( (int) $wp_sweep_site_id );
+		wp_sweep_delete_options();
+		restore_current_blog();
+	}
+} else {
+	wp_sweep_delete_options();
 }

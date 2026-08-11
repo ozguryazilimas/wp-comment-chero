@@ -1,57 +1,47 @@
 <?php
-
 /**
- * WP-Sweep
- *
- * @package wp-sweep
- *
- * @wordpress-plugin
  * Plugin Name: WP-Sweep
  * Plugin URI: https://lesterchan.net/portfolio/programming/php/
  * Description: WP-Sweep allows you to clean up unused, orphaned and duplicated data in your WordPress. It cleans up revisions, auto drafts, unapproved comments, spam comments, trashed comments, orphan post meta, orphan comment meta, orphan user meta, orphan term relationships, unused terms, duplicated post meta, duplicated comment meta, duplicated user meta and transient options. It also optimizes your database tables.
- * Version: 1.2.0
+ * Version: 2.0.0
+ * Requires at least: 6.8
+ * Requires PHP: 8.2
  * Author: Lester 'GaMerZ' Chan
  * Author URI: https://lesterchan.net
+ * License: GPLv2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: wp-sweep
- * License: GPL2
+ * Domain Path: /languages
  *
- *     Copyright 2026  Lester Chan  (email : lesterchan@gmail.com)
- *
- *     This program is free software; you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License, version 2, as
- *     published by the Free Software Foundation.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
- *
- *     You should have received a copy of the GNU General Public License
- *     along with this program; if not, write to the Free Software
- *     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ * @package WP-Sweep
  */
 
-/**
- * WP-Sweep version
- *
- * @since 1.0.0
- */
-define( 'WP_SWEEP_VERSION', '1.2.0' );
+/*
+	Copyright 2026  Lester Chan  (email : lesterchan@gmail.com)
 
-/**
- * WP-Sweep main file
- */
+	This program is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+defined( 'ABSPATH' ) || exit;
+
+define( 'WP_SWEEP_VERSION', '2.0.0' );
+define( 'WP_SWEEP_SLUG', 'wp-sweep' );
 define( 'WP_SWEEP_MAIN_FILE', __FILE__ );
+define( 'WP_SWEEP_DIR', plugin_dir_path( __FILE__ ) );
+define( 'WP_SWEEP_URL', plugin_dir_url( __FILE__ ) );
 
-require __DIR__ . '/inc/class-wpsweep.php';
-require __DIR__ . '/inc/class-wpsweep-api.php';
+require_once WP_SWEEP_DIR . 'includes/class-wp-sweep.php';
 
-/**
- * WP Rest API
- */
-new WPSweep_Api();
-
-/**
- * Init WP-Sweep
- */
-WPSweep::get_instance();
+WP_Sweep::get_instance();

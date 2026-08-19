@@ -10,9 +10,10 @@ defined( 'ABSPATH' ) || exit;
  * @copyright  Copyright (c) 2010 - 2016, Vladimir Garagulya
  **/
 class URE_View {
- 
+    
     protected $lib = null;
     protected $editor = null;
+    protected $advert = null;
     
     
     public function __construct() {
@@ -35,8 +36,8 @@ class URE_View {
      */
     public function display_box_start($title, $style = '') {
         ?>
-        			<div class="postbox" style="float: left; <?php echo $style; ?>">
-        				<h3 style="cursor:default;"><span><?php echo $title ?></span></h3>
+        			<div class="postbox" style="float: left; <?php echo esc_attr( $style ); ?>">
+        				<h3 style="cursor:default;"><span><?php echo esc_html( $title ) ?></span></h3>
         				<div class="inside">
         <?php
     }
@@ -60,19 +61,19 @@ class URE_View {
         $groups_list = $groups->get_groups_tree();
         $output = '<ul id="ure_caps_groups_list">'. PHP_EOL;
         foreach($groups_list as $group_id=>$group) {
-            if ($group_id=='all') {
+            if ($group_id==='all') {
                 $spacer = '';
                 $subgroup = '';
             } else {
                 $spacer =  'style="padding-left: '. 15*$group['level'] .'px"';
                 $subgroup = '- ';
             }
-            $output .= '<li id="ure_caps_group_'. $group_id .'" '. $spacer .'>' . 
-                    $subgroup . $group['caption'] .'</li>'. PHP_EOL;
+            $output .= '<li id="ure_caps_group_'. esc_attr( $group_id ) .'" '. $spacer .'>' .
+                    $subgroup . esc_html( $group['caption'] ) .'</li>'. PHP_EOL;
         }
         $output .= '</ul>'. PHP_EOL;
-        
-        echo $output;
+
+        echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- each dynamic piece ($group_id, $group['caption']) already escaped above; $spacer is a numeric CSS value.
     }
     // end of show_caps_groups()
 
@@ -153,7 +154,7 @@ class URE_View {
             $cap_id = $capability['inner'];
             if (!$user_is_ure_admin) { 
                 if (isset($ure_caps[$cap_id]) || 
-                    ($multisite && $cap_id=='manage_network_plugins')) { 
+                    ($multisite && $cap_id==='manage_network_plugins')) { 
                     // exclude URE caps if user does not have full access to URE
                     continue;
                 }
@@ -197,10 +198,10 @@ class URE_View {
             }                        
             $class = 'class="' . implode(' ', $classes) .'"';
 
-            $cap_id_esc = URE_Capability::escape($cap_id);
-            $cap_html = '<div id="ure_cap_div_'. $cap_id_esc .'" '. $class .'><input type="checkbox" name="' . $cap_id_esc . '" id="'. 
-                    $cap_id_esc . '" value="' . $cap_id .'" '. $checked . ' ' . $disabled . ' class="ure-cap-cb">';
-            
+            $cap_id_esc = esc_attr( URE_Capability::escape($cap_id) );
+            $cap_html = '<div id="ure_cap_div_'. $cap_id_esc .'" '. $class .'><input type="checkbox" name="' . $cap_id_esc . '" id="'.
+                    $cap_id_esc . '" value="' . esc_attr( $cap_id ) .'" '. $checked . ' ' . $disabled . ' class="ure-cap-cb">';
+
             if ($caps_readable) {
                 $cap_ind = 'human';
                 $cap_ind_alt = 'inner';
@@ -208,7 +209,7 @@ class URE_View {
                 $cap_ind = 'inner';
                 $cap_ind_alt = 'human';
             }
-            $cap_html .= '<label for="' . $cap_id_esc . '" id="' . $cap_id_esc . '_label" title="' . esc_html( $capability[$cap_ind_alt] ) . '" ' . $label_style . ' >'. 
+            $cap_html .= '<label for="' . $cap_id_esc . '" id="' . $cap_id_esc . '_label" title="' . esc_html( $capability[$cap_ind_alt] ) . '" ' . $label_style . ' >'.
                  esc_html( $capability[$cap_ind] ) . '</label> </div>';
             
             $output .= $cap_html;
@@ -232,7 +233,7 @@ class URE_View {
         $output .= $this->_show_capabilities( $for_role, $edit_mode );        
         $output .= '</div></div>' ;
 
-        echo $output;
+        echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from _show_capabilities(), which escapes each dynamic piece as it's assembled.
     }
     // end of show_capabilities()
     
@@ -241,18 +242,19 @@ class URE_View {
     public function advertise_pro() {        
         ?>		
         <div id="ure_pro_advertisement" style="clear:left;display:block; float: left;">
-            <a href="https://www.role-editor.com?utm_source=UserRoleEditor&utm_medium=banner&utm_campaign=Plugins " target="_new" >
+            <a href="https://www.role-editor.com?utm_source=UserRoleEditor&utm_medium=banner&utm_campaign=Plugins " target="_new" rel="noopener noreferrer" >
         <?php
         $hide_pro_banner = $this->lib->get_option('ure_hide_pro_banner', 0);
         if ($hide_pro_banner) {
-            echo 'User Role Editor Pro: extended functionality, no advertisement - from $29.</a>';
+            esc_html_e('User Role Editor Pro: extended functionality, no advertisement - from $29.', 'user-role-editor');
+            echo '</a>';
         } else {
         ?>
-            <img src="<?php echo URE_PLUGIN_URL; ?>images/user-role-editor-pro-728x90.jpg" alt="User Role Editor Pro" 
-            	 title="More functionality and premium support with Pro version of User Role Editor."/>
+            <img src="<?php echo esc_url( URE_Core::get_plugin_url() ); ?>images/user-role-editor-pro-728x90.jpg" alt="User Role Editor Pro"
+            	 title="<?php esc_attr_e('More functionality and premium support with Pro version of User Role Editor.', 'user-role-editor');?>"/>
            </a><br />
             <label for="ure_hide_pro_banner">
-            	<input type="checkbox" name="ure_hide_pro_banner" id="ure_hide_pro_banner" onclick="ure_main.hide_pro_banner();"/>&nbsp;Thanks, hide this banner.
+            	<input type="checkbox" name="ure_hide_pro_banner" id="ure_hide_pro_banner" onclick="ure_main.hide_pro_banner();"/>&nbsp;<?php esc_html_e('Thanks, hide this banner.', 'user-role-editor');?>
             </label>
             <?php
         }
@@ -265,7 +267,7 @@ class URE_View {
     
     public function advertise_commercials() {
 
-        require_once(URE_PLUGIN_DIR . 'includes/classes/advertisement.php');
+        require_once( URE_Core::get_plugin_dir() . 'includes/classes/advertisement.php' );
 
         $this->advert = new URE_Advertisement();
         $this->advert->display();
@@ -287,7 +289,7 @@ class URE_View {
     public static function output_task_status_div() {
 ?>        
         <div id="ure_task_status" style="display:none;position:absolute;top:10px;right:10px;padding:10px;background-color:#000000;color:#ffffff;">
-            <img src="<?php echo URE_PLUGIN_URL .'images/ajax-loader.gif';?>" width="16" height="16"/> <?php esc_html_e('Working...','user-role-editor');?>
+            <img src="<?php echo esc_url( URE_Core::get_plugin_url() .'images/ajax-loader.gif' );?>" width="16" height="16"/> <?php esc_html_e('Working...','user-role-editor');?>
         </div>
 <?php
     }
@@ -299,10 +301,10 @@ class URE_View {
         $current_role = $this->editor->get('current_role');
         $show = true;
         if ($multisite) { 
-            if ($current_role=='administrator' && !$this->lib->is_super_admin()) {
+            if ($current_role==='administrator' && !$this->lib->is_super_admin()) {
                 $show = false;
             }
-        } elseif ($current_role=='administrator') {
+        } elseif ($current_role==='administrator') {
             $show = false;
         }
         

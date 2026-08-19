@@ -94,7 +94,7 @@ class URE_Task_Queue {
      */
     public function is_empty() {
         
-        return count($this->queue)==0;
+        return count($this->queue)===0;
     }
     // end of is_empty()
     
@@ -113,7 +113,7 @@ class URE_Task_Queue {
         }
         
         foreach($this->queue as $task_id=>$task) {
-            if ($task_id=='on_activation') {
+            if ($task_id==='on_activation') {
                 do_action('ure_on_activation');        
                 $this->remove('on_activation'); // remove this task after execution if it was defined
             } elseif (!empty($task['action'])) {

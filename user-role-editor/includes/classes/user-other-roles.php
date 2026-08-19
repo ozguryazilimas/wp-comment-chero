@@ -87,7 +87,7 @@ class URE_User_Other_Roles {
         }
         
         wp_enqueue_style('wp-jquery-ui-dialog');
-        wp_enqueue_style('ure-jquery-multiple-select', plugins_url('/css/'. $file_name, URE_PLUGIN_FULL_PATH ), array(), URE_VERSION, 'screen');
+        wp_enqueue_style('ure-jquery-multiple-select', plugins_url('/css/'. $file_name, URE_Core::get_plugin_full_path() ), array(), URE_Core::PLUGIN_VERSION, 'screen');
         
     }
     // end of load_css()                
@@ -118,9 +118,9 @@ class URE_User_Other_Roles {
         $select_primary_role = apply_filters('ure_users_select_primary_role', true);
         
         wp_enqueue_script('jquery-ui-dialog', '', array('jquery-ui-core', 'jquery-ui-button', 'jquery'), $wp_version, true );
-        wp_register_script('ure-jquery-multiple-select', plugins_url('/js/'. $ms_file_name, URE_PLUGIN_FULL_PATH ), array(), URE_VERSION, true );
+        wp_register_script('ure-jquery-multiple-select', plugins_url('/js/'. $ms_file_name, URE_Core::get_plugin_full_path() ), array(), URE_Core::PLUGIN_VERSION, true );
         wp_enqueue_script('ure-jquery-multiple-select');
-        wp_register_script('ure-user-profile-other-roles', plugins_url('/js/user-profile-other-roles.js', URE_PLUGIN_FULL_PATH ), array(), URE_VERSION, true );
+        wp_register_script('ure-user-profile-other-roles', plugins_url('/js/user-profile-other-roles.js', URE_Core::get_plugin_full_path() ), array(), URE_Core::PLUGIN_VERSION, true );
         wp_enqueue_script('ure-user-profile-other-roles');
         wp_localize_script('ure-user-profile-other-roles', 'ure_data_user_profile_other_roles', array(
             'wp_nonce' => wp_create_nonce('user-role-editor'),
@@ -171,20 +171,21 @@ class URE_User_Other_Roles {
                 
         $user_roles = $user->roles;
         $primary_role = array_shift($user_roles);
-        $roles = apply_filters('editable_roles', $wp_roles->roles);    // exclude restricted roles if any   
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- 'editable_roles' is WordPress core's own filter hook, not a custom one; name must match exactly.
+        $roles = apply_filters('editable_roles', $wp_roles->roles);    // exclude restricted roles if any
         $roles = array_reverse( $roles  );
         if (isset($roles[$primary_role])) { // exclude role assigned to the user as a primary role
             unset($roles[$primary_role]);
         }
         $button_number =  (self::$counter>0) ? '_2': '';                        
         
-        echo '<select multiple="multiple" id="ure_select_other_roles'. $button_number .'" name="ure_select_other_roles" style="width: 500px;" >'."\n";
+        echo '<select multiple="multiple" id="ure_select_other_roles'. esc_attr( $button_number ) .'" name="ure_select_other_roles" style="width: 500px;" >'."\n";
         foreach($roles as $key=>$role) {
-            echo '<option value="'.$key.'" >'.$role['name'].'</option>'."\n";
+            echo '<option value="'. esc_attr( $key ) .'" >'. esc_html( $role['name'] ) .'</option>'."\n";
         }   // foreach()
         echo '</select><br>'."\n";
         
-        if ($context=='add-new-user' || $context=='add-existing-user') {
+        if ($context==='add-new-user' || $context==='add-existing-user') {
             // Get other default roles
             $other_roles = $this->lib->get_option('other_default_roles', array());
         } else {
@@ -195,11 +196,11 @@ class URE_User_Other_Roles {
         } else {
             $other_roles_str = '';
         }
-        echo '<input type="hidden" name="ure_other_roles" id="ure_other_roles'. $button_number .'" value="' . $other_roles_str . '" />';
-        
-        
-        $output = $this->lib->roles_text($other_roles);        
-        echo '<span id="ure_other_roles_list'. $button_number .'">'. $output .'</span>';
+        echo '<input type="hidden" name="ure_other_roles" id="ure_other_roles'. esc_attr( $button_number ) .'" value="' . esc_attr( $other_roles_str ) . '" />';
+
+
+        $output = $this->lib->roles_text($other_roles);
+        echo '<span id="ure_other_roles_list'. esc_attr( $button_number ) .'">'. esc_html( $output ) .'</span>';
         
         self::$counter++;
     }
@@ -244,9 +245,9 @@ class URE_User_Other_Roles {
               </th>    
               <td>
 <?php 
-                echo $user_caps .'<br/>'; 
+                echo esc_html( $user_caps ) .'<br/>';
       if ($this->lib->user_is_admin( $current_user_id ) ) {
-            echo '<a href="' . wp_nonce_url("users.php?page=users-".URE_PLUGIN_FILE."&object=user&amp;user_id={$user->ID}", "ure_user_{$user->ID}") . '">' . 
+            echo '<a href="' . esc_url( wp_nonce_url("users.php?page=users-". URE_Core::get_plugin_file() ."&object=user&user_id={$user->ID}", "ure_user_{$user->ID}") ) . '">' .
                  esc_html__('Edit', 'user-role-editor') . '</a>';
       }                      
 ?>
@@ -269,7 +270,7 @@ class URE_User_Other_Roles {
         			</td>
         		</tr>
 <?php
-    if ($context=='user-edit') {
+    if ($context==='user-edit') {
         $this->user_profile_capabilities($user);
     }
 ?>
@@ -281,8 +282,12 @@ class URE_User_Other_Roles {
     
     
     private function is_user_profile_extention_allowed() {
+	
+	if ( !isset( $_SERVER['REQUEST_URI'] ) || empty( $_SERVER['REQUEST_URI'] ) ) {
+	    return false;
+	}
         // Check if we are not at the network admin center
-        $request_uri = sanitize_url( $_SERVER['REQUEST_URI'] );
+        $request_uri = sanitize_url( wp_unslash( $_SERVER['REQUEST_URI'] ) );
         $result = stripos( $request_uri, 'network/user-edit.php') === false;
         
         return $result;
@@ -347,16 +352,18 @@ class URE_User_Other_Roles {
         }
         if ( !current_user_can('edit_user', $user_id) ) {
             return -1;  // No permissions to edit this user
-        }        
-        if ( !isset( $_POST['ure_other_roles'] ) ) {    
+        }
+        // phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- update() is hooked to WordPress core's own 'profile_update' action, which core only fires after its own check_admin_referer('update-user_...') nonce check on the user-edit/profile screen; verified entirely outside this plugin, WPCS can't see it at all. Below, each role ID extracted from $_POST['ure_other_roles'] is checked against $editable_roles (WP core's own get_editable_roles()) via isset() before use - the function returns early (-2) for any role that isn't a real, existing editable role, so unslashing/sanitizing the raw POST value first would be a no-op.
+        if ( !isset( $_POST['ure_other_roles'] ) ) {
             return 3;   // Add default other roles, there is no related data at the POST
-        }        
-        if ( empty( $_POST['ure_other_roles'] ) ) { 
+        }
+        if ( empty( $_POST['ure_other_roles'] ) ) {
             return 1;   // There is no need in processing of other roles. User did not select them
         }
-        
+
         $user = get_userdata( $user_id );
         $data = explode(',', str_replace(' ', '', $_POST['ure_other_roles'] ) );
+        // phpcs:enable
         $editable_roles = get_editable_roles();
         $ure_other_roles = array();
         foreach( $data as $role_id ) {
@@ -391,7 +398,7 @@ class URE_User_Other_Roles {
 
         // Get default roles if any
         $other_default_roles = $this->lib->get_option('other_default_roles', array() );
-        if ( count( $other_default_roles ) == 0 ) {
+        if ( count( $other_default_roles ) === 0 ) {
             return true;
         }
         foreach ( $other_default_roles as $role ) {
@@ -410,7 +417,7 @@ class URE_User_Other_Roles {
         }
 
         $result = $this->update( $user_id );
-        if ( $result==3 ) {    // Other roles were not selected manually
+        if ( $result===3 ) {    // Other roles were not selected manually
             $this->add_default_other_roles( $user_id );
         }
         

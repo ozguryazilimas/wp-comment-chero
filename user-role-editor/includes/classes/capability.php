@@ -29,7 +29,7 @@ class URE_Capability {
     public static function validate( $cap_id_raw ) {
         $match = array();
         $found = preg_match('/[A-Za-z0-9_\-]*/', $cap_id_raw, $match );
-        if ( !$found || ($found && ( $match[0]!=$cap_id_raw ) ) ) { // some non-alphanumeric charactes found!    
+        if ( !$found || ($found && ( $match[0]!==$cap_id_raw ) ) ) { // some non-alphanumeric charactes found!    
             $data = array(
                 'result'=>false, 
                 'message'=>esc_html__('Error: Capability name must contain latin characters and digits only!', 'user-role-editor'),
@@ -39,7 +39,7 @@ class URE_Capability {
         } 
         
         $cap_id = strtolower( $match[0] );
-        if ( $cap_id=='do_not_allow' ) {
+        if ( $cap_id==='do_not_allow' ) {
             $data = array(
                 'result'=>false, 
                 'message'=>esc_html__('Error: this capability is used internally by WordPress', 'user-role-editor'),
@@ -47,7 +47,7 @@ class URE_Capability {
                 );
             return $data;
         }
-        if ( $cap_id=='administrator' ) {
+        if ( $cap_id==='administrator' ) {
             $data = array(
                 'result'=>false, 
                 'message'=>esc_html__('Error: this word is used by WordPress as a role ID', 'user-role-editor'),
@@ -88,12 +88,14 @@ class URE_Capability {
         }
         
         $mess = '';
+        // phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- add() is only reached via URE_Ajax_Processor's add_capability action, already nonce-gated by dispatch()'s valid_nonce() before routing here; WPCS can't trace nonce verification across that method-call boundary, same limitation documented for check_nonce()/valid_nonce() in custom-ruleset.xml's WordPress.Security.NonceVerification rule comment. validate() below performs its own regex-based validation (preg_match against [A-Za-z0-9_-]*, rejecting anything else, including any stray unslashed backslash), a sanitizer WPCS doesn't recognize.
         if ( !isset( $_POST['capability_id'] ) || empty( $_POST['capability_id'] ) ) {
             $response['message'] = esc_html__( 'Wrong Request', 'user-role-editor' );
             return $response;
         }
-        
+
         $data = self::validate( $_POST['capability_id'] );
+        // phpcs:enable
         if ( !$data['result'] ) {
             $response['message'] = $data['message'];
             return $response;
@@ -127,13 +129,15 @@ class URE_Capability {
      * @return array
      */
     private static function get_caps_for_deletion_from_post( $caps_allowed_to_remove ) {
-        
+
+        // phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- only reached via delete(), itself only reached via URE_Ajax_Processor's delete_capability action, already nonce-gated by dispatch()'s valid_nonce() before routing here; WPCS can't trace nonce verification across that method-call boundary, same limitation documented for check_nonce()/valid_nonce() in custom-ruleset.xml's WordPress.Security.NonceVerification rule comment. Below, each posted key/value is only ever checked against $caps_allowed_to_remove (real capability names fetched from the database, not user-supplied) via isset() before being kept in $caps - nothing from $input_buff is echoed, persisted, or assigned to a role unless it already matches an existing capability, so unslashing/sanitizing the raw POST value first would be a no-op.
         if ( isset( $_POST['values'] ) ) {
             $input_buff = $_POST['values'];
         } else {
             $input_buff = $_POST;
         }
-        
+        // phpcs:enable
+
         $caps = array();
         foreach( $input_buff as $key=>$value ) {
             if ( substr( $key, 0, 3 )!=='rm_' ) {
@@ -158,7 +162,7 @@ class URE_Capability {
                 continue;
             }
             // Prevent sudden revoke role 'administrator' from a user during 'administrator' capability deletion.
-            if ( $cap_id=='administrator') { 
+            if ( $cap_id==='administrator') { 
                 continue;
             }
             $user->remove_cap( $cap_id );            
@@ -180,10 +184,10 @@ class URE_Capability {
     
     
     private static function revoke_caps( $caps ) {
-        global $wpdb, $wp_roles;
-        
+        global $wp_roles;
+
         // remove caps from users
-        $users_ids = $wpdb->get_col("SELECT $wpdb->users.ID FROM $wpdb->users");
+        $users_ids = get_users( array( 'fields' => 'ID' ) );
         foreach ( $users_ids as $user_id ) {
             self::revoke_caps_from_user( $user_id, $caps );
         }
@@ -211,7 +215,7 @@ class URE_Capability {
         $capabilities = URE_Capabilities::get_instance();
         $mess = '';                
         $caps_allowed_to_remove = $capabilities->get_caps_to_remove();
-        if ( !is_array( $caps_allowed_to_remove ) || count( $caps_allowed_to_remove )==0 ) {
+        if ( !is_array( $caps_allowed_to_remove ) || count( $caps_allowed_to_remove )===0 ) {
             return esc_html__( 'There are no capabilities available for deletion!', 'user-role-editor' );
         }
         
@@ -222,7 +226,7 @@ class URE_Capability {
 
         self::revoke_caps( $caps );
         
-        if ( count( $caps )==1 ) {
+        if ( count( $caps )===1 ) {
             // translators: placeholder %s is replaced by removed user capability id string value
             $mess = sprintf( esc_html__( 'Capability %s was removed successfully', 'user-role-editor' ), $caps[0] );
         } else {

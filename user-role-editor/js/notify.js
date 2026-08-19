@@ -471,7 +471,7 @@
 	Notification.prototype.updateClasses = function() {
 		var classes, style;
 		classes = ["base"];
-		if ($.isArray(this.options.className)) {
+		if (Array.isArray(this.options.className)) {
 			classes = classes.concat(this.options.className);
 		} else if (this.options.className) {
 			classes.push(this.options.className);
@@ -487,7 +487,7 @@
 		var d, datas, name, type, value;
 		if ($.isPlainObject(options)) {
 			$.extend(this.options, options);
-		} else if ($.type(options) === "string") {
+		} else if (typeof options === "string") {
 			this.options.className = options;
 		}
 		if (this.container && !data) {

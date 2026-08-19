@@ -40,14 +40,10 @@ class URE_Grant_Roles {
     // end of load()
             
     
-    private static function validate_users($users) {
-        
-        if (!is_array($users)) {
-            return false;
-        }
-        
-        foreach ($users as $user_id) {
-            if (!is_numeric($user_id)) {
+    private static function validate_users( array $users ) {
+
+        foreach ( $users as $user_id ) {
+            if ( !is_numeric( $user_id ) ) {
                 return false;
             }
             if ( !current_user_can( 'promote_user', $user_id ) ) {
@@ -62,10 +58,10 @@ class URE_Grant_Roles {
         
         return true;
     }
-    // end of validate_users()            
+    // end of validate_users()
     
     
-    public static function add_role() {
+    public static function add_role( array $users ) {
         
         $answer = URE_Lib::check_nonce();
         if ( $answer!==TRUE ) {
@@ -77,11 +73,6 @@ class URE_Grant_Roles {
              return $answer;
         }
         
-        if ( empty( $_REQUEST['users'] ) ) {
-            $answer = array('result'=>'error', 'message'=>esc_html__('Empty users list', 'user-role-editor') );
-            return $answer;
-        }                        
-        $users = (array) $_REQUEST['users'];
         if ( !self::validate_users( $users ) ) {
             $answer = array('result'=>'error', 'message'=>esc_html__('Can not edit user or invalid data at the users list', 'user-role-editor') );
             return $answer;
@@ -126,7 +117,7 @@ class URE_Grant_Roles {
         $current_user = wp_get_current_user();
         $wp_roles = wp_roles();
         $role_caps = array_keys( $wp_roles->roles[$role]['capabilities'] );
-      	$is_current_user = ( $user_id == $current_user->ID );
+      	$is_current_user = ( (int) $user_id === (int) $current_user->ID );
         $role_can_promote = in_array('promote_users', $role_caps);
         $can_manage_network = is_multisite() && current_user_can( 'manage_network_users' );
 
@@ -151,7 +142,7 @@ class URE_Grant_Roles {
     // end of is_try_remove_admin_from_himself()
     
     
-    public static function revoke_role() {
+    public static function revoke_role( array $users ) {
         
         $answer = URE_Lib::check_nonce();
         if ( $answer!==TRUE ) {
@@ -163,11 +154,6 @@ class URE_Grant_Roles {
              return $answer;
         }
         
-        if ( empty( $_REQUEST['users'] ) ) {
-            $answer = array('result'=>'error', 'message'=>esc_html__('Empty users list', 'user-role-editor') );
-            return $answer;
-        }                        
-        $users = (array) $_REQUEST['users'];
         if ( !self::validate_users( $users ) ) {
             $answer = array('result'=>'error', 'message'=>esc_html__('Can not edit user or invalid data at the users list', 'user-role-editor') );
             return $answer;
@@ -208,36 +194,6 @@ class URE_Grant_Roles {
     // end of revoke_role()
 
 
-    private function update_roles() {        
-                        
-        if ( empty( $_REQUEST['users'] ) ) {
-            return;
-        }
-
-        $answer = URE_Lib::check_nonce();
-        if ( $answer!==TRUE ) {
-            return;
-        }
-        
-        if ( !current_user_can('promote_users') ) {            
-            return;
-        }
-        $users = (array) $_REQUEST['users'];
-        if ( !self::validate_users( $users ) ) {
-            return;
-        }
-        
-        if ( ( !empty( $_REQUEST['ure_add_role'] ) && !empty( $_REQUEST['ure_add_role_submit']) ) || 
-             ( !empty( $_REQUEST['ure_add_role_2'] ) && !empty( $_REQUEST['ure_add_role_submit_2'] ) ) ) {
-            $this->add_role( $users );
-        } else if ( ( !empty( $_REQUEST['ure_revoke_role'] ) && !empty( $_REQUEST['ure_revoke_role_submit'] ) ) || 
-                    ( !empty( $_REQUEST['ure_revoke_role_2'] ) && !empty( $_REQUEST['ure_revoke_role_submit_2'] ) ) ) {
-            $this->revoke_role( $users );
-        }
-    }
-    // end of update_roles()
-    
-    
     private static function validate_roles( $roles ) {
 
         if ( !is_array( $roles ) ) {
@@ -338,7 +294,7 @@ class URE_Grant_Roles {
     // end of is_select_primary_role()
     
     
-    public static function grant_roles() {
+    public static function grant_roles( array $users, string $primary_role, array $other_roles ) {
 
         $answer = URE_Lib::check_nonce();
         if ( $answer!==TRUE ) {
@@ -350,16 +306,14 @@ class URE_Grant_Roles {
             return $answer;
         }
                 
-        $users =  isset( $_POST['users'] ) ? array_map( 'sanitize_key', $_POST['users'] ) : false;
         if ( !self::validate_users( $users ) ) {
             $answer = array('result'=>'error', 'message'=>esc_html__('Can not edit user or invalid data at the users list', 'user-role-editor') );
             return $answer;
         }
 
 // Primary role       
-        $primary_role = isset( $_POST['primary_role'] ) ? sanitize_key( $_POST['primary_role'] ) : '';
-        if (!empty($primary_role) && ($primary_role!==self::NO_ROLE_FOR_THIS_SITE) && 
-            !self::validate_roles(array($primary_role=>$primary_role))) {
+        if ( !empty( $primary_role ) && ( $primary_role!==self::NO_ROLE_FOR_THIS_SITE ) && 
+            !self::validate_roles( [$primary_role=>$primary_role] ) ) {
             $answer = array('result'=>'error', 'message'=>esc_html__('Invalid primary role', 'user-role-editor'));
             return $answer;
         }
@@ -370,16 +324,15 @@ class URE_Grant_Roles {
             }            
         }
         
-// Other roles        
-        $other_roles = isset($_POST['other_roles']) ? array_map( 'sanitize_key', $_POST['other_roles'] ) : null;
-        if (!empty($other_roles) && !self::validate_roles($other_roles)) {
+// Other roles                
+        if ( !empty( $other_roles ) && !self::validate_roles( $other_roles ) ) {
             $answer = array('result'=>'error', 'message'=>esc_html__('Invalid data at the other roles list', 'user-role-editor'));
             return $answer;
         }
         
-        if (!empty($other_roles)) {
-            foreach($users as $user_id) {
-                self::grant_other_roles_to_user($user_id, $other_roles); 
+        if ( !empty( $other_roles ) ) {
+            foreach( $users as $user_id ) {
+                self::grant_other_roles_to_user( $user_id, $other_roles ); 
             }                
         }
         $answer = array('result'=>'success', 'message'=>esc_html__('Roles were granted to users successfully', 'user-role-editor'));
@@ -451,14 +404,16 @@ class URE_Grant_Roles {
         $show_admin_role = $lib->show_admin_role_allowed();        
         $roles = $lib->get_all_editable_roles(); 
         foreach ($roles as $role_id => $role) {
-            if (!$show_admin_role && $role_id=='administrator') {
+            if (!$show_admin_role && $role_id==='administrator') {
                 continue;
             }
             $selected = ( in_array( $role_id, $other_roles ) ) ? 'checked="checked"': '';
             $role_name = $use_pll ? pll__( $role['name'] ) : $role['name'];
+            // phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- $selected is one of two hardcoded literals set above, not user input.
             echo '<label for="wp_role_' . esc_attr( $role_id ) . '"><input type="checkbox"	id="wp_role_' . esc_attr( $role_id ) .
                  '" name="ure_roles[]" value="' . esc_attr( $role_id ) . '" '. $selected .'/>&nbsp;' .
             esc_html( $role_name ) .' ('. esc_html( $role_id ).')</label><br />'. PHP_EOL;
+            // phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
         }
 ?>
         </div>
@@ -505,28 +460,27 @@ class URE_Grant_Roles {
             return;
         }
         $button_number =  ( $which==='bottom') ? '_2': '';
-        // escaped for secure output already
         $roles_options_list = self::get_roles_options_list();
         ob_start();
-?>        
+?>
         &nbsp;&nbsp;
-        <input type="button" name="ure_grant_roles<?php echo $button_number;?>" id="ure_grant_roles<?php echo $button_number;?>" class="button"
+        <input type="button" name="ure_grant_roles<?php echo esc_attr( $button_number );?>" id="ure_grant_roles<?php echo esc_attr( $button_number );?>" class="button"
              value="<?php esc_html_e('Grant Roles', 'user-role-editor');?>">
         &nbsp;&nbsp;
-        <label class="screen-reader-text" for="ure_add_role<?php echo $button_number;?>"><?php esc_html_e( 'Add role&hellip;', 'user-role-editor' ); ?></label>
-        <select name="ure_add_role<?php echo $button_number;?>" id="ure_add_role<?php echo $button_number;?>" style="display: inline-block; float: none;">
+        <label class="screen-reader-text" for="ure_add_role<?php echo esc_attr( $button_number );?>"><?php esc_html_e( 'Add role&hellip;', 'user-role-editor' ); ?></label>
+        <select name="ure_add_role<?php echo esc_attr( $button_number );?>" id="ure_add_role<?php echo esc_attr( $button_number );?>" style="display: inline-block; float: none;">
             <option value=""><?php esc_html_e( 'Add role&hellip;', 'user-role-editor' ); ?></option>
-            <?php echo $roles_options_list; ?>
+            <?php echo $roles_options_list; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML <option> markup from WP core's wp_dropdown_roles(), already safely generated. ?>
         </select>
-        <input type="button" name="ure_add_role_button<?php echo $button_number;?>" id="ure_add_role_button<?php echo $button_number;?>" class="button"
+        <input type="button" name="ure_add_role_button<?php echo esc_attr( $button_number );?>" id="ure_add_role_button<?php echo esc_attr( $button_number );?>" class="button"
              value="<?php esc_html_e('Add', 'user-role-editor');?>">
         &nbsp;&nbsp;
-        <label class="screen-reader-text" for="ure_revoke_role<?php echo $button_number;?>"><?php esc_html_e( 'Revoke role&hellip;', 'user-role-editor' ); ?></label>
-        <select name="ure_revoke_role<?php echo $button_number;?>" id="ure_revoke_role<?php echo $button_number;?>" style="display: inline-block; float: none;">
+        <label class="screen-reader-text" for="ure_revoke_role<?php echo esc_attr( $button_number );?>"><?php esc_html_e( 'Revoke role&hellip;', 'user-role-editor' ); ?></label>
+        <select name="ure_revoke_role<?php echo esc_attr( $button_number );?>" id="ure_revoke_role<?php echo esc_attr( $button_number );?>" style="display: inline-block; float: none;">
             <option value=""><?php esc_html_e( 'Revoke role&hellip;', 'user-role-editor' ); ?></option>
-            <?php echo $roles_options_list; ?>
+            <?php echo $roles_options_list; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML <option> markup from WP core's wp_dropdown_roles(), already safely generated. ?>
         </select>
-	<input type="button" name="ure_revoke_role_button<?php echo $button_number;?>" id="ure_revoke_role_button<?php echo $button_number;?>" class="button"
+	<input type="button" name="ure_revoke_role_button<?php echo esc_attr( $button_number );?>" id="ure_revoke_role_button<?php echo esc_attr( $button_number );?>" class="button"
              value="<?php esc_html_e('Revoke', 'user-role-editor');?>">
 
         
@@ -540,7 +494,7 @@ class URE_Grant_Roles {
          URE_View::output_task_status_div();
         }
         $output = ob_get_clean();
-        echo $output;
+        echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- buffered markup this method just built above, each dynamic piece already escaped at output time.
     }
     // end of show_grant_roles_html()
     
@@ -551,7 +505,7 @@ class URE_Grant_Roles {
         $show_wp_change_role = apply_filters('ure_users_show_wp_change_role', true);
         
         wp_enqueue_script('jquery-ui-dialog', '', array('jquery-ui-core','jquery-ui-button', 'jquery'), $wp_version, true );
-        wp_register_script('ure-users-grant-roles', plugins_url('/js/users-grant-roles.js', URE_PLUGIN_FULL_PATH ), array(), URE_VERSION, true );
+        wp_register_script('ure-users-grant-roles', plugins_url('/js/users-grant-roles.js', URE_Core::get_plugin_full_path() ), array(), URE_Core::PLUGIN_VERSION, true );
         wp_enqueue_script('ure-users-grant-roles');
         wp_localize_script('ure-users-grant-roles', 'ure_users_grant_roles_data', array(
             'wp_nonce' => wp_create_nonce('user-role-editor'),

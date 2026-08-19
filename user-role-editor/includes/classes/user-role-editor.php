@@ -84,15 +84,16 @@ class User_Role_Editor {
         $this->ure_hook_suffixes = array($this->settings_hook_suffix, $this->main_page_hook_suffix);
         
         // Activation action
-        register_activation_hook( URE_PLUGIN_FULL_PATH, array($this, 'setup') );
+        register_activation_hook( URE_Core::get_plugin_full_path(), array($this, 'setup') );
 
         // Deactivation action
-        register_deactivation_hook( URE_PLUGIN_FULL_PATH, array($this, 'cleanup') );
+        register_deactivation_hook( URE_Core::get_plugin_full_path(), array($this, 'cleanup') );
                         		
         // Who can use this plugin
         $this->key_capability = URE_Own_Capabilities::get_key_capability();
                 
         // Process URE's internal tasks queue
+        // Do not delete: For example: Data conversion on activation could be needed again.
         $task_queue = URE_Task_Queue::get_instance();
         $task_queue->process();
         
@@ -130,7 +131,7 @@ class User_Role_Editor {
 
 
         // add a Settings link in the installed plugins page
-        add_filter('plugin_action_links_'. URE_PLUGIN_BASE_NAME, array($this, 'plugin_action_links'), 10, 1);
+        add_filter('plugin_action_links_'. URE_Core::get_plugin_base_name(), array($this, 'plugin_action_links'), 10, 1);
         add_filter('plugin_row_meta', array($this, 'plugin_row_meta'), 10, 2);    
     }
     // end of set_hooks()
@@ -187,12 +188,12 @@ class User_Role_Editor {
                 add_filter('enable_edit_any_user_configuration', '__return_true');
                 // make this as early as you can, to not provide superadmin privilege when it's not needed
                 add_action('admin_head', array($this, 'edit_user_permission_check'), 1);
-                if ($pagenow == 'user-new.php') {
+                if ($pagenow === 'user-new.php') {
                     add_filter('site_option_site_admins', array($this, 'allow_add_user_as_superadmin'));
                 }
             }
             
-            if ( $pagenow=='site-users.php' ) {
+            if ( $pagenow==='site-users.php' ) {
                 // Try to execute before any other function linked to this filter
                 add_filter('editable_roles', array($this, 'fix_network_admin_roles_dropdown'), 9 );
             }
@@ -280,7 +281,7 @@ class User_Role_Editor {
   public function add_css_to_users_page() {
       
       wp_enqueue_style( 'wp-jquery-ui-dialog' );
-      wp_enqueue_style( 'ure-admin', URE_PLUGIN_URL . 'css/ure-admin.css', array(), URE_VERSION, 'screen' );
+      wp_enqueue_style( 'ure-admin', URE_Core::get_plugin_url() . 'css/ure-admin.css', array(), URE_Core::PLUGIN_VERSION, 'screen' );
       
   }
   // end of add_css_to_users_page()
@@ -290,14 +291,14 @@ class User_Role_Editor {
       global $wp_version;
       
       wp_enqueue_script('jquery-ui-dialog', '', array('jquery-ui-core','jquery-ui-button', 'jquery'), $wp_version, true );
-      wp_register_script( 'ure-users', plugins_url( '/js/users.js', URE_PLUGIN_FULL_PATH ), array(), URE_VERSION, true );
+      wp_register_script( 'ure-users', plugins_url( '/js/users.js', URE_Core::get_plugin_full_path() ), array(), URE_Core::PLUGIN_VERSION, true );
       wp_enqueue_script ( 'ure-users' );      
       wp_localize_script( 'ure-users', 'ure_users_data', array(
         'wp_nonce' => wp_create_nonce('user-role-editor'),
-        'move_from_no_role_title' => esc_html__('Change role for users without role', 'user-role-editor'),
-        'to' => esc_html__('To:', 'user-role-editor'),  
-        'no_rights_caption' => esc_html__('No rights', 'user-role-editor'),  
-        'provide_new_role_caption' => esc_html__('Provide new role', 'user-role-editor')
+        'move_from_no_role_title' => esc_html__('Change role for users without role', 'user-role-editor' ),
+        'to' => esc_html__('To:', 'user-role-editor' ),  
+        'no_rights_caption' => esc_html__('No rights', 'user-role-editor' ),  
+        'provide_new_role_caption' => esc_html__('Provide new role', 'user-role-editor' )
               ));
       
   }
@@ -318,7 +319,7 @@ class User_Role_Editor {
 
         foreach ($caps as $key => $capability) {
 
-            if ($capability != 'do_not_allow')
+            if ($capability !== 'do_not_allow')
                 continue;
 
             switch ($cap) {
@@ -401,7 +402,7 @@ class User_Role_Editor {
         $current_user = wp_get_current_user();
         if ($current_user->has_cap($this->key_capability)) {
             $actions['capabilities'] = '<a href="' .
-                    wp_nonce_url("users.php?page=users-" . URE_PLUGIN_FILE . "&object=user&amp;user_id={$user->ID}", "ure_user_{$user->ID}") .
+                    wp_nonce_url("users.php?page=users-" . URE_Core::get_plugin_file() . "&object=user&amp;user_id={$user->ID}", "ure_user_{$user->ID}") .
                     '">' . esc_html__('Capabilities', 'user-role-editor') . '</a>';
         }
         
@@ -428,7 +429,7 @@ class User_Role_Editor {
             return;
         }
         $current_blog = $wpdb->blogid;
-        if ( $current_blog!=$main_blog_id ) {
+        if ( $current_blog!==$main_blog_id ) {
             switch_to_blog( $main_blog_id );
         }
         $main_roles = new WP_Roles();  // Get roles from primary blog
@@ -473,8 +474,8 @@ class User_Role_Editor {
         }
 
         // exclude URE from plugins list
-        $key = basename(URE_PLUGIN_DIR) . '/' . URE_PLUGIN_FILE;
-        unset($plugins[$key]);
+        $key = URE_Core::get_plugin_base_name();
+        unset( $plugins[$key] );
 
         return $plugins;
     }
@@ -487,7 +488,7 @@ class User_Role_Editor {
      */
     public function load_translation() {
 
-        load_plugin_textdomain('user-role-editor', false, dirname( plugin_basename( URE_PLUGIN_FULL_PATH ) ) .'/lang');
+        load_plugin_textdomain( 'user-role-editor', false, dirname( URE_Core::get_plugin_base_name() ) .'/lang');
         
         if ( function_exists('pll_register_string') ) {   
             // Integration with PolyLang plugin (https://wordpress.org/plugins/polylang/)
@@ -510,20 +511,19 @@ class User_Role_Editor {
      * @return array
      */
     public function plugin_action_links($links) {
-        $single_site_settings_link = '<a href="options-general.php?page=settings-' . URE_PLUGIN_FILE . '">' . esc_html__('Settings', 'user-role-editor') .'</a>';
+        $single_site_settings_link = '<a href="options-general.php?page=settings-' . URE_Core::get_plugin_file() . '">' . esc_html__('Settings', 'user-role-editor') .'</a>';
         $multisite = $this->lib->get('multisite');        
         if (!$multisite ) {
             $settings_link = $single_site_settings_link;
         } else {
-            $ure = basename(URE_PLUGIN_DIR) . '/' . URE_PLUGIN_FILE;
-            $active_for_network = is_plugin_active_for_network($ure);
+            $active_for_network = is_plugin_active_for_network( URE_Core::get_plugin_base_name() );
             if (!$active_for_network) {
                 $settings_link = $single_site_settings_link;
             } else {
                 if (!current_user_can('manage_network_plugins')) {
                     return $links;
                 }
-                $settings_link = '<a href="'. network_admin_url() .'settings.php?page=settings-'. URE_PLUGIN_FILE .'">'. esc_html__('Settings', 'user-role-editor') .'</a>';
+                $settings_link = '<a href="'. network_admin_url() .'settings.php?page=settings-'. URE_Core::get_plugin_file() .'">'. esc_html__('Settings', 'user-role-editor') .'</a>';
             }
         }
         array_unshift($links, $settings_link);
@@ -535,7 +535,7 @@ class User_Role_Editor {
 
     public function plugin_row_meta($links, $file) {
 
-        if ($file == plugin_basename(dirname(URE_PLUGIN_FULL_PATH) .'/'.URE_PLUGIN_FILE)) {
+        if ($file === plugin_basename(dirname(URE_Core::get_plugin_full_path()) .'/'.URE_Core::get_plugin_file())) {
             $links[] = '<a target="_blank" href="https://www.role-editor.com/changelog">' . esc_html__('Changelog', 'user-role-editor') . '</a>';
         }
 
@@ -553,7 +553,7 @@ class User_Role_Editor {
         }
         $screen = get_current_screen();
         // Check if current screen is URE's settings page
-        if ($screen->id != $settings_page_hook) {
+        if ($screen->id !== $settings_page_hook) {
             return;
         }
         $screen_help = new Ure_Screen_Help();
@@ -593,7 +593,7 @@ class User_Role_Editor {
                     esc_html__('User Role Editor', 'user-role-editor'),
                     esc_html__('User Role Editor', 'user-role-editor'),
                     'ure_edit_roles', 
-                    'users-' . URE_PLUGIN_FILE, 
+                    'users-' . URE_Core::get_plugin_file(), 
                     array($this, 'edit_roles'));
             add_action("admin_print_styles-$ure_page", array($this, 'admin_css_action'));
         }
@@ -606,7 +606,7 @@ class User_Role_Editor {
                     esc_html__('User Role Editor', 'user-role-editor'),
                     esc_html__('User Role Editor', 'user-role-editor'),
                     $settings_capability, 
-                    'settings-' . URE_PLUGIN_FILE, 
+                    'settings-' . URE_Core::get_plugin_file(), 
                     array($this, 'settings'));
             add_action( 'load-'.$this->settings_page_hook, array($this,'settings_screen_configure') );
             add_action("admin_print_styles-{$this->settings_page_hook}", array($this, 'settings_css_action'));
@@ -622,7 +622,7 @@ class User_Role_Editor {
                     esc_html__('User Role Editor', 'user-role-editor'),
                     esc_html__('User Role Editor', 'user-role-editor'), 
                     $this->key_capability, 
-                    'settings-' . URE_PLUGIN_FILE, 
+                    'settings-' . URE_Core::get_plugin_file(), 
                     array(&$this, 'settings'));
             add_action( 'load-'.$this->settings_page_hook, array($this,'settings_screen_configure') );
             add_action("admin_print_styles-{$this->settings_page_hook}", array($this, 'settings_css_action'));
@@ -648,8 +648,8 @@ class User_Role_Editor {
     public function admin_css_action() {
 
         wp_enqueue_style('wp-jquery-ui-selectable');        
-        wp_enqueue_style('ure-jquery-ui-general', URE_PLUGIN_URL . 'css/jquery-ui.min.css', array(), URE_VERSION, 'screen');
-        wp_enqueue_style('ure-admin', URE_PLUGIN_URL . 'css/ure-admin.css', array(), URE_VERSION, 'screen');
+        wp_enqueue_style('ure-jquery-ui-general', URE_Core::get_plugin_url() . 'css/jquery-ui.min.css', array(), URE_Core::PLUGIN_VERSION, 'screen');
+        wp_enqueue_style('ure-admin', URE_Core::get_plugin_url() . 'css/ure-admin.css', array(), URE_Core::PLUGIN_VERSION, 'screen');
     }
     // end of admin_css_action()
     
@@ -657,8 +657,8 @@ class User_Role_Editor {
     public function settings_css_action() {
 
 
-        wp_enqueue_style('ure-jquery-ui-tabs', URE_PLUGIN_URL . 'css/jquery-ui.min.css', array(), URE_VERSION, 'screen');
-        wp_enqueue_style('ure-admin', URE_PLUGIN_URL . 'css/ure-admin.css', array(), URE_VERSION, 'screen');
+        wp_enqueue_style('ure-jquery-ui-tabs', URE_Core::get_plugin_url() . 'css/jquery-ui.min.css', array(), URE_Core::PLUGIN_VERSION, 'screen');
+        wp_enqueue_style('ure-admin', URE_Core::get_plugin_url() . 'css/ure-admin.css', array(), URE_Core::PLUGIN_VERSION, 'screen');
 
     }
     // end of admin_css_action()
@@ -720,10 +720,10 @@ class User_Role_Editor {
     
     protected function get_ure_page_url() {
 
-        $page_url = admin_url() . URE_PARENT . '?page=users-' . URE_PLUGIN_FILE;
+        $page_url = admin_url() . URE_Core::get_plugin_parent_page() . '?page=users-' . URE_Core::get_plugin_file();
         $object = $this->lib->get_request_var('object', 'get');
         $user_id = (int) $this->lib->get_request_var('user_id', 'get', 'int');
-        if ($object=='user' && $user_id>0) {
+        if ($object==='user' && $user_id>0) {
             $page_url .= '&object=user&user_id='. $user_id;
         }
         
@@ -748,9 +748,9 @@ class User_Role_Editor {
         
         wp_enqueue_script('jquery-ui-dialog', '', array('jquery-ui-core', 'jquery-ui-button', 'jquery'), $wp_version, true );
         wp_enqueue_script('jquery-ui-selectable', '', array('jquery-ui-core', 'jquery'), $wp_version, true );        
-        wp_enqueue_script('notifyjs', plugins_url('/js/notify.min.js', URE_PLUGIN_FULL_PATH ), array(), URE_VERSION, true );
+        wp_enqueue_script('notifyjs', plugins_url('/js/notify.min.js', URE_Core::get_plugin_full_path() ), array(), URE_Core::PLUGIN_VERSION, true );
         
-        wp_register_script('ure', plugins_url('/js/ure.js', URE_PLUGIN_FULL_PATH ), array(), URE_VERSION, true );
+        wp_register_script('ure', plugins_url('/js/ure.js', URE_Core::get_plugin_full_path() ), array(), URE_Core::PLUGIN_VERSION, true );
         wp_enqueue_script('ure');
         wp_localize_script('ure', 'ure_data', array(
             'wp_nonce' => wp_create_nonce('user-role-editor'),
@@ -798,7 +798,7 @@ class User_Role_Editor {
         wp_enqueue_script('jquery-ui-tabs', '', array('jquery-ui-core', 'jquery'), $wp_version, true );
         wp_enqueue_script('jquery-ui-dialog', '', array('jquery-ui-core', 'jquery'), $wp_version, true );
         wp_enqueue_script('jquery-ui-button', '', array('jquery-ui-core', 'jquery'), $wp_version, true );
-        wp_register_script('ure-settings', plugins_url('/js/settings.js', URE_PLUGIN_FULL_PATH ), array(), URE_VERSION, true );
+        wp_register_script('ure-settings', plugins_url('/js/settings.js', URE_Core::get_plugin_full_path() ), array(), URE_Core::PLUGIN_VERSION, true );
         wp_enqueue_script('ure-settings');
         
         wp_localize_script('ure-settings', 'ure_data', array(
@@ -834,9 +834,9 @@ class User_Role_Editor {
 
         URE_Known_JS_CSS_Compatibility_Issues::fix($hook_suffix, $this->ure_hook_suffixes);                
         
-        if ($hook_suffix==$this->main_page_hook_suffix) {
+        if ($hook_suffix===$this->main_page_hook_suffix) {
             $this->load_main_page_js();
-        } elseif($hook_suffix==$this->settings_hook_suffix) {
+        } elseif($hook_suffix===$this->settings_hook_suffix) {
             $this->load_settings_js();
         }                
 
@@ -920,6 +920,7 @@ class User_Role_Editor {
     public function fix_network_admin_roles_dropdown( $roles ) {
                         
         // get selected site ID
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only Network Admin > Sites screen navigation (which site's roles dropdown to show), not a mutation; intval() sanitizes; there is no nonce for this kind of admin-screen link.
         $selected_blog_id = isset( $_REQUEST['id'] ) ? intval( $_REQUEST['id'] ) : 0;
         if ( !$selected_blog_id ) {
             return $roles;
@@ -977,16 +978,6 @@ class User_Role_Editor {
 		
     }
     // end of cleanup()
-   
-    
-    // excute on plugin uninstall via WordPress->Plugins->Delete
-    public static function uninstall() {
-
-        $uninstall = new URE_Uninstall;
-        $uninstall->act();
-        
-    }
-    // end of uninstall()
- 
+       
 }
 // end of User_Role_Editor

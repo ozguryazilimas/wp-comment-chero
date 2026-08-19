@@ -77,8 +77,8 @@ class URE_Advertisement {
 
         $output = '
 			<div style="text-align: center;">
-				<a href="https://adminmenueditor.com/?utm_source=UserRoleEditor&utm_medium=banner&utm_campaign=Plugins" target="_new" >
-					<img src="' . URE_PLUGIN_URL . 'images/admin-menu-editor-pro.jpg' . '" alt="Admin Menu Editor Pro" 
+				<a href="https://adminmenueditor.com/?utm_source=UserRoleEditor&utm_medium=banner&utm_campaign=Plugins" target="_new" rel="noopener noreferrer" >
+					<img src="' . URE_Core::get_plugin_url() . 'images/admin-menu-editor-pro.jpg' . '" alt="Admin Menu Editor Pro" 
 									title="Move, rename, hide, add admin menu items, restrict access" width="250" height="250" />
 				</a>
 			</div>  
@@ -101,7 +101,7 @@ class URE_Advertisement {
     <div id="ure-sidebar" class="ure_table_cell" >
 <?php
         foreach ($this->slots as $slot) {
-            echo $slot . "\n";
+            echo $slot . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $slot is static HTML built internally (e.g. admin_menu_editor()), not user input.
         }
 ?>
     </div>     

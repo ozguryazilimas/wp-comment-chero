@@ -81,7 +81,11 @@ class URE_Role_Additional_Options {
     
     
     public function save($current_role) {
-        
+
+        if ( !current_user_can( 'ure_edit_roles' ) ) {
+            return;
+        }
+
         $wp_roles = wp_roles();
         $this->active_items = self::get_active_items();
         
@@ -94,11 +98,13 @@ class URE_Role_Additional_Options {
         
         // Save additonal options section for the current role
         $this->active_items[$current_role] = array();
+        // phpcs:disable WordPress.Security.NonceVerification.Missing -- save() is only reached via URE_Editor::save_roles(), itself only reachable through the AJAX update_role/update_network actions, which URE_Ajax_Processor::dispatch() already nonce-gates via valid_nonce() before routing here; WPCS can't trace nonce verification across that method-call boundary, same limitation documented for check_nonce()/valid_nonce() in custom-ruleset.xml's WordPress.Security.NonceVerification rule comment.
         foreach( $this->items as $item ) {
             if ( isset( $_POST['values'][$item->id] ) ) {
                 $this->active_items[$current_role][$item->id] = 1;
             }
         }
+        // phpcs:enable
         
         update_option( self::STORAGE_ID, $this->active_items );
         
@@ -127,8 +133,8 @@ class URE_Role_Additional_Options {
 <?php            
         }
 ?>
-                <input type="checkbox" name="<?php echo $item->id;?>" id="<?php echo $item->id;?>" value="<?php echo $item->id;?>" <?php echo $checked;?> >
-                <label for="<?php echo $item->id;?>"><?php echo $item->label;?></label>
+                <input type="checkbox" name="<?php echo esc_attr( $item->id );?>" id="<?php echo esc_attr( $item->id );?>" value="<?php echo esc_attr( $item->id );?>" <?php echo $checked; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $checked is one of two hardcoded literals set above, not user input.?> >
+                <label for="<?php echo esc_attr( $item->id );?>"><?php echo esc_html( $item->label );?></label>
 <?php
         $first_time = false;
     } 

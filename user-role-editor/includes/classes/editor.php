@@ -84,11 +84,13 @@ class URE_Editor {
             return true;
         }
         
+        // phpcs:disable WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- read-only: picks which user's data to load for display (this->user_to_edit), no mutation. Runs both pre-nonce-check (show() -> init0() -> _init0()) for page rendering and inside the AJAX-gated update_role() for the same purpose; filter_var(..., FILTER_VALIDATE_INT) already constrains the value to an integer, so unslashing is a no-op.
         if ( isset( $_REQUEST['user_id'] ) ) {
             $user_id = filter_var( $_REQUEST['user_id'], FILTER_VALIDATE_INT );
         } elseif ( isset( $_POST['values']['user_id'] ) ) {
             $user_id = filter_var( $_POST['values']['user_id'], FILTER_VALIDATE_INT );
         } else {
+            // phpcs:enable
             return false;    // user_id value is missed
         }
         if ( empty( $user_id ) ) {
@@ -106,10 +108,15 @@ class URE_Editor {
     
     
     protected function get_caps_columns_quant() {
-        
-        if ( isset( $_POST['caps_columns_quant'] ) && in_array( $_POST['caps_columns_quant'], array(1,2,3) ) ) {
+
+        // This runs before process_user_request()'s own nonce check (called from init0(), earlier in show()),
+        // so require a valid nonce here too before trusting $_POST - caps_columns_quant is only ever posted
+        // as part of submitting the main ure_form, which always carries the ure_nonce field alongside it.
+        // phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- $this->valid_nonce() below IS a real, effective nonce check (see custom-ruleset.xml's WordPress.Security.NonceVerification rule comment: WPCS's sniff only recognizes *global* function calls, not class-method wrappers like this one, as satisfying nonce verification); filter_var(..., FILTER_VALIDATE_INT) already constrains the value to an integer, so unslashing is a no-op.
+        if ( isset( $_POST['caps_columns_quant'] ) && in_array( $_POST['caps_columns_quant'], array(1,2,3) ) && $this->valid_nonce() ) {
             $value = (int) filter_var( $_POST['caps_columns_quant'], FILTER_VALIDATE_INT );
             set_site_transient( 'ure_caps_columns_quant', $value, URE_Lib::TRANSIENT_EXPIRATION );
+        // phpcs:enable
         } else {
             $value = get_site_transient( 'ure_caps_columns_quant' );
             if ( $value===false ) {
@@ -123,25 +130,27 @@ class URE_Editor {
 
     
     protected function _init0() {
+        // phpcs:disable WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing -- these only set mode/display flags (which editor view to render, whether "apply to all sites" is checked), never mutate anything by themselves. Runs both pre-nonce-check (show() -> init0()) purely to pick which template to render, and again inside the AJAX-gated update_role()/update_network(), where the actual mutation these flags influence is behind that nonce check.
         // could be sent as via POST, as via GET
         if ( isset( $_REQUEST['object'] ) ) {
-            $this->ure_object = $_REQUEST['object'];
+            $this->ure_object = $_REQUEST['object']==='role' ? 'role' : 'user';
         } elseif ( isset( $_POST['values']['object'] ) ) {  // AJAX POST
-            $this->ure_object = $_POST['values']['object'];
+            $this->ure_object = $_POST['values']['object']==='role' ? 'role' : 'user';
         } else {
             $this->ure_object = 'role';
         }
-        
-        if ( $this->ure_object=='user') {
+
+        if ( $this->ure_object==='user') {
             if ( !$this->check_user_to_edit() ) {
                 return false;
             }
         }
-        
+
         $this->apply_to_all = isset( $_POST['values']['ure_apply_to_all']) ? true : false;
         if ( empty( $this->apply_to_all ) && isset( $_POST['ure_apply_to_all'] ) ) {
             $this->apply_to_all = true;
         }
+        // phpcs:enable
         
         return true;
     }
@@ -175,7 +184,7 @@ class URE_Editor {
 
     protected function valid_nonce() {
         
-        if ( empty( $_POST['ure_nonce'] ) || !wp_verify_nonce( $_POST['ure_nonce'], 'user-role-editor' ) ) {            
+        if ( empty( $_POST['ure_nonce'] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['ure_nonce'] ) ), 'user-role-editor' ) ) {
             return false;
         }
         
@@ -209,14 +218,16 @@ class URE_Editor {
             
     
     private function get_role_id() {
-        
+
+        // phpcs:disable WordPress.Security.NonceVerification.Missing -- only reached via init_current_role_name(), itself only reached via URE_Ajax_Processor's add_capability action and the AJAX-gated update_role(), both already nonce-gated by dispatch()'s valid_nonce() before routing here; WPCS can't trace nonce verification across that method-call boundary, same limitation documented for check_nonce()/valid_nonce() in custom-ruleset.xml's WordPress.Security.NonceVerification rule comment.
         if ( isset( $_POST['values']['user_role'] ) ) {
-            $role_id = $_POST['values']['user_role'];
+            $role_id = sanitize_key( wp_unslash( $_POST['values']['user_role'] ) );
         } elseif ( isset( $_POST['user_role'] ) ) {
-            $role_id = $_POST['user_role'];
+            $role_id = sanitize_key( wp_unslash( $_POST['user_role'] ) );
         } else {
             $role_id = false;
         }
+        // phpcs:enable
         
         return $role_id;
         
@@ -276,12 +287,14 @@ class URE_Editor {
             return; // There is no valid initialization
         }
                 
+        // phpcs:disable WordPress.Security.NonceVerification.Missing -- only reached via URE_Editor::update_role(), an AJAX-gated entry point (dispatch()'s valid_nonce() runs before routing here); WPCS can't trace nonce verification across that method-call boundary, same limitation documented for check_nonce()/valid_nonce() in custom-ruleset.xml's WordPress.Security.NonceVerification rule comment.
         foreach ( $this->full_capabilities as $cap ) {
             $cap_id_esc = URE_Capability::escape( $cap['inner'] );
             if ( isset( $_POST['values'][$cap_id_esc] ) || isset( $_POST[$cap_id_esc] ) ) {
                 $this->capabilities_to_save[ $cap['inner'] ] = true;
             }
         }
+        // phpcs:enable
         
         $this->restore_visual_composer_caps();
     }
@@ -299,9 +312,10 @@ class URE_Editor {
          * so have to use this way
          */
         $network_admin = $this->lib->get_request_var('network_admin', 'post', 'int');
-        if ( $network_admin==1 ) {   // for Pro version only
+        if ( (int) $network_admin === 1 ) {   // for Pro version only
             $result = true;
         } else {
+            // phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual -- URE_MULTISITE_DIRECT_UPDATE is admin-defined in wp-config.php and may reasonably be 1, '1', or true; loose comparison is intentional.
             $result = defined('URE_MULTISITE_DIRECT_UPDATE') && URE_MULTISITE_DIRECT_UPDATE == 1;
         }
         
@@ -463,10 +477,16 @@ class URE_Editor {
         $options_table_name = $prefix . 'options';
         $option_name = $prefix . 'user_roles';
         
-        $query = "SELECT option_value
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- {$options_table_name} is a per-blog table name (not user input), can't be a %s placeholder value.
+        $query = $wpdb->prepare(
+            "SELECT option_value
                     FROM {$options_table_name}
-                    WHERE option_name='$option_name'
-                    LIMIT 1";
+                    WHERE option_name=%s
+                    LIMIT 1",
+            $option_name
+        );
+        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- $query is the string just returned by $wpdb->prepare() above; reads a specific blog's raw user_roles option ahead of direct_network_roles_update()'s bulk write below, so switch_to_blog()+get_option() per blog isn't an option here either (same perf rationale as that method).
         $value = $wpdb->get_var( $query );
         if ( empty( $value ) ) {
             return $this->roles;
@@ -528,11 +548,18 @@ class URE_Editor {
                 // overwrite except roles you have to leave untouched for this blog
                 $roles = $this->leave_roles_for_blog( $blog_id, $leave_roles[$blog_id] );
             }
-            $query = "UPDATE {$options_table_name}
-                SET option_value='$roles'
-                WHERE option_name='$option_name'
-                LIMIT 1";
-            $wpdb->query( $wpdb->prepare( $query ) );
+            // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- {$options_table_name} is a per-blog table name (not user input), can't be a %s placeholder value.
+            $query = $wpdb->prepare(
+                "UPDATE {$options_table_name}
+                SET option_value=%s
+                WHERE option_name=%s
+                LIMIT 1",
+                $roles,
+                $option_name
+            );
+            // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- $query is the string just returned by $wpdb->prepare() above; this method's docblock explains the direct-write approach is a deliberate perf optimization over switch_to_blog()+update_option() per blog on large networks.
+            $wpdb->query( $query );
             if ( $wpdb->last_error ) {
                 return false;
             }
@@ -603,7 +630,7 @@ class URE_Editor {
         do_action('ure_after_network_roles_update');
 
         if ($debug) {
-            echo '<div class="updated fade below-h2">Roles updated for ' . ( microtime() - $time_shot ) . ' milliseconds</div>';
+            echo '<div class="updated fade below-h2">Roles updated for ' . esc_html( microtime() - $time_shot ) . ' milliseconds</div>';
         }
 
         return $result;
@@ -674,7 +701,8 @@ class URE_Editor {
         
         $select_primary_role = apply_filters( 'ure_users_select_primary_role', true );
         if ( $select_primary_role  || $this->lib->is_super_admin()) {
-            $role = isset( $_POST['values']['primary_role'] ) ? URE_Base_Lib::filter_string_var( $_POST['values']['primary_role'] ) : false;  
+            // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- only reached via update_user() <- permissions_object_update() <- URE_Editor::update_role(), an AJAX-gated entry point (dispatch()'s valid_nonce() runs before routing here). Sanitization happens in URE_Base_Lib::filter_string_var() -> sanitize_text_field( wp_unslash() ), which WPCS cannot trace through a wrapper call, same limitation documented for URE_Base_Lib::get_request_var().
+            $role = isset( $_POST['values']['primary_role'] ) ? URE_Base_Lib::filter_string_var( $_POST['values']['primary_role'] ) : false;
             if ( empty( $role ) || !isset( $wp_roles->roles[$role] ) ) {
                 $role = '';
             }
@@ -706,9 +734,10 @@ class URE_Editor {
      * @param array $roles
      */
     private function add_other_roles( $roles ) {
-        
+
         $wp_roles = wp_roles();
-        
+
+        // phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- only reached via update_user() <- permissions_object_update() <- URE_Editor::update_role(), an AJAX-gated entry point (dispatch()'s valid_nonce() runs before routing here); WPCS can't trace nonce verification across that method-call boundary, same limitation documented for check_nonce()/valid_nonce() in custom-ruleset.xml's WordPress.Security.NonceVerification rule comment. Each extracted role name is also checked against $wp_roles->roles (real, existing roles) below before use.
         $post_values = isset( $_POST['values'] ) && is_array( $_POST['values'] ) ? $_POST['values'] : array();
         foreach ( $post_values as $key => $value ) {
             $result = preg_match( '/^wp_role_(.+)/', $key, $match );
@@ -724,6 +753,7 @@ class URE_Editor {
                 $roles[] = $role;
             }
         }
+        // phpcs:enable
 
         return $roles;
     }
@@ -931,7 +961,7 @@ class URE_Editor {
         $wp_roles->role_names = array();
         $wp_roles->use_db = true;
 
-        require_once(ABSPATH . '/wp-admin/includes/schema.php');
+        require_once( ABSPATH . 'wp-admin/includes/schema.php');
         populate_roles();
         $wp_roles = new WP_Roles();
         
@@ -946,10 +976,9 @@ class URE_Editor {
     public function reset_user_roles() {
         
         if ( !current_user_can('ure_reset_roles') ) {            
-            $debug = ( defined('WP_PHP_UNIT_TEST') && WP_PHP_UNIT_TEST==true );
+            $debug = ( defined('WP_PHP_UNIT_TEST') && WP_PHP_UNIT_TEST===true );
             if ( !$debug ) {
-                $message = __('Insufficient permissions to work with User Role Editor','user-role-editor');
-                wp_die( $message );
+                wp_die( esc_html__('Insufficient permissions to work with User Role Editor','user-role-editor') );
             } else {
                 return false;
             }
@@ -1086,19 +1115,20 @@ class URE_Editor {
         
         $this->roles = $this->lib->get_user_roles();
         $this->full_capabilities = $this->lib->init_full_capabilities( $this->ure_object );
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- update_role() is an AJAX-gated entry point; dispatch()'s valid_nonce() already runs before routing here, WPCS just can't trace nonce verification across that method-call boundary, same limitation documented for check_nonce()/valid_nonce() in custom-ruleset.xml's WordPress.Security.NonceVerification rule comment.
         if ( isset( $_POST['values']['user_role'] ) ) {
             $this->notification = $this->init_current_role_name();
         }
         $this->prepare_capabilities_to_save();
         $this->notification = $this->permissions_object_update( $this->notification );
-        
+
         $response['result'] = 'success';
         if ( $this->ure_object==='role') {
             $response['role_id'] = $result['role_id'];
             $response['role_name'] = $this->current_role_name;
         }
         $response['message'] = $this->notification;
-        
+
         return $response;
     }
     // end of update_role()
@@ -1109,12 +1139,13 @@ class URE_Editor {
         $this->init0();
         $this->roles = $this->lib->get_user_roles();
         $this->full_capabilities = $this->lib->init_full_capabilities( $this->ure_object );
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- update_network() is only reached via the ure_process_user_request action (Pro's URE_Editor_Ext::network_update() hooks it), fired from process_user_request()'s switch default case, already nonce-gated by its own valid_nonce() (checking ure_nonce) before that switch runs; WPCS can't trace nonce verification across that method-call/hook boundary, same limitation documented for check_nonce()/valid_nonce() in custom-ruleset.xml's WordPress.Security.NonceVerification rule comment.
         if ( isset( $_POST['user_role'] ) ) {
             $this->notification = $this->init_current_role_name();
         }
         $this->prepare_capabilities_to_save();
         $this->notification = $this->permissions_object_update( $this->notification );
-                
+
     }
     // end of update_network()
         
@@ -1285,7 +1316,7 @@ class URE_Editor {
         }
 
         $role_id = $this->lib->get_request_var( 'user_role_id', 'post');
-        if ( $role_id==-1 ) { // delete all unused roles
+        if ( (int) $role_id === -1 ) { // delete all unused roles
             $result = $this->delete_all_unused_roles();
         } else {
             if ( empty( $role_id ) ) {
@@ -1297,7 +1328,7 @@ class URE_Editor {
         if ( $result['result']===true ) {
             $response['result'] = 'success';
             $response['deleted_roles'] = $result['deleted_roles'];
-            if ( $role_id==-1 ) {
+            if ( (int) $role_id === -1 ) {
                 $response['message'] = esc_html__( 'Unused roles are deleted successfully', 'user-role-editor' );
             } else {
                 // translators: placeholder %s is replaced by not deleted user role id string value
@@ -1306,7 +1337,8 @@ class URE_Editor {
         } else {
             $response['message'] = $result['message'];
         }
-        if ( isset( $_POST['user_role_id'] ) ) {            
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- delete_role() is an AJAX-gated entry point; dispatch()'s valid_nonce() already runs before routing here, WPCS just can't trace nonce verification across that method-call boundary, same limitation documented for check_nonce()/valid_nonce() in custom-ruleset.xml's WordPress.Security.NonceVerification rule comment.
+        if ( isset( $_POST['user_role_id'] ) ) {
             unset( $_POST['user_role_id'] );
         }
 
@@ -1332,6 +1364,7 @@ class URE_Editor {
             $mess = esc_html__('This method is only for a single site of WordPress multisite installation.', 'user-role-editor');
             return $mess;
         }
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- change_default_role() is only reached via process_user_request()'s switch, already nonce-gated by its own valid_nonce() (checking ure_nonce) before routing here; WPCS can't trace nonce verification across that method-call boundary, same limitation documented for check_nonce()/valid_nonce() in custom-ruleset.xml's WordPress.Security.NonceVerification rule comment.
         if ( empty( $_POST['user_role_id'] ) ) {
             $mess = esc_html__('Wrong request. Default role can not be empty', 'user-role-editor');
             return $mess;
@@ -1368,14 +1401,17 @@ class URE_Editor {
     protected function process_user_request() {
 
         $this->notification = '';
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- this is the guard clause of the nonce check itself (there's nothing to verify a nonce for if no action was posted); the actual valid_nonce() check runs immediately below.
         if ( !isset( $_POST['action'] ) ) {
             return false;
         }
         if ( !$this->valid_nonce() ) {
+            // In WP_DEBUG mode, fail softly (return instead of wp_die) so tests/tools can inspect
+            // the return value instead of having to handle a WPDieException on every invalid-nonce case.
             if ( defined('WP_DEBUG') && WP_DEBUG ) {
                 return false;
             } else {
-                wp_die( __('Wrong or older request (invalid nonce value). Action prohibited.', 'user-role-editor') );
+                wp_die( esc_html__('Wrong or older request (invalid nonce value). Action prohibited.', 'user-role-editor') );
             }
         }
         
@@ -1441,9 +1477,11 @@ class URE_Editor {
     
     protected function set_current_role() {
         
-        if (!isset($this->current_role) || !$this->current_role) {
-            if (isset($_REQUEST['user_role']) && $_REQUEST['user_role'] && isset($this->roles[$_REQUEST['user_role']])) {
+        if ( !isset( $this->current_role ) || !$this->current_role ) {
+            // phpcs:disable WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized  -- read-only: picks which role's capabilities to display in the editor UI (a navigation/display selector, like clicking a role in the sidebar list), no mutation; the value is only ever used as an array key lookup against $this->roles, an existing-roles allowlist.
+            if ( isset($_REQUEST['user_role']) && $_REQUEST['user_role'] && isset( $this->roles[$_REQUEST['user_role'] ] ) ) {
                 $this->current_role = $_REQUEST['user_role'];
+            // phpcs:enable
             } else {
                 $this->current_role = $this->get_last_role_id();
             }
@@ -1479,7 +1517,7 @@ class URE_Editor {
     protected function show_editor() {
 
         $this->lib->show_message( $this->notification );
-        if ( $this->ure_object == 'user' ) {
+        if ( $this->ure_object === 'user' ) {
             $view = new URE_User_View();
         } else {
             $this->set_current_role();
@@ -1491,7 +1529,7 @@ class URE_Editor {
             <h1><?php esc_html_e('User Role Editor', 'user-role-editor'); ?></h1>
             <div id="ure_container">                
                 <div id="user_role_editor" class="ure-table-cell" >
-                    <form id="ure_form" method="post" action="<?php echo admin_url() . URE_PARENT . '?page=users-' . URE_PLUGIN_FILE; ?>" >			
+                    <form id="ure_form" method="post" action="<?php echo esc_url( admin_url() . URE_Core::get_plugin_parent_page() . '?page=users-' . URE_Core::get_plugin_file() ); ?>" >
                         <div id="ure_form_controls">
         <?php
         $view->display();

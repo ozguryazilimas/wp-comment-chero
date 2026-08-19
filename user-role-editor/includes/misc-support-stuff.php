@@ -26,6 +26,7 @@ if ( class_exists( 'GFForms' ) ) {
 												 *  Define stub function to say "Gravity Forms" plugin: 'Hey! Yes, I'm not the "Members" plugin, but I'm "User Role Editor" and 
 												 *  I'm  capable to manage your roles and capabilities too.        
 												 */
+            // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- name must match the Members plugin's own function exactly, see comment above.
             function members_get_capabilities() { 
 																
             }
@@ -73,6 +74,7 @@ if ( ! function_exists( 'wp_roles' ) ) {
     *
     * @return WP_Roles WP_Roles global instance if not already instantiated.
     */
+    // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- must be named wp_roles() exactly; this is a back-compat polyfill for WP core's own function.
     function wp_roles() {
         global $wp_roles;
 

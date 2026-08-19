@@ -52,7 +52,7 @@ class URE_Capabilities_Groups_Manager {
         $post_types = get_post_types( array(), 'objects');
         $_post_types = $this->lib->_get_post_types();
         $built_in_pt = array('post', 'page');
-        if ( $post_types['attachment']->cap->edit_posts=='edit_posts') {
+        if ( $post_types['attachment']->cap->edit_posts==='edit_posts') {
             $built_in_pt[] = 'attachment';
         }
 
@@ -410,7 +410,7 @@ class URE_Capabilities_Groups_Manager {
         $post_types = get_post_types( array(), 'objects' );
         $_post_types = $this->lib->_get_post_types();
         $built_in_pt = array('post', 'page');
-        if ( $post_types['attachment']->cap->edit_posts=='edit_posts') {
+        if ( $post_types['attachment']->cap->edit_posts==='edit_posts') {
             $built_in_pt[] = 'attachment';
         }
         $this->cpt_caps = array();

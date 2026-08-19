@@ -16,7 +16,7 @@ class URE_Tools {
 ?>               
 
     <div style="margin: 10px 0 10px 0; border: 1px solid red; padding: 0 10px 10px 10px; text-align:left;">        
-        <form name="ure_reset_roles_form" id="ure_reset_roles_form" method="post" action="<?php echo $link; ?>?page=settings-<?php echo URE_PLUGIN_FILE; ?>" >
+        <form name="ure_reset_roles_form" id="ure_reset_roles_form" method="post" action="<?php echo esc_url( $link . '?page=settings-' . URE_Core::get_plugin_file() ); ?>" >
             <h3>Reset User Roles</h3>
             <span style="color: red;"><?php esc_html_e('WARNING!', 'user-role-editor');?></span>&nbsp;
 <?php        
@@ -35,11 +35,11 @@ class URE_Tools {
         }
 ?>
             <br><br>
-            <input type="text" id="ure_reset_roles_secure" name="ure_reset_roles_secure" value="" placeholder="<?php echo URE_Tools::RESET_ROLES_SECURE_TEXT;?>" style="width:400px;"/>
-            &lt;- <span style="color: red;"><?php echo URE_Tools::RESET_ROLES_SECURE_TEXT; ?></span>
+            <input type="text" id="ure_reset_roles_secure" name="ure_reset_roles_secure" value="" placeholder="<?php echo esc_attr( URE_Tools::RESET_ROLES_SECURE_TEXT );?>" style="width:400px;"/>
+            &lt;- <span style="color: red;"><?php echo esc_html( URE_Tools::RESET_ROLES_SECURE_TEXT ); ?></span>
             <br><br>            
             <button id="ure_reset_roles_button" style="width: 100px; color: red;" title="<?php esc_html_e('Reset Roles to its original state', 'user-role-editor'); ?>" disabled><?php esc_html_e('Reset', 'user-role-editor');?></button> 
-            <?php wp_nonce_field('user-role-editor'); ?>
+            <?php wp_nonce_field('ure_settings_tools_exec'); ?>
             <input type="hidden" name="ure_settings_tools_exec" value="1" />
             <input type="hidden" name="ure_reset_roles_exec" value="1" />
             <input type="hidden" name="ure_tab_idx" value="<?php echo (int) $tab_idx; ?>" />

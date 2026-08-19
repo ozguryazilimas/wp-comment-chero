@@ -25,7 +25,8 @@ class URE_Settings {
             if ( !isset( $_POST[$update_button] ) ) {
                 continue;
             }
-            if ( !wp_verify_nonce($_POST['_wpnonce'], 'user-role-editor') ) {
+            $wp_nonce = isset( $_POST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ) : '';
+            if ( !wp_verify_nonce( $wp_nonce, $update_button ) ) {
                 wp_die('Security check failed');
             }
             $action = $update_button;
@@ -44,6 +45,7 @@ class URE_Settings {
     protected static function update_general_options() {
         
         $lib = URE_Lib::get_instance();
+        // phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual -- URE_SHOW_ADMIN_ROLE is admin-defined in wp-config.php and may reasonably be 1, '1', or true; loose comparison is intentional.
         if (defined('URE_SHOW_ADMIN_ROLE') && (URE_SHOW_ADMIN_ROLE == 1)) {
             $show_admin_role = 1;
         } else {
@@ -107,6 +109,7 @@ class URE_Settings {
                 
         // Other default roles
         $other_default_roles = array();
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- get_action() already verifies the nonce for whichever settings form was submitted before controller() routes here; WPCS can't trace nonce verification across that method-call boundary, same limitation documented for check_nonce()/valid_nonce() in custom-ruleset.xml's WordPress.Security.NonceVerification rule comment.
         foreach($_POST as $key=>$value) {
             $prefix = substr($key, 0, 8);
             if ($prefix!=='wp_role_') {
@@ -115,7 +118,7 @@ class URE_Settings {
             $role_id = substr($key, 8);
             if ($role_id!=='administrator' && isset($wp_roles->role_objects[$role_id])) {
                 $other_default_roles[] = $role_id;
-            }            
+            }
         }  // foreach()
         $lib->put_option('other_default_roles', $other_default_roles, true);
         
@@ -149,7 +152,7 @@ class URE_Settings {
         
         $lib = URE_Lib::get_instance();
         $roles_reset = $lib->get_request_var( 'ure_reset_roles_exec', 'post', 'int');
-        if ( $roles_reset==1 ) {
+        if ( (int) $roles_reset === 1 ) {
             URE_Tools::reset_roles();
         } else {        
             do_action( 'ure_settings_tools_exec' );
@@ -194,7 +197,7 @@ class URE_Settings {
         $roles = $lib->get_editable_user_roles();
         $wp_default_role = get_option('default_role');
         foreach ($roles as $role_id => $role) {
-            if ( $role_id=='administrator' || $role_id==$wp_default_role ) {
+            if ( $role_id==='administrator' || $role_id===$wp_default_role ) {
                 continue;
             }
             if ( in_array( $role_id, $other_default_roles ) ) {
@@ -202,9 +205,11 @@ class URE_Settings {
             } else {
                 $checked = '';
             }
-            echo '<label for="wp_role_' . $role_id .'"><input type="checkbox"	id="wp_role_' . $role_id . 
-                '" name="wp_role_' . $role_id . '" value="' . $role_id . '"' . $checked .' />&nbsp;' . 
+            // phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- $checked is one of two hardcoded literals set above, not user input.
+            echo '<label for="wp_role_' . esc_attr( $role_id ) .'"><input type="checkbox"	id="wp_role_' . esc_attr( $role_id ) .
+                '" name="wp_role_' . esc_attr( $role_id ) . '" value="' . esc_attr( $role_id ) . '"' . $checked .' />&nbsp;' .
                 esc_html( $role['name'] ) . '</label><br />';
+            // phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
           }		
            
     }
@@ -235,6 +240,7 @@ class URE_Settings {
         $lib = URE_Lib::get_instance();
         self::controller();
         
+        // phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual -- URE_SHOW_ADMIN_ROLE is admin-defined in wp-config.php and may reasonably be 1, '1', or true; loose comparison is intentional.
         if (defined('URE_SHOW_ADMIN_ROLE') && (URE_SHOW_ADMIN_ROLE == 1)) {
             $show_admin_role = 1;
         } else {
@@ -262,9 +268,9 @@ class URE_Settings {
         $link = self::get_settings_link();        
         $active_for_network = $lib->get('active_for_network');
         $license_key_only = $multisite && is_network_admin() && !$active_for_network;
-
+        $plugin_file = URE_Core::get_plugin_file();
         
-        require_once(URE_PLUGIN_DIR . 'includes/settings-template.php');
+        require_once(URE_Core::get_plugin_dir() . 'includes/settings-template.php');
     }
     // end of show()
     

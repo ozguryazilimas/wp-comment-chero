@@ -134,6 +134,7 @@ class URE_Capabilities {
     protected function add_members_caps( &$full_list ) {
         
         $custom_caps = array();
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- 'members_get_capabilities' is the Members plugin's own filter hook, invoked for compatibility; name must match exactly.
         $custom_caps = apply_filters( 'members_get_capabilities', $custom_caps );
         foreach ( $custom_caps as $cap ) {
            $this->add_capability_to_full_caps_list( $cap, $full_list );
@@ -191,7 +192,7 @@ class URE_Capabilities {
     
     public static function add_cap_to_roles( $roles, $cap ) {
         
-        if ( !is_array( $roles ) || count( $roles )==0 ) {
+        if ( !is_array( $roles ) || count( $roles )===0 ) {
             return;
         }
         
@@ -340,7 +341,7 @@ class URE_Capabilities {
         $this->add_gravity_forms_caps( $full_list );
         $this->add_bbpress_caps( $full_list );
         $this->add_members_caps( $full_list );
-        if ($ure_object=='user') {
+        if ($ure_object==='user') {
             $this->add_user_caps( $full_list );
         }        
         $this->add_wordpress_caps( $full_list );

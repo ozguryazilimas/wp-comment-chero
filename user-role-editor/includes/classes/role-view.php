@@ -45,8 +45,8 @@ class URE_Role_View extends URE_View {
         foreach ($roles as $key => $value) {
             $selected = selected($key, $wp_default_role, false);
             $disabled = ($key==='administrator' && $caps_access_restrict_for_simple_admin && !$this->lib->is_super_admin()) ? 'disabled' : '';
-            if ($show_admin_role || $key != 'administrator') {
-                $this->role_default_html .= '<option value="' . $key . '" ' . $selected .' '. $disabled .'>'. esc_html( $value['name'] ) .' (' . $key . ')</option>';
+            if ($show_admin_role || $key !== 'administrator') {
+                $this->role_default_html .= '<option value="' . esc_attr( $key ) . '" ' . $selected .' '. $disabled .'>'. esc_html( $value['name'] ) .' (' . esc_html( $key ) . ')</option>';
             }
         }
         $this->role_default_html .= '</select>';
@@ -76,10 +76,10 @@ class URE_Role_View extends URE_View {
             }            
             $selected1 = selected( $key, $current_role, false );
             $disabled = ( $key==='administrator' && $caps_access_restrict_for_simple_admin && !$this->lib->is_super_admin()) ? 'disabled' : '';
-            if ( $show_admin_role || $key != 'administrator' ) {
-                $role_name = esc_html( $value['name'] ) .' (' . $key . ')';
-                $this->role_select_html .= '<option value="' . $key . '" ' . $selected1 .' '. $disabled .'>' . $role_name . '</option>';
-                $this->role_to_copy_html .= '<option value="' . $key .'" '. $disabled .'>' . $role_name . '</option>';
+            if ( $show_admin_role || $key !== 'administrator' ) {
+                $role_name = esc_html( $value['name'] ) .' (' . esc_html( $key ) . ')';
+                $this->role_select_html .= '<option value="' . esc_attr( $key ) . '" ' . $selected1 .' '. $disabled .'>' . $role_name . '</option>';
+                $this->role_to_copy_html .= '<option value="' . esc_attr( $key ) .'" '. $disabled .'>' . $role_name . '</option>';
             }
         }
         $this->role_select_html .= '</select>';
@@ -95,7 +95,7 @@ class URE_Role_View extends URE_View {
             ksort( $roles_can_delete );
             $this->role_delete_html = '<select id="del_user_role" name="del_user_role" width="250" style="width: 250px">';
             foreach ($roles_can_delete as $key => $value) {
-                $this->role_delete_html .= '<option value="' . $key . '">' . esc_html( $value ) . '</option>';
+                $this->role_delete_html .= '<option value="' . esc_attr( $key ) . '">' . esc_html( $value ) . '</option>';
             }
             $this->role_delete_html .= '<option value="-1" style="color: red;">' . esc_html__('Delete All Unused Roles', 'user-role-editor') . '</option>';
             $this->role_delete_html .= '</select>';
@@ -124,6 +124,7 @@ class URE_Role_View extends URE_View {
         $caps = array_keys($caps_to_remove);
         asort($caps);
         $network_admin = filter_input(INPUT_POST, 'network_admin', FILTER_SANITIZE_NUMBER_INT);
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- caps_to_remove_html() is only reached via URE_Ajax_Processor's get_caps_to_remove action, already nonce-gated by dispatch()'s valid_nonce() before routing here; also read-only (pre-selects a dropdown value, no mutation). Sanitization happens in URE_Base_Lib::filter_string_var() -> sanitize_text_field( wp_unslash() ), which WPCS cannot trace through a wrapper call, same limitation documented for URE_Base_Lib::get_request_var().
         $current_role = isset( $_POST['current_role'] ) ? URE_Base_Lib::filter_string_var( $_POST['current_role'] ) : '';
         if (!isset($wp_roles->roles[$current_role])) {
             $current_role = '';
@@ -131,7 +132,7 @@ class URE_Role_View extends URE_View {
         ob_start();
 ?>        
     <form name="ure_remove_caps_form" id="ure_remove_caps_form" method="POST"
-      action="<?php echo admin_url() . ($network_admin ? 'network/':'') . URE_PARENT .'?page=users-'.URE_PLUGIN_FILE;?>" >
+      action="<?php echo esc_url( admin_url() . ($network_admin ? 'network/':'') . URE_Core::get_plugin_parent_page() .'?page=users-'. URE_Core::get_plugin_file() );?>" >
         <table id="ure_remove_caps_table">    
             <tr>
                 <th>
@@ -145,19 +146,19 @@ class URE_Role_View extends URE_View {
 ?>                            
             <tr>
                 <td>
-                    <input type="checkbox" name="<?php echo $cap_id_esc;?>" id="<?php echo $cap_id_esc;?>" class="ure-cb-column" 
-                           value="<?php echo $cap_id;?>"/>
+                    <input type="checkbox" name="<?php echo esc_attr( $cap_id_esc );?>" id="<?php echo esc_attr( $cap_id_esc );?>" class="ure-cb-column"
+                           value="<?php echo esc_attr( $cap_id );?>"/>
                 </td>
                 <td>
-                    <label for="<?php echo $cap_id_esc;?>"><?php echo $cap_id; ?></label>
+                    <label for="<?php echo esc_attr( $cap_id_esc );?>"><?php echo esc_html( $cap_id ); ?></label>
                 </td>
-            </tr>    
+            </tr>
 <?php
         }   // foreach($caps...)
 ?>
-        </table>    
+        </table>
         <input type="hidden" name="action" id="action" value="delete-user-capability" />
-        <input type="hidden" name="user_role" id="ure_role" value="<?php echo $current_role;?>" />
+        <input type="hidden" name="user_role" id="ure_role" value="<?php echo esc_attr( $current_role );?>" />
         <?php wp_nonce_field('user-role-editor', 'ure_nonce'); ?>
     </form>
 <?php        
@@ -189,8 +190,8 @@ class URE_Role_View extends URE_View {
 ?>        
 <script language="javascript" type="text/javascript">
 
-  var ure_current_role = <?php echo json_encode( $current_role ); ?>;
-  var ure_current_role_name  = <?php echo json_encode( $current_role_name ); ?>;
+  var ure_current_role = <?php echo wp_json_encode( $current_role ); ?>;
+  var ure_current_role_name  = <?php echo wp_json_encode( $current_role_name ); ?>;
 
 </script>
 
@@ -202,7 +203,7 @@ class URE_Role_View extends URE_View {
     <div class="ure-label"><?php esc_html_e('Display Role Name: ', 'user-role-editor'); ?></div>
     <div class="ure-input"><input type="text" name="user_role_name" id="user_role_name" size="25"/></div>
     <div class="ure-label"><?php esc_html_e('Make copy of: ', 'user-role-editor'); ?></div>
-    <div class="ure-input"><?php echo $this->role_to_copy_html; ?></div>        
+    <div class="ure-input"><?php echo $this->role_to_copy_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built in role_select_copy_prepare_html() with each dynamic piece already escaped. ?></div>
   </form>
 </div>
 
@@ -218,7 +219,7 @@ class URE_Role_View extends URE_View {
 <div id="ure_delete_role_dialog" class="ure-modal-dialog">
   <div style="padding:10px;">
     <div class="ure-label"><?php esc_html_e('Select Role:', 'user-role-editor');?></div>
-    <div class="ure-input"><?php echo $this->role_delete_html; ?></div>
+    <div class="ure-input"><?php echo $this->role_delete_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built above with each dynamic piece already escaped. ?></div>
   </div>
 </div>
 
@@ -227,8 +228,8 @@ if ($multisite && !is_network_admin()) {
 ?>
 <div id="ure_default_role_dialog" class="ure-modal-dialog">
   <div style="padding:10px;">
-    <?php echo $this->role_default_html; ?>
-  </div>  
+    <?php echo $this->role_default_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built in role_default_prepare_html() with each dynamic piece already escaped. ?>
+  </div>
 </div>
 <?php
 }
@@ -273,7 +274,7 @@ if ($multisite && !is_network_admin()) {
 ?>	
         <div id="ure_toolbar" >
                <div id="ure_update">
-                <button id="ure_update_role" class="ure_toolbar_button button-primary" >Update</button> 
+                <button id="ure_update_role" class="ure_toolbar_button button-primary" ><?php esc_html_e('Update', 'user-role-editor');?></button>
 <?php
             do_action('ure_role_edit_toolbar_update');
 ?>                                   
@@ -285,17 +286,17 @@ if ($multisite && !is_network_admin()) {
 <?php 
                 if (current_user_can('ure_create_roles')) {
 ?>
-               <button id="ure_add_role" class="ure_toolbar_button">Add Role</button>
+               <button id="ure_add_role" class="ure_toolbar_button"><?php esc_html_e('Add Role', 'user-role-editor');?></button>
 <?php
                 }
 ?>
-               <button id="ure_rename_role" class="ure_toolbar_button">Rename Role</button>   
+               <button id="ure_rename_role" class="ure_toolbar_button"><?php esc_html_e('Rename Role', 'user-role-editor');?></button>
 <?php
             }   // restrict single site admin
             if (!$multisite || $super_admin || !$caps_access_restrict_for_simple_admin) { // restrict single site admin
                 if (current_user_can('ure_create_capabilities')) {
 ?>
-               <button id="ure_add_capability" class="ure_toolbar_button">Add Capability</button>
+               <button id="ure_add_capability" class="ure_toolbar_button"><?php esc_html_e('Add Capability', 'user-role-editor');?></button>
 <?php
                 }
             }   // restrict single site admin
@@ -303,7 +304,7 @@ if ($multisite && !is_network_admin()) {
             if (!$multisite || $super_admin || $add_del_role_for_simple_admin) { // restrict single site admin
                 if (!empty($this->role_delete_html) && current_user_can('ure_delete_roles')) {
 ?>  
-                   <button id="ure_delete_role" class="ure_toolbar_button">Delete Role</button>
+                   <button id="ure_delete_role" class="ure_toolbar_button"><?php esc_html_e('Delete Role', 'user-role-editor');?></button>
 <?php
                 }
             } // restrict single site admin
@@ -312,13 +313,13 @@ if ($multisite && !is_network_admin()) {
                 if (!empty($this->caps_to_remove) && is_array($this->caps_to_remove) && count($this->caps_to_remove)>0 && 
                     current_user_can('ure_delete_capabilities')) {
 ?>
-                   <button id="ure_delete_capability" class="ure_toolbar_button">Delete Capability</button>
+                   <button id="ure_delete_capability" class="ure_toolbar_button"><?php esc_html_e('Delete Capability', 'user-role-editor');?></button>
 <?php
                 }
                 if ($multisite && !is_network_admin()) {  // Show for single site for WP multisite only
 ?>
                <hr />
-               <button id="ure_default_role" class="ure_toolbar_button">Default Role</button>
+               <button id="ure_default_role" class="ure_toolbar_button"><?php esc_html_e('Default Role', 'user-role-editor');?></button>
                <hr />
 <?php
                 }
@@ -353,7 +354,7 @@ if ($multisite && !is_network_admin()) {
         $caps_access_restrict_for_simple_admin = $this->lib->get_option('caps_access_restrict_for_simple_admin', 0);
         if ($this->lib->is_super_admin() || !$multisite || !$this->lib->is_pro() || !$caps_access_restrict_for_simple_admin) {
 ?>              
-            <input type="checkbox" name="ure_caps_readable" id="ure_caps_readable" value="1" <?php echo $checked; ?> onclick="ure_main.turn_caps_readable();"/>
+            <input type="checkbox" name="ure_caps_readable" id="ure_caps_readable" value="1" <?php echo $checked; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $checked is one of two hardcoded literals set above, not user input. ?> onclick="ure_main.turn_caps_readable();"/>
             <label for="ure_caps_readable"><?php esc_html_e('Show capabilities in human readable form', 'user-role-editor'); ?></label>&nbsp;&nbsp;
 <?php
             $show_deprecated_caps = $this->editor->get('show_deprecated_caps');
@@ -363,7 +364,7 @@ if ($multisite && !is_network_admin()) {
                 $checked = '';
             }
 ?>
-            <input type="checkbox" name="ure_show_deprecated_caps" id="ure_show_deprecated_caps" value="1" <?php echo $checked; ?> onclick="ure_turn_deprecated_caps(0);"/>
+            <input type="checkbox" name="ure_show_deprecated_caps" id="ure_show_deprecated_caps" value="1" <?php echo $checked; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $checked is one of two hardcoded literals set above, not user input. ?> onclick="ure_turn_deprecated_caps(0);"/>
             <label for="ure_show_deprecated_caps"><?php esc_html_e('Show deprecated capabilities', 'user-role-editor'); ?></label>              
 <?php
         }
@@ -378,10 +379,10 @@ if ($multisite && !is_network_admin()) {
                 $fontColor = '';
             }
 ?>
-            <div style="float: right; margin-left:10px; margin-right: 20px; <?php echo $fontColor; ?>" id="ure_apply_to_all_div">
-                <input type="checkbox" name="ure_apply_to_all" id="ure_apply_to_all" value="1" 
-                       <?php echo $checked; ?> title="<?php echo $hint; ?>" onclick="ure_main.apply_to_all_on_click(this)"/>
-                <label for="ure_apply_to_all" title="<?php echo $hint; ?>"><?php esc_html_e('Apply to All Sites', 'user-role-editor'); ?></label>
+            <div style="float: right; margin-left:10px; margin-right: 20px; <?php echo $fontColor; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $fontColor is one of two hardcoded CSS literals set above, not user input. ?>" id="ure_apply_to_all_div">
+                <input type="checkbox" name="ure_apply_to_all" id="ure_apply_to_all" value="1"
+                       <?php echo $checked; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $checked is one of two hardcoded literals set above, not user input. ?> title="<?php echo $hint; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $hint is already run through esc_html__() above. ?>" onclick="ure_main.apply_to_all_on_click(this)"/>
+                <label for="ure_apply_to_all" title="<?php echo $hint; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $hint is already run through esc_html__() above. ?>"><?php esc_html_e('Apply to All Sites', 'user-role-editor'); ?></label>
             </div>
 <?php
         }
@@ -398,7 +399,7 @@ if ($multisite && !is_network_admin()) {
 ?>
     <div class="postbox" style="min-width:800px;width:100%">
         <div id="ure_role_selector">
-            <span id="ure_role_select_label"><?php esc_html_e('Select Role and change its capabilities:', 'user-role-editor'); ?></span> <?php echo $this->role_select_html; ?>
+            <span id="ure_role_select_label"><?php esc_html_e('Select Role and change its capabilities:', 'user-role-editor'); ?></span> <?php echo $this->role_select_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built in role_select_copy_prepare_html() with each dynamic piece already escaped. ?>
         </div>    
         <div class="inside">
 <?php

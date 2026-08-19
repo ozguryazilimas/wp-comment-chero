@@ -9,7 +9,7 @@ defined( 'ABSPATH' ) || exit;
  * 
  */
 
-$tabs_index = array();
+$ure_tabs_index = array();
 ?>
 <div class="wrap">
     <a href="http://role-editor.com">
@@ -21,29 +21,29 @@ $tabs_index = array();
         <ul>
             <li><a href="#ure_tabs-1"><?php esc_html_e( 'General', 'user-role-editor' );?></a></li>
 <?php
-$tabs_index['1'] = 0;
+$ure_tabs_index['1'] = 0;
 if ( ! $license_key_only ) {
     if ( $lib->is_pro() || ! $multisite ) {
 ?>
             <li><a href="#ure_tabs-2"><?php esc_html_e( 'Additional Modules', 'user-role-editor' ); ?></a></li>
 <?php
-        $tabs_index['2'] = 1;
+        $ure_tabs_index['2'] = 1;
     }
 ?>
             <li><a href="#ure_tabs-3"><?php esc_html_e( 'Default Roles', 'user-role-editor' ); ?></a></li>
 <?php
-    $tabs_index['3'] = count( $tabs_index );
+    $ure_tabs_index['3'] = count( $ure_tabs_index );
     if ( $multisite && ( $lib->is_pro() || $lib->is_super_admin() ) ) {
 ?>
             <li><a href="#ure_tabs-4"><?php esc_html_e( 'Multisite', 'user-role-editor' ); ?></a></li>
 <?php
-        $tabs_index['4'] = count( $tabs_index );
+        $ure_tabs_index['4'] = count( $ure_tabs_index );
     }
 }
 ?>
             <li><a href="#ure_tabs-5"><?php esc_html_e( 'Tools', 'user-role-editor' );?></a></li>
 <?php
-        $tabs_index['5'] = count($tabs_index);
+        $ure_tabs_index['5'] = count($ure_tabs_index);
 ?>
             <li><a href="#ure_tabs-6"><?php esc_html_e( 'About', 'user-role-editor' );?></a></li>
             
@@ -51,7 +51,7 @@ if ( ! $license_key_only ) {
         
     <div id="ure_tabs-1">
     <div id="ure-settings-form">
-        <form method="post" action="<?php echo esc_url( $link ); ?>?page=settings-<?php echo URE_PLUGIN_FILE; ?>" >   
+        <form method="post" action="<?php echo esc_url( $link ); ?>?page=settings-<?php echo esc_attr( $plugin_file ); ?>" >   
             <table id="ure_settings">
 <?php
 if ( ! $license_key_only ) {
@@ -59,7 +59,9 @@ if ( ! $license_key_only ) {
                 <tr>
                     <td>
                         <input type="checkbox" name="show_admin_role" id="show_admin_role" value="1" <?php checked( $show_admin_role, 1 ); ?>
-                            <?php echo defined( 'URE_SHOW_ADMIN_ROLE' ) ? 'disabled="disabled" title="Predefined by \'URE_SHOW_ADMIN_ROLE\' constant at wp-config.php"' : ''; ?> />
+                            <?php if ( defined( 'URE_SHOW_ADMIN_ROLE' ) ) { ?>
+                                disabled="disabled" title="<?php esc_attr_e( "Predefined by 'URE_SHOW_ADMIN_ROLE' constant at wp-config.php", 'user-role-editor' ); ?>"
+                            <?php } ?> />
                         <label for="show_admin_role"><?php esc_html_e( 'Show Administrator role at User Role Editor', 'user-role-editor' ); ?></label>
 																				</td>
                     <td> 
@@ -117,7 +119,7 @@ if ( ! $license_key_only ) {
     do_action( 'ure_settings_show1' );
 ?>
             </table>
-    <?php wp_nonce_field( 'user-role-editor' ); ?>   
+    <?php wp_nonce_field( 'ure_settings_update' ); ?>
             <input type="hidden" name="ure_tab_idx" value="0" />
             <p class="submit">
                 <input type="submit" class="button-primary" name="ure_settings_update" value="<?php esc_html_e( 'Save', 'user-role-editor' ) ?>" />
@@ -132,7 +134,7 @@ if ( ! $license_key_only ) {
 ?>
     
     <div id="ure_tabs-2">
-        <form name="ure_additional_modules" method="post" action="<?php echo esc_url( $link ); ?>?page=settings-<?php echo URE_PLUGIN_FILE; ?>" >
+        <form name="ure_additional_modules" method="post" action="<?php echo esc_url( $link ); ?>?page=settings-<?php echo esc_attr( $plugin_file ); ?>" >
             <table id="ure_addons">
 <?php
 if ( ! $multisite ) {
@@ -152,7 +154,7 @@ if ( ! $multisite ) {
     do_action( 'ure_settings_show2' );
 ?>
             </table>    
-<?php wp_nonce_field( 'user-role-editor' ); ?>   
+<?php wp_nonce_field( 'ure_addons_settings_update' ); ?>
             <input type="hidden" name="ure_tab_idx" value="1" />
             <p class="submit">
                 <input type="submit" class="button-primary" name="ure_addons_settings_update" value="<?php esc_html_e('Save', 'user-role-editor') ?>" />
@@ -164,11 +166,11 @@ if ( ! $multisite ) {
 ?>
     
     <div id="ure_tabs-3">
-        <form name="ure_default_roles" method="post" action="<?php echo esc_url( $link ); ?>?page=settings-<?php echo URE_PLUGIN_FILE; ?>" >
+        <form name="ure_default_roles" method="post" action="<?php echo esc_url( $link ); ?>?page=settings-<?php echo esc_attr( $plugin_file ); ?>" >
 <?php 
     if ( ! $multisite ) {
         esc_html_e( 'Primary default role: ', 'user-role-editor' );
-        // User input is not used - ignore Plugin Check warning
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- role_default_html is built in URE_Role_View with each dynamic piece already escaped; no user input.
         echo $view->role_default_html;
 ?>
         <hr>
@@ -185,8 +187,8 @@ if ( ! $multisite ) {
     }
 ?>
         <hr>
-        <?php wp_nonce_field( 'user-role-editor' ); ?>
-            <input type="hidden" name="ure_tab_idx" value="<?php echo (int) $tabs_index[3]; ?>" />
+        <?php wp_nonce_field( 'ure_default_roles_update' ); ?>
+            <input type="hidden" name="ure_tab_idx" value="<?php echo (int) $ure_tabs_index[3]; ?>" />
             <p class="submit">
                 <input type="submit" class="button-primary" name="ure_default_roles_update" value="<?php esc_html_e( 'Save', 'user-role-editor' ) ?>" />
             </p>
@@ -198,7 +200,7 @@ if ( ! $multisite ) {
 ?>
     <div id="ure_tabs-4">
         <div id="ure-settings-form-ms">
-            <form name="ure_settings_ms" method="post" action="<?php echo esc_url( $link ); ?>?page=settings-<?php echo URE_PLUGIN_FILE; ?>" >
+            <form name="ure_settings_ms" method="post" action="<?php echo esc_url( $link ); ?>?page=settings-<?php echo esc_attr( $plugin_file ); ?>" >
                 <table id="ure_settings_ms">
 <?php
     if ( $lib->is_super_admin() ) {
@@ -217,8 +219,8 @@ if ( ! $multisite ) {
                     do_action( 'ure_settings_ms_show' );                    
 ?>                    
                 </table>
-<?php wp_nonce_field( 'user-role-editor' ); ?>   
-                <input type="hidden" name="ure_tab_idx" value="<?php echo (int) $tabs_index[4]; ?>" />
+<?php wp_nonce_field( 'ure_settings_ms_update' ); ?>
+                <input type="hidden" name="ure_tab_idx" value="<?php echo (int) $ure_tabs_index[4]; ?>" />
             <p class="submit">
                 <input type="submit" class="button-primary" name="ure_settings_ms_update" value="<?php esc_html_e( 'Save', 'user-role-editor' ); ?>" />
             </p>                  
@@ -231,7 +233,7 @@ if ( ! $multisite ) {
 ?>
     <div id="ure_tabs-5">        
         <?php  
-            URE_Tools::show( $tabs_index[5] );
+            URE_Tools::show( $ure_tabs_index[5] );
         ?>                          
     </div> <!-- ure_tabs-5 -->
     
@@ -251,7 +253,7 @@ if ( ! $multisite ) {
         $('#ure_tabs').tabs();
 <?php
     $ure_tab_idx = (int) $ure_tab_idx;
-    if ($ure_tab_idx>0 && $ure_tab_idx<=count($tabs_index)) {
+    if ($ure_tab_idx>0 && $ure_tab_idx<=count($ure_tabs_index)) {
 ?>
         $('#ure_tabs').tabs('option', 'active', <?php echo (int) $ure_tab_idx; ?>);
 <?php

@@ -25,7 +25,7 @@ class URE_Ajax_Processor {
     public function __construct( ) {
         
         $this->lib = URE_Lib::get_instance();
-        $this->debug = ( defined('WP_PHP_UNIT_TEST') && WP_PHP_UNIT_TEST==true );
+        $this->debug = ( defined('WP_PHP_UNIT_TEST') && WP_PHP_UNIT_TEST===true );
         
     }
     // end of __construct()
@@ -61,7 +61,7 @@ class URE_Ajax_Processor {
     
     protected function valid_nonce() {
         
-        if ( !isset( $_POST['wp_nonce'] ) || !wp_verify_nonce( $_POST['wp_nonce'], 'user-role-editor' ) ) {
+        if ( !isset( $_POST['wp_nonce'] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['wp_nonce'] ) ), 'user-role-editor' ) ) {
             echo wp_json_encode( array('result'=>'error', 'message'=>'URE: Wrong or expired request') );
             return false;
         } else {
@@ -241,11 +241,42 @@ class URE_Ajax_Processor {
     }
     // end of get_grant_roles_dialog_html()
     
+    
+    protected function gr_get_users_from_post() {
+
+	// phpcs:disable WordPress.Security.NonceVerification.Missing -- dispatch() already calls $this->valid_nonce() before routing to any protected action method that reaches this helper (grant_roles()/add_role_to_user()/revoke_role_from_user()); WPCS can't trace nonce verification across that method-call boundary, same limitation documented for check_nonce()/valid_nonce() in custom-ruleset.xml's WordPress.Security.NonceVerification rule comment.
+	if ( !isset( $_POST['users'] ) || !is_array( $_POST['users'] ) || count( $_POST['users'] )===0 ) {
+	    $answer = ['result'=>'error', 'message'=>esc_html__('Can not edit user or invalid data at the users list', 'user-role-editor')];
+	    return $answer;
+	}
+
+	$users =  array_map( 'sanitize_key', wp_unslash( $_POST['users'] ) );
+	// phpcs:enable
+
+	return $users;
+
+    }
+    // end of gr_get_users_from_post()
 
     
     protected function grant_roles() {
         
-        $answer = URE_Grant_Roles::grant_roles();
+	$users = $this->gr_get_users_from_post();
+	if ( isset( $users['result'] ) && $users['result']==='error' ) {
+	    $answer = $users;
+	    return $answer;
+	}
+	
+	// phpcs:disable WordPress.Security.NonceVerification.Missing -- dispatch() already calls $this->valid_nonce() before routing to grant_roles(); WPCS can't trace nonce verification across that method-call boundary, same limitation documented for check_nonce()/valid_nonce() in custom-ruleset.xml's WordPress.Security.NonceVerification rule comment.
+	$primary_role = isset( $_POST['primary_role'] ) ? sanitize_key( wp_unslash( $_POST['primary_role'] ) ) : '';
+	if ( isset( $_POST['other_roles'] ) && is_array( $_POST['other_roles'] ) && count( $_POST['other_roles'] )>0 ) {
+	    $other_roles = array_map( 'sanitize_key', wp_unslash( $_POST['other_roles'] ) );
+	} else {
+	    $other_roles = [];
+	}
+	// phpcs:enable
+
+        $answer = URE_Grant_Roles::grant_roles( $users, $primary_role, $other_roles );
         
         return $answer;
         
@@ -255,7 +286,13 @@ class URE_Ajax_Processor {
     
     protected function add_role_to_user() {
         
-        $answer = URE_Grant_Roles::add_role();
+	$users = $this->gr_get_users_from_post();
+	if ( isset( $users['result'] ) && $users['result']==='error' ) {
+	    $answer = $users;
+	    return $answer;
+	}
+
+        $answer = URE_Grant_Roles::add_role( $users );
         
         return $answer;
         
@@ -264,13 +301,19 @@ class URE_Ajax_Processor {
 
     
     protected function revoke_role_from_user() {
-        
-        $answer = URE_Grant_Roles::revoke_role();
+	
+	$users = $this->gr_get_users_from_post();
+	if ( isset( $users['result'] ) && $users['result']==='error' ) {
+	    $answer = $users;
+	    return $answer;
+	}
+
+        $answer = URE_Grant_Roles::revoke_role( $users );
         
         return $answer;
         
     }
-    // end of add_role_to_user()
+    // end of revoke_role_from_user()
     
         
     protected function get_role_caps() {
@@ -396,6 +439,7 @@ class URE_Ajax_Processor {
         $answer = $this->_dispatch();
         
         $json_answer = wp_json_encode($answer);
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- this is a raw JSON AJAX response, not HTML; esc_html() would corrupt it.
         echo $json_answer;
         die;
 

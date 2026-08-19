@@ -95,7 +95,7 @@ class URE_User_View extends URE_View {
 
         // print the 'no role' option. Make it selected if the user has no role yet.        
         $selected = ( empty($user_primary_role) ) ? 'selected="selected"' : '';
-        echo '<option value="" '. $selected.'>' . esc_html__('&mdash; No role for this site &mdash;', 'user-role-editor') . '</option>';
+        echo '<option value="" '. $selected.'>' . esc_html__('&mdash; No role for this site &mdash;', 'user-role-editor') . '</option>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $selected is one of two hardcoded literals set above, not user input.
 ?>
         </select>
 <?php        
@@ -113,16 +113,18 @@ class URE_User_View extends URE_View {
         
         $roles = $this->editor->get('roles');
         foreach ($roles as $role_id => $role) {
-            if (($show_admin_role || $role_id != 'administrator') && ($role_id !== $primary_role)) {
+            if (($show_admin_role || $role_id !== 'administrator') && ($role_id !== $primary_role)) {
                 if ( $this->editor->user_can( $role_id ) ) {
                     $checked = 'checked="checked"';
                 } else {
                     $checked = '';
                 }
                 $role_name = $use_pll ? pll__( $role['name'] ) : $role['name'];
-                echo '<label for="wp_role_' . $role_id . '"><input type="checkbox"	id="wp_role_' . $role_id .
-                     '" name="wp_role_' . $role_id . '" value="' . $role_id . '"' . $checked . ' />&nbsp;' .
+                // phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- $checked is one of two hardcoded literals set above, not user input.
+                echo '<label for="wp_role_' . esc_attr( $role_id ) . '"><input type="checkbox"	id="wp_role_' . esc_attr( $role_id ) .
+                     '" name="wp_role_' . esc_attr( $role_id ) . '" value="' . esc_attr( $role_id ) . '"' . $checked . ' />&nbsp;' .
                 esc_html( $role_name ) . '</label><br />';
+                // phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
             }
         }
     }
@@ -141,7 +143,7 @@ class URE_User_View extends URE_View {
 
 <div class="postbox" style="float:left;min-width:1000px;width: 100%;">
     <div id="ure_user_caps_header">
-        <span id="ure_user_caps_title"><?php esc_html_e('Change capabilities for user', 'user-role-editor')?></span> <?php echo $user_info;?>
+        <span id="ure_user_caps_title"><?php esc_html_e('Change capabilities for user', 'user-role-editor')?></span> <?php echo $user_info; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built in get_user_info() with each dynamic piece already escaped. ?>
     </div>
     <div class="inside"> 
 <table cellpadding="0" cellspacing="0" style="width: 100%;">
@@ -156,8 +158,8 @@ class URE_User_View extends URE_View {
             $checked = '';
         }
 ?>  
-		<input type="checkbox" name="ure_caps_readable" id="ure_caps_readable" value="1" 
-      <?php echo $checked; ?> onclick="ure_main.turn_caps_readable();"  />
+		<input type="checkbox" name="ure_caps_readable" id="ure_caps_readable" value="1"
+      <?php echo $checked; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $checked is one of two hardcoded literals set above, not user input. ?> onclick="ure_main.turn_caps_readable();"  />
     <label for="ure_caps_readable"><?php esc_html_e('Show capabilities in human readable form', 'user-role-editor'); ?></label>&nbsp;&nbsp;&nbsp;
 <?php
     if ($show_deprecated_caps) {
@@ -166,8 +168,8 @@ class URE_User_View extends URE_View {
       $checked = '';
     }
 ?>
-    <input type="checkbox" name="ure_show_deprecated_caps" id="ure_show_deprecated_caps" value="1" 
-        <?php echo $checked; ?> onclick="ure_turn_deprecated_caps(<?php echo $this->user_to_edit->ID; ?>);"/>
+    <input type="checkbox" name="ure_show_deprecated_caps" id="ure_show_deprecated_caps" value="1"
+        <?php echo $checked; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $checked is one of two hardcoded literals set above, not user input. ?> onclick="ure_turn_deprecated_caps(<?php echo absint( $this->user_to_edit->ID ); ?>);"/>
     <label for="ure_show_deprecated_caps"><?php esc_html_e('Show deprecated capabilities', 'user-role-editor'); ?></label>      
 <?php
     }
@@ -205,7 +207,7 @@ class URE_User_View extends URE_View {
 	</tr>
 </table>
   <input type="hidden" name="object" value="user" />
-  <input type="hidden" name="user_id" value="<?php echo $this->user_to_edit->ID; ?>" /> 
+  <input type="hidden" name="user_id" value="<?php echo absint( $this->user_to_edit->ID ); ?>" />
     </div>  
 </div>
 <?php

@@ -53,7 +53,7 @@ class URE_Base_Lib {
     public function get( $property_name ) {
         
         if ( !property_exists( $this, $property_name ) ) {
-            error_log('Lib class does not have such property '. $property_name );
+            ure_log_error( 'Lib class does not have such property '. $property_name );
             return null;
         }
         
@@ -65,7 +65,8 @@ class URE_Base_Lib {
     public function set( $property_name, $property_value ) {
         
         if ( !property_exists( $this, $property_name ) ) {
-            error_log('Lib class does not have such property '. $property_name );
+            ure_log_error( 'Lib class does not have such property '. $property_name );
+            return;
         }
         
         $this->$property_name = $property_value;
@@ -108,23 +109,26 @@ class URE_Base_Lib {
             } else {
                 echo '<div id="message" class="notice notice-success is-dismissible">';
             }
-            echo '<p>'. $message . '</p></div>';
+            // wp_kses_post(), not esc_html(), as some messages legitimately include inline tags such as <br/> or <em>.
+            echo '<p>'. wp_kses_post( $message ) . '</p></div>';
         }
     }
     // end of show_message()
     
     
     public static function filter_string_var( $raw_str ) {
-                
-        $value = sanitize_text_field( $raw_str );
-        
+
+        $value = sanitize_text_field( wp_unslash( $raw_str ) );
+
         return $value;
     }
     // end of filter_string_var()
-    
+
     /**
      * Returns value by name from GET/POST/REQUEST. Minimal type checking is provided
-     * 
+     * Note: the returned string is sanitized for safe storage/comparison (sanitize_text_field),
+     * NOT for direct HTML output - escape it (esc_html/esc_attr/etc) at the point of output.
+     *
      * @param string $var_name  Variable name to return
      * @param string $request_type  type of request to process get/post/request (default)
      * @param string $var_type  variable type to provide value checking
@@ -134,16 +138,17 @@ class URE_Base_Lib {
 
         $result = 0;
         $request_type = strtolower( $request_type );
+        // phpcs:disable WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- generic read-only accessor used by ~40 call sites, some behind nonce-gated AJAX/form handlers and some plain GET-based UI reads (e.g. user-role-editor.php's page-routing 'object' param) with no nonce to check; nonce verification is each mutating caller's responsibility (see URE_Ajax_Processor::valid_nonce(), URE_Lib::check_nonce()). Sanitization happens in filter_string_var() -> sanitize_text_field( wp_unslash() ), which WPCS cannot trace through a wrapper call.
         switch ( $request_type ) {
             case 'get': {
                 if ( isset( $_GET[$var_name] ) ) {
                     $result = self::filter_string_var( $_GET[$var_name] );
-                }                
+                }
                 break;
             }
             case 'post': {
                 if ( isset( $_POST[$var_name] ) ) {
-                    if ( $var_type!='checkbox') {
+                    if ( $var_type!=='checkbox') {
                         $result = self::filter_string_var( $_POST[$var_name] );
                     } else {
                         $result = 1;
@@ -161,14 +166,10 @@ class URE_Base_Lib {
                 $result = -1;   //  Wrong request type value, possible mistake in a function call
             }
         }
+        // phpcs:enable
 
-        if ( $result ) {
-            if ( $var_type == 'int' && !is_numeric( $result ) ) {
-                $result = 0;
-            }
-            if ( $var_type != 'int') {
-                $result = esc_attr( $result );
-            }
+        if ( $result && $var_type === 'int' && !is_numeric( $result ) ) {
+            $result = 0;
         }
 
         return $result;
@@ -233,30 +234,7 @@ class URE_Base_Lib {
         update_option( $this->options_id, $this->options );
     }
     // end of flush_options()
-
     
-    /**
-     * Check product version and stop execution if product version is not compatible with required one
-     * @param string $version1
-     * @param string $version2
-     * @param string $error_message
-     * @return void
-     */
-    public static function check_version( $version1, $version2, $error_message, $plugin_file_name ) {
-
-        if ( version_compare($version1, $version2, '<') ) {
-            if ( is_admin() && ( !defined('DOING_AJAX') || !DOING_AJAX ) ) {
-                require_once ABSPATH . '/wp-admin/includes/plugin.php';
-                deactivate_plugins( $plugin_file_name );
-                new URE_Admin_Notice('warning', $error_message );
-                return false;
-            }
-        }
-        
-        return true;
-    }
-    // end of check_version()
-
 
     public function get_current_url() {
         global $wp;
@@ -310,43 +288,42 @@ class URE_Base_Lib {
     public static function esc_sql_in_list( $list_type, $list_values ) {
         global $wpdb;
         
-        if ( empty( $list_values ) || !is_array( $list_values ) || count( $list_values )==0 ) {
+        if ( empty( $list_values ) || !is_array( $list_values ) || count( $list_values )===0 ) {
             return '';
         }
-        
-        if ( $list_type=='int' ) {
+
+        if ( $list_type==='int' ) {
             $placeholder = '%d';   //  Integer
         } else {
             $placeholder = '%s';   // String
         }
         
         $placeholders = array_fill( 0, count( $list_values ), $placeholder );
-        $str = implode(',', $placeholders );        
+        $str = implode(',', $placeholders );
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $str contains only %d/%s placeholders built above, no raw input; passed straight to prepare().
         $result = $wpdb->prepare( $str, $list_values );
-        
-        return $result;        
+
+        return $result;
     }
     // end of esc_sql_in_list()
     
     
     /**
      * Returns the array of multi-site WP sites/blogs IDs for the current network
-     * @global wpdb $wpdb
      * @return array
      */
     public function get_blog_ids() {
-        global $wpdb;
 
         if ( !$this->multisite ) {
             return null;
         }
         
-        $network = get_current_site();        
-        $query = $wpdb->prepare(
-                    "SELECT blog_id FROM {$wpdb->blogs}
-                        WHERE site_id=%d ORDER BY blog_id ASC",
-                        array( $network->id ) );
-        $blog_ids = $wpdb->get_col( $query );
+        $network = get_current_site();
+
+        $blog_ids = get_sites( array(
+            'network_id' => $network->id,
+            'fields'     => 'ids',
+        ) );
 
         return $blog_ids;
     }

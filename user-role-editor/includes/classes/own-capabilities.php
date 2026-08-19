@@ -7,11 +7,23 @@ defined( 'ABSPATH' ) || exit;
  * @package    User-Role-Editor
  * @subpackage Admin
  * @author     Vladimir Garagulya <support@role-editor.com>
- * @copyright  Copyright (c) 2010 - 2016, Vladimir Garagulya
+ * @copyright  Copyright (c) 2010 - 2026, Vladimir Garagulya
  **/
 class URE_Own_Capabilities {
     const URE_SETTINGS_CAP_TR = 'ure_settings_cap';
+    const URE_KEY_CAPABILITY = 'ure_manage_options';
+    const URE_KEY_CAPABILITY_MULTI_SITE = 'manage_network_plugins';
 
+    private static ?string $key_capability = null;
+    
+    
+    public static function set_key_capability( ?string $key_cap ) {
+        
+        self::$key_capability = $key_cap;
+        
+    }
+    // end of set_key_capability()
+    
     
     public static function get_caps() {
         
@@ -57,28 +69,29 @@ class URE_Own_Capabilities {
      */
     public static function get_key_capability() {
         
-        $lib = URE_Lib::get_instance();
-        $key_cap = $lib->get('key_capability');
         
-        if (!empty($key_cap)) {
-            return $key_cap;
+        if ( self::$key_capability!==null ) {
+            return self::$key_capability;
         }
         
+        $lib = URE_Lib::get_instance();
         $multisite = $lib->get('multisite');
         if ( !$multisite ) {
-            $key_cap = URE_KEY_CAPABILITY;
+            $key_cap = self::URE_KEY_CAPABILITY;
         } else {
             $enable_simple_admin_for_multisite = $lib->get_option('enable_simple_admin_for_multisite', 0);
-            if ( ( defined('URE_ENABLE_SIMPLE_ADMIN_FOR_MULTISITE') && URE_ENABLE_SIMPLE_ADMIN_FOR_MULTISITE == 1 ) || 
+            // phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual -- URE_ENABLE_SIMPLE_ADMIN_FOR_MULTISITE is admin-defined in wp-config.php and may reasonably be 1, '1', or true; loose comparison is intentional.
+            if ( ( defined('URE_ENABLE_SIMPLE_ADMIN_FOR_MULTISITE') && URE_ENABLE_SIMPLE_ADMIN_FOR_MULTISITE == 1 ) ||
                  $enable_simple_admin_for_multisite ) {
-                $key_cap = URE_KEY_CAPABILITY;
+                $key_cap = self::URE_KEY_CAPABILITY;
             } else {
-                $key_cap = 'manage_network_plugins';
+                $key_cap = self::URE_KEY_CAPABILITY_MULTI_SITE;
             }
         }        
-        $lib->set('key_capability', $key_cap);
+        
+        self::$key_capability = $key_cap;
                 
-        return $key_cap;
+        return self::$key_capability;
     }
     // end of get_key_capability()
     
@@ -101,7 +114,8 @@ class URE_Own_Capabilities {
             $settings_cap = 'ure_manage_options';
         } else {
             $enable_simple_admin_for_multisite = $lib->get_option('enable_simple_admin_for_multisite', 0);
-            if ( ( defined('URE_ENABLE_SIMPLE_ADMIN_FOR_MULTISITE' ) && URE_ENABLE_SIMPLE_ADMIN_FOR_MULTISITE == 1 ) || 
+            // phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual -- URE_ENABLE_SIMPLE_ADMIN_FOR_MULTISITE is admin-defined in wp-config.php and may reasonably be 1, '1', or true; loose comparison is intentional.
+            if ( ( defined('URE_ENABLE_SIMPLE_ADMIN_FOR_MULTISITE' ) && URE_ENABLE_SIMPLE_ADMIN_FOR_MULTISITE == 1 ) ||
                 $enable_simple_admin_for_multisite ) {
                 $settings_cap = 'ure_manage_options';
             } else {

@@ -69,30 +69,17 @@ class URE_Protect_Admin {
     
         /**
      * Check if user has "Administrator" role assigned
-     * 
-     * @global wpdb $wpdb
+     *
      * @param int $user_id
      * @return boolean returns true is user has Role "Administrator"
      */
     private function has_administrator_role($user_id) {
-        global $wpdb;
 
         if (empty($user_id) || !is_numeric($user_id)) {
             return false;
         }
 
-        $meta_key = $wpdb->prefix .'capabilities';
-        $query = $wpdb->prepare(
-                "SELECT count(*)
-                    FROM {$wpdb->usermeta}
-                    WHERE user_id=%d AND meta_key=%s AND meta_value LIKE %s", 
-                array($user_id, $meta_key, '%"administrator"%') );
-        $has_admin_role = $wpdb->get_var( $query );
-        if ($has_admin_role > 0) {
-            $result = true;
-        } else {
-            $result = false;
-        }
+        $result = user_can( $user_id, 'administrator' );
         // cache checking result for the future use
         $this->user_to_check[$user_id] = $result;
 
@@ -118,7 +105,7 @@ class URE_Protect_Admin {
      */
     public function not_edit_admin($allcaps, $caps, $name) {
         
-        if (is_array($caps) & count($caps)>0) {
+        if (is_array($caps) && count($caps)>0) {
             // 1st element of this array not always has index 0. Use workaround to extract it.
             $caps_v = array_values($caps);
             $cap = $caps_v[0];
@@ -137,7 +124,7 @@ class URE_Protect_Admin {
             if (empty($user_id)) {  // check the next key
                 continue;
             }
-            if ($user_id == 1) {  // built-in WordPress Admin
+            if ($user_id === 1) {  // built-in WordPress Admin
                 $access_deny = true;
             } else {
                 if (!isset($this->user_to_check[$user_id])) {
@@ -162,18 +149,18 @@ class URE_Protect_Admin {
     
     /**
      * add where criteria to exclude users with 'Administrator' role from users list
-     * 
+     *
      * @global wpdb $wpdb
-     * @param  type $user_query
+     * @param  WP_Query $user_query
      */
     public function exclude_administrators($user_query) {
         global $wpdb;
-        
+
         if (!$this->is_protection_applicable()) { // block the user edit stuff only
             return;
         }
 
-        // get user_id of users with 'Administrator' role  
+        // get user_id of users with 'Administrator' role
         $current_user_id = get_current_user_id();
         $meta_key = $wpdb->prefix . 'capabilities';
         $query = $wpdb->prepare(
@@ -181,9 +168,10 @@ class URE_Protect_Admin {
                         FROM {$wpdb->usermeta}
                         WHERE user_id!=%d AND meta_key=%s AND meta_value like %s",
                       array($current_user_id, $meta_key, '%"administrator"%'));
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- $query is the string just returned by $wpdb->prepare() above. Deliberately NOT get_users()/WP_User_Query: this method is itself hooked on 'pre_user_query' (see __construct()), so calling get_users() here would trigger a new WP_User_Query, which fires 'pre_user_query' again, calling this method again - infinite recursion.
         $ids_arr = $wpdb->get_col( $query );
         if (is_array($ids_arr) && count($ids_arr) > 0) {
-            $ids = implode(',', $ids_arr);
+            $ids = implode(',', array_map('absint', $ids_arr));
             $user_query->query_where .= " AND ( $wpdb->users.ID NOT IN ( $ids ) )";
         }
     }

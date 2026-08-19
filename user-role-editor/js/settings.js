@@ -16,7 +16,7 @@ jQuery(function() {
                 
     jQuery('#ure_reset_roles_button').button({
         label: ure_data.reset
-    }).click(function (event) {
+    }).on('click', function (event) {
         event.preventDefault();        
         ure_confirm(ure_data.reset_warning, ure_roles_reset_form_submit);
     });

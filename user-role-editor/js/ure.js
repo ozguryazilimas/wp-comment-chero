@@ -525,9 +525,17 @@ var ure_main = {
 
     },
     
+    update_success: function (data) {
+      jQuery('#ure_task_status').hide();
+      if (data.result==='success') {
+        jQuery.notify(data.message, 'success');
+      } else {
+        jQuery.notify(data.message, 'error');
+      }
+    },
+  
     add_role_success: function( data ) {
-        jQuery('#ure_task_status').hide();
-        if ( data.result=='success' ) {
+        if ( data.result==='success' ) {
             if ( data.role_id.length>0 ) {
                 // update list of roles available for selection as current role
                 ure_main.add_role_to_select( 'user_role', data.role_id, data.role_name );
@@ -541,10 +549,8 @@ var ure_main = {
                     jQuery( '#ure_delete_role' ).show();
                 }
             }
-            jQuery.notify( data.message, 'success' );
-        } else {
-            jQuery.notify( data.message, 'error' );
         }
+        ure_main.update_success( data );
     },
     
     

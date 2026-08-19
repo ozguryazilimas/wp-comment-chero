@@ -2,8 +2,8 @@
 
 namespace YahnisElsts\AdminMenuEditor\Customizable\Controls;
 
-use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Context;
 use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Renderer;
+use YahnisElsts\AdminMenuEditor\WireDSL\EvaluationContext;
 
 class CodeEditor extends ClassicControl {
 	protected $type = 'codeEditor';
@@ -28,7 +28,7 @@ class CodeEditor extends ClassicControl {
 		}
 	}
 
-	public function renderContent(Renderer $renderer, Context $context) {
+	public function renderContent(Renderer $renderer, EvaluationContext $context) {
 		$id = '_acm_' . $this->getHtmlIdBase($context);
 		if ( !array_key_exists($id, $this->initializedEditorIds) ) {
 			$this->initializedEditorIds[$id] = false;
@@ -51,7 +51,7 @@ class CodeEditor extends ClassicControl {
 			'textarea',
 			esc_textarea($stringValue)
 		);
-		$this->outputSiblingDescription();
+		$this->outputSiblingDescription($context);
 		echo '</div>';
 
 		if ( $this->enqueueCodeEditor() ) {
@@ -161,12 +161,12 @@ class CodeEditor extends ClassicControl {
 		$this->enqueueCodeEditor();
 	}
 
-	protected function getKoComponentParams(): array {
+	protected function getKoComponentParams(EvaluationContext $context): array {
 		if ( !$this->triedToEnqueueEditor ) {
 			$this->enqueueCodeEditor();
 		}
 
-		$params = parent::getKoComponentParams();
+		$params = parent::getKoComponentParams($context);
 		$params['mimeType'] = $this->mimeType;
 		$params['editorSettings'] = $this->editorSettings;
 		return $params;

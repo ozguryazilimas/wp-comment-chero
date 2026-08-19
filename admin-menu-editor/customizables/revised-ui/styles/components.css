@@ -1,0 +1,90 @@
+.ame-rev-debug-container {
+  box-sizing: border-box;
+  border: 1px solid darkorange;
+  padding: 5px;
+}
+
+.ame-rev-debug-control {
+  box-sizing: border-box;
+  border: 1px solid darkcyan;
+  padding: 5px;
+}
+
+.ame-rev-debug-component-flag {
+  font-size: 0.8em;
+  color: #555555;
+}
+
+.ame-rev-debug-tree {
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.ame-rev-debug-tree .json-children {
+  padding-left: 1.5em;
+  border-left: 1px dotted #ccc;
+}
+
+.ame-rev-debug-tree summary {
+  cursor: pointer;
+}
+
+.ame-rev-debug-tree .json-key {
+  color: #881391;
+}
+
+.ame-rev-debug-tree .json-preview {
+  color: #888;
+}
+
+/*
+Standard WordPress admin colors.
+
+Announcement post:
+https://make.wordpress.org/core/2021/02/23/standardization-of-wp-admin-colors-in-wordpress-5-7/
+
+Source:
+https://codepen.io/ryelle/pen/WNGVEjw
+
+A "wp" prefix has been added to avoid name conflicts with other code in this plugin.
+ */
+.ame-rev-event-button.ame-rev-compact-event-button {
+  min-height: 30px;
+  line-height: 28px;
+  padding: 0 8px;
+}
+.ame-rev-event-button.ame-rev-compact-event-button .dashicons {
+  line-height: 28px;
+}
+
+.ame-rev-event-button-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  color: #646970;
+  cursor: pointer;
+}
+
+.ame-actor-feature-checkbox-control .ame-rev-afc-actions {
+  display: none;
+  margin-left: 1em;
+}
+.ame-actor-feature-checkbox-control .ame-rev-afc-actions, .ame-actor-feature-checkbox-control .ame-rev-afc-actions a {
+  vertical-align: middle;
+}
+.ame-actor-feature-checkbox-control .ame-rev-afc-actions .ame-rev-event-button {
+  margin: 0 0.5em;
+}
+
+.ame-actor-feature-checkbox-control:hover .ame-rev-afc-actions {
+  display: inline-flex;
+}
+
+.ame-rev-toggle-checkbox .description {
+  margin-left: calc(1.25rem + 0.29em);
+  display: block;
+  line-height: 1.4em;
+  margin-bottom: 0.4615384615em;
+}
+
+/*# sourceMappingURL=components.css.map */

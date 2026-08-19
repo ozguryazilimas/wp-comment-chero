@@ -2,14 +2,8 @@
 
 namespace YahnisElsts\AdminMenuEditor\Customizable\Controls;
 
-use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Context;
+use YahnisElsts\AdminMenuEditor\WireDSL\Resolvable;
 
-interface Binding {
-	public function resolveLabel(?Context $context = null): string;
+interface Binding extends Resolvable {
 
-	public function resolveDescription(?Context $context = null): string;
-
-	public function getBindingString(): string;
-
-	public function isEditableByUser(?Context $context = null);
 }

@@ -41,6 +41,9 @@ var AmeMiniFunc;
         orNull() {
             return this.value;
         }
+        getOrThrow() {
+            return this.value;
+        }
     }
     class None {
         map(f) {
@@ -71,6 +74,9 @@ var AmeMiniFunc;
         }
         orNull() {
             return null;
+        }
+        getOrThrow(message) {
+            throw new Error(message ?? 'Cannot get value from None');
         }
         flatMap(f) {
             return this;

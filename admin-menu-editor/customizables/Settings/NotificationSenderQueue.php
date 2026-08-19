@@ -17,15 +17,18 @@ class NotificationSenderQueue {
 		$this->isInQueue = new \SplObjectStorage();
 	}
 
+	/**
+	 * Add a sender to the queue.
+	 *
+	 * If it's already in the queue, it won't be added again, and its position in the queue won't change.
+	 *
+	 * @param UpdateNotificationSender $setting
+	 */
 	public function enqueue(UpdateNotificationSender $setting) {
-		if ( $this->isInQueue->contains($setting) ) {
-			//Already in the queue. Let's just mark it as valid.
-			$this->isInQueue[$setting] = true;
-		} else {
-			//Add to the queue.
-			$this->isInQueue->attach($setting, true);
+		if ( !$this->isInQueue->offsetExists($setting) ) {
 			$this->queue->enqueue($setting);
 		}
+		$this->isInQueue[$setting] = true;
 	}
 
 	public function dequeue() {
@@ -33,7 +36,7 @@ class NotificationSenderQueue {
 		while (!$this->queue->isEmpty()) {
 			$sender = $this->queue->dequeue();
 			if ( $this->isInQueue[$sender] ) {
-				$this->isInQueue->detach($sender);
+				$this->isInQueue->offsetUnset($sender);
 				return $sender;
 			}
 		}
@@ -42,7 +45,7 @@ class NotificationSenderQueue {
 	}
 
 	public function remove(UpdateNotificationSender $setting) {
-		if ( $this->isInQueue->contains($setting) ) {
+		if ( $this->isInQueue->offsetExists($setting) ) {
 			//There's not a quick way to remove an element from a SplQueue,
 			//so we'll just mark the item as invalid. It will be removed
 			//in dequeue().

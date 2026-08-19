@@ -1,0 +1,47 @@
+//region Debugging
+.ame-rev-debug-container {
+	box-sizing: border-box;
+	border: 1px solid darkorange;
+	padding: 5px;
+}
+
+.ame-rev-debug-control {
+	box-sizing: border-box;
+	border: 1px solid darkcyan;
+	padding: 5px;
+}
+
+.ame-rev-debug-component-flag {
+	font-size: 0.8em;
+	color: #555555;
+}
+
+//region Debug JSON tree
+.ame-rev-debug-tree {
+	font-family: monospace;
+	font-size: 13px;
+}
+
+.ame-rev-debug-tree .json-children {
+	padding-left: 1.5em;
+	border-left: 1px dotted #ccc;
+}
+
+.ame-rev-debug-tree summary {
+	cursor: pointer;
+}
+
+.ame-rev-debug-tree .json-key {
+	color: #881391;
+}
+
+.ame-rev-debug-tree .json-preview {
+	color: #888;
+}
+
+//endregion
+//endregion
+
+@import 'rev-event-button';
+@import 'rev-actor-feature';
+@import 'rev-toggle-checkbox';

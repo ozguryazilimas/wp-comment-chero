@@ -111,8 +111,12 @@ class SchemaFactory {
 		return WithSchema\CssBoxDimensions::createMarginSchema($this, $label);
 	}
 
-	public function cssBorders(): Struct {
-		return WithSchema\Borders::createDefaultSchema($this)->settingParams(['label' => 'Border']);
+	public function cssBorders(array $defaultWidths = []): Struct {
+		return WithSchema\Borders::createDefaultSchema(
+			$this,
+			true,
+			$defaultWidths
+		)->settingParams(['label' => 'Border']);
 	}
 
 	public function cssBorderStyle(?string $label = 'Border style', bool $nullAllowed = true): Enum {

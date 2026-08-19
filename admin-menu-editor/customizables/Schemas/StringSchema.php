@@ -136,4 +136,16 @@ class StringSchema extends CheckableSchema {
 	public function getSimplifiedDataType() {
 		return 'string';
 	}
+
+	public function serialize(SchemaSerializer $serializer): array {
+		$result = parent::serialize($serializer);
+		if ( $this->_strict ) {
+			$result['strict'] = true;
+		}
+		return $result;
+	}
+
+	protected function getJsonSerializeType(): string {
+		return 'string';
+	}
 }

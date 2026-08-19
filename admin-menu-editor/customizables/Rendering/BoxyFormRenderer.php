@@ -6,13 +6,12 @@ use YahnisElsts\AdminMenuEditor\Customizable\Controls\ControlGroup;
 use YahnisElsts\AdminMenuEditor\Customizable\Controls\InterfaceStructure;
 use YahnisElsts\AdminMenuEditor\Customizable\Controls\Section;
 use YahnisElsts\AdminMenuEditor\Customizable\HtmlHelper;
+use YahnisElsts\AdminMenuEditor\WireDSL\EvaluationContext;
 
 class BoxyFormRenderer extends ClassicRenderer {
 	protected $fullWidthGroupsEnabled = false;
 
-	public function renderStructure(InterfaceStructure $structure) {
-		$context = new Context();
-
+	public function renderStructure(InterfaceStructure $structure, EvaluationContext $context) {
 		//Separate sections into the main column and sidebar.
 		$main = [];
 		$sidebar = [];
@@ -25,7 +24,7 @@ class BoxyFormRenderer extends ClassicRenderer {
 		}
 
 		if ( empty($sidebar) ) {
-			parent::renderStructure($structure);
+			parent::renderStructure($structure, $context);
 			return;
 		}
 
@@ -47,7 +46,7 @@ class BoxyFormRenderer extends ClassicRenderer {
 		echo '<div class="clear"></div>';
 	}
 
-	public function renderSection(Section $section, Context $context) {
+	public function renderSection(Section $section, EvaluationContext $context) {
 		echo HtmlHelper::tag('div', ['class' => 'ame-form-section ame-form-box']);
 
 		$title = $section->getTitle();
@@ -73,10 +72,10 @@ class BoxyFormRenderer extends ClassicRenderer {
 
 	/**
 	 * @param ControlGroup $group
-	 * @param Context $context
+	 * @param EvaluationContext $context
 	 * @return void
 	 */
-	protected function renderControlGroup(ControlGroup $group, Context $context) {
+	protected function renderControlGroup(ControlGroup $group, EvaluationContext $context) {
 		$id = $group->getHtmlIdBase($context);
 
 		$groupClasses = array_merge(['ame-form-box-group'], $group->getClasses());

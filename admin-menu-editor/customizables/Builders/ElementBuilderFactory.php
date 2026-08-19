@@ -32,7 +32,7 @@ class ElementBuilderFactory {
 	}
 
 	/**
-	 * @param \YahnisElsts\AdminMenuEditor\Customizable\Controls\Container|ContainerBuilder ...$containers
+	 * @param ElementBuilder|UiElement ...$containers
 	 * @return InterfaceBuilder
 	 */
 	public function structure(...$containers) {
@@ -205,6 +205,10 @@ class ElementBuilderFactory {
 
 	public function actorFeatureCheckbox($idOrSetting = null): ControlBuilder {
 		return $this->initControlBuilder(ActorFeatureCheckbox::class, $idOrSetting);
+	}
+
+	public function eventButton($label = ''): EventButtonBuilder {
+		return new EventButtonBuilder(['label' => $label]);
 	}
 
 	/**

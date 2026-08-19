@@ -2,7 +2,7 @@
 
 namespace YahnisElsts\AdminMenuEditor\Customizable\Controls;
 
-use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Context;
+use YahnisElsts\AdminMenuEditor\WireDSL\EvaluationContext;
 
 abstract class Container extends UiElement implements \IteratorAggregate, ControlContainer {
 	/**
@@ -110,7 +110,7 @@ abstract class Container extends UiElement implements \IteratorAggregate, Contro
 		return !empty($this->children);
 	}
 
-	public function serializeForJs(Context $context): array {
+	public function serializeForJs(EvaluationContext $context): array {
 		$result = parent::serializeForJs($context);
 		if ( $this->hasTitle() ) {
 			$result['title'] = $this->title;
@@ -121,6 +121,23 @@ abstract class Container extends UiElement implements \IteratorAggregate, Contro
 		}
 
 		return $result;
+	}
+
+	public function serializeForRevisedJs(EvaluationContext $context): array {
+		$result = parent::serializeForRevisedJs($context);
+
+		if ( $this->hasTitle() ) {
+			$result['title'] = $this->title;
+		}
+		if ( !empty($this->childrenContainerClasses) ) {
+			$result['childrenContainerClasses'] = $this->childrenContainerClasses;
+		}
+
+		return $result;
+	}
+
+	protected function getRevisedJsUiElementType(): string {
+		return 'container';
 	}
 
 	public function enqueueKoComponentDependencies() {
@@ -150,7 +167,7 @@ abstract class Container extends UiElement implements \IteratorAggregate, Contro
 		}
 	}
 
-	public function getAllReferencedSettings(Context $context) {
+	public function getAllReferencedSettings(EvaluationContext $context) {
 		foreach ($this->getChildren() as $child) {
 			yield from $child->getAllReferencedSettings($context);
 		}

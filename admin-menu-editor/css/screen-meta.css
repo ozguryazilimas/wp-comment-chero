@@ -42,7 +42,8 @@
 	for the screen options and help buttons. This way the stylesheet should be compatible with
 	both older and newer WP versions.
 	*/
-	min-height: 30px;
+	min-height: 32px;
+	line-height: 30px;
 }
 
 #screen-meta-links #ws-pro-version-notice a.show-settings {

@@ -46,6 +46,8 @@ $wsAmeFreeAutoloader = new YahnisElsts\AdminMenuEditor\AmeAutoloader([
 	'YahnisElsts\\AjaxActionWrapper\\v2\\'         => AME_ROOT_DIR . '/includes/ajax-wrapper-v2/src',
 	//General utilities
 	'YahnisElsts\\AdminMenuEditor\\Utils\\'        => AME_ROOT_DIR . '/includes/utils',
+	//Wire DSL
+	'YahnisElsts\\AdminMenuEditor\\WireDSL\\'       => AME_ROOT_DIR . '/shared-dsl/server',
 ]);
 $wsAmeFreeAutoloader->register();
 require_once $thisDirectory . '/../customizables/constants.php';

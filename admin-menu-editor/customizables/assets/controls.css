@@ -341,4 +341,8 @@ A "wp" prefix has been added to avoid name conflicts with other code in this plu
   color: #646970;
 }
 
+.ame-select-box-control + .ws_tooltip_trigger .dashicons {
+  vertical-align: middle;
+}
+
 /*# sourceMappingURL=controls.css.map */

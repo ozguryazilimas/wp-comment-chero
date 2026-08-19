@@ -1,0 +1,17 @@
+.ame-actor-feature-checkbox-control .ame-rev-afc-actions {
+	display: none;
+
+	margin-left: 1em;
+
+	&, a {
+		vertical-align: middle;
+	}
+
+	.ame-rev-event-button {
+		margin: 0 0.5em;
+	}
+}
+
+.ame-actor-feature-checkbox-control:hover .ame-rev-afc-actions {
+	display: inline-flex;
+}

@@ -1,0 +1,10 @@
+@use 'ui-constants';
+
+@mixin ame-nested-checkbox-description {
+	margin-left: ui-constants.$controlChildLeftMargin;
+
+	display: block;
+	line-height: 1.4em; //Reset to the WP default.
+
+	margin-bottom: (6/13) * 1em; //Emulates the classic "Tweaks" tab. May need adjustment for other contexts.
+}

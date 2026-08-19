@@ -24,6 +24,8 @@ namespace AmeMiniFunc {
 
 		getOrElse(defaultValue: () => T): T;
 
+		getOrThrow(message?: string): T;
+
 		orNull<R extends T>(): T | R | null;
 
 		toArray(): T[];
@@ -80,6 +82,10 @@ namespace AmeMiniFunc {
 		orNull(): T | null {
 			return this.value;
 		}
+
+		getOrThrow(): T {
+			return this.value;
+		}
 	}
 
 	class None implements OptionOps<never> {
@@ -120,6 +126,10 @@ namespace AmeMiniFunc {
 
 		orNull(): null {
 			return null;
+		}
+
+		getOrThrow(message?: string): never {
+			throw new Error(message ?? 'Cannot get value from None');
 		}
 
 		flatMap<R>(f: (value: never) => Option<R>): Option<R> {

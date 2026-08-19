@@ -3,8 +3,9 @@
 namespace YahnisElsts\AdminMenuEditor\Customizable\Controls;
 
 use YahnisElsts\AdminMenuEditor\Customizable\HtmlHelper;
-use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Context;
+
 use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Renderer;
+use YahnisElsts\AdminMenuEditor\WireDSL\EvaluationContext;
 
 /**
  * A special "checkbox" that sends one value when it's checked and another value
@@ -37,7 +38,7 @@ class ToggleCheckbox extends ClassicControl {
 		}
 	}
 
-	public function renderContent(Renderer $renderer, Context $context) {
+	public function renderContent(Renderer $renderer, EvaluationContext $context) {
 		$isChecked = ($this->getMainSettingValue(null, $context) === $this->onValue);
 
 		//Encode non-scalar values as JSON. To simplify things for the script that
@@ -111,9 +112,9 @@ class ToggleCheckbox extends ClassicControl {
 		return true;
 	}
 
-	protected function getKoComponentParams(): array {
+	protected function getKoComponentParams(EvaluationContext $context): array {
 		return array_merge(
-			parent::getKoComponentParams(),
+			parent::getKoComponentParams($context),
 			[
 				'onValue'  => $this->onValue,
 				'offValue' => $this->offValue,

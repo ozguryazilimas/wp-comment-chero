@@ -30,4 +30,12 @@ abstract class CheckableSchema extends Schema {
 		}
 		return array_key_exists('value', $check) ? $check['value'] : $defaultResult;
 	}
+
+	public function serialize(SchemaSerializer $serializer): array {
+		$result = parent::serialize($serializer);
+		if ( !empty($this->checks) ) {
+			$result['checks'] = $this->checks;
+		}
+		return $result;
+	}
 }

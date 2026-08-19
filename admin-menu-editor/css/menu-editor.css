@@ -1,4 +1,15 @@
 /* Admin Menu Editor CSS file */
+/*
+Standard WordPress admin colors.
+
+Announcement post:
+https://make.wordpress.org/core/2021/02/23/standardization-of-wp-admin-colors-in-wordpress-5-7/
+
+Source:
+https://codepen.io/ryelle/pen/WNGVEjw
+
+A "wp" prefix has been added to avoid name conflicts with other code in this plugin.
+ */
 .ame-input-group {
   display: flex;
   flex-wrap: wrap;
@@ -2155,6 +2166,10 @@ span.description {
 
 #ws_ame_test_output {
   display: none;
+}
+
+.ame-delete-action-button:hover, .ame-delete-action-button:active {
+  color: #b32d2e;
 }
 
 /***************************************

@@ -5,7 +5,7 @@ namespace YahnisElsts\AdminMenuEditor\Customizable\Settings;
 use YahnisElsts\AdminMenuEditor\Customizable\Storage;
 use YahnisElsts\AdminMenuEditor\Customizable\Storage\StorageInterface;
 
-abstract class AbstractStructSetting extends AbstractSetting implements \ArrayAccess, \IteratorAggregate {
+abstract class AbstractStructSetting extends AbstractSetting implements \ArrayAccess, \IteratorAggregate, SettingContainer {
 	protected $dataType = 'map';
 
 	/**
@@ -196,6 +196,30 @@ abstract class AbstractStructSetting extends AbstractSetting implements \ArrayAc
 			return $this->settings[$childSettingKey]->getValue($defaultValue);
 		}
 		return $defaultValue;
+	}
+
+	function findDirectChildSetting(string $key): ?AbstractSetting {
+		return $this->getChild($key);
+	}
+
+	function findSetting($settingIdOrPath): ?AbstractSetting {
+		$settingIdOrPath = explode('.', $settingIdOrPath);
+		if ( empty($settingIdOrPath) ) {
+			return null;
+		}
+
+		$firstKey = array_shift($settingIdOrPath);
+		$current = $this->getChild($firstKey);
+
+		foreach ($settingIdOrPath as $key) {
+			if ( $current instanceof SettingContainer ) {
+				$current = $current->findDirectChildSetting($key);
+			} else {
+				return null;
+			}
+		}
+
+		return $current;
 	}
 
 	public function makeChildId($childKey) {

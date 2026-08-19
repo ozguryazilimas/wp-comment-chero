@@ -2,8 +2,8 @@
 
 namespace YahnisElsts\AdminMenuEditor\Customizable\Controls;
 
-use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Context;
 use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Renderer;
+use YahnisElsts\AdminMenuEditor\WireDSL\EvaluationContext;
 
 class WpEditor extends ClassicControl {
 	protected $type = 'wpEditor';
@@ -24,7 +24,7 @@ class WpEditor extends ClassicControl {
 		}
 	}
 
-	public function renderContent(Renderer $renderer, Context $context) {
+	public function renderContent(Renderer $renderer, EvaluationContext $context) {
 		wp_editor(
 			(string)$this->getMainSettingValue(null, $context),
 			$this->getPrimaryInputId($context),
@@ -36,12 +36,12 @@ class WpEditor extends ClassicControl {
 			)
 		);
 
-		$this->outputSiblingDescription();
+		$this->outputSiblingDescription($context);
 
 		static::enqueueDependencies();
 	}
 
-	public function getPrimaryInputId(?Context $context = null) {
+	public function getPrimaryInputId(?EvaluationContext $context = null) {
 		//For wp_editor, the ID must only contain lowercase letters and underscores.
 		return preg_replace('/[^a-z_]/', '_', parent::getPrimaryInputId($context));
 	}
@@ -65,8 +65,8 @@ class WpEditor extends ClassicControl {
 		parent::enqueueKoComponentDependencies();
 	}
 
-	protected function getKoComponentParams(): array {
-		$params = parent::getKoComponentParams();
+	protected function getKoComponentParams(EvaluationContext $context): array {
+		$params = parent::getKoComponentParams($context);
 		$params['rows'] = $this->rows;
 		$params['teeny'] = $this->teeny;
 		return $params;

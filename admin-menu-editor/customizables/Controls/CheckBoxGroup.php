@@ -3,11 +3,11 @@
 namespace YahnisElsts\AdminMenuEditor\Customizable\Controls;
 
 use YahnisElsts\AdminMenuEditor\Customizable\HtmlHelper;
-use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Context;
 use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Renderer;
 use YahnisElsts\AdminMenuEditor\Customizable\Schemas\Enum;
 use YahnisElsts\AdminMenuEditor\Customizable\Schemas\Record;
 use YahnisElsts\AdminMenuEditor\Customizable\Settings\WithSchema\SingularSetting;
+use YahnisElsts\AdminMenuEditor\WireDSL\EvaluationContext;
 
 class CheckBoxGroup extends ClassicControl {
 	protected $declinesExternalLineBreaks = true;
@@ -17,7 +17,7 @@ class CheckBoxGroup extends ClassicControl {
 	 */
 	protected $cachedOptions = null;
 
-	public function renderContent(Renderer $renderer, Context $context) {
+	public function renderContent(Renderer $renderer, EvaluationContext $context) {
 		$currentValue = $this->mainBinding->getValue();
 		if ( !is_array($currentValue) ) {
 			$currentValue = [];

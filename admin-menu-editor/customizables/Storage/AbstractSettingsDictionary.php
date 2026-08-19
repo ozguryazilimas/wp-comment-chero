@@ -5,12 +5,14 @@ namespace YahnisElsts\AdminMenuEditor\Customizable\Storage;
 use ameMultiDictionary;
 use YahnisElsts\AdminMenuEditor\Customizable\Builders\ElementBuilderFactory;
 use YahnisElsts\AdminMenuEditor\Customizable\Builders\SettingFactory;
+use YahnisElsts\AdminMenuEditor\Customizable\Controls\Binding;
 use YahnisElsts\AdminMenuEditor\Customizable\Settings\AbstractSetting;
 use YahnisElsts\AdminMenuEditor\Customizable\Settings\PredefinedSet;
 use YahnisElsts\AdminMenuEditor\Customizable\Settings\Setting;
+use YahnisElsts\AdminMenuEditor\Customizable\Settings\SettingContainer;
 use YahnisElsts\AdminMenuEditor\Customizable\Settings\SettingGeneratorInterface;
-use YahnisElsts\AdminMenuEditor\Customizable\Controls\DynamicBinding;
 use YahnisElsts\AdminMenuEditor\Customizable\Settings\StringSetting;
+use YahnisElsts\AdminMenuEditor\WireDSL\Wire;
 
 /**
  * What's the difference between this and StorageInterface? A StorageInterface just
@@ -21,7 +23,7 @@ use YahnisElsts\AdminMenuEditor\Customizable\Settings\StringSetting;
  * potentially multidimensional. It can have predefined defaults, and it can create
  * Setting instances for its keys.
  */
-abstract class AbstractSettingsDictionary implements \ArrayAccess, \JsonSerializable {
+abstract class AbstractSettingsDictionary implements \ArrayAccess, \JsonSerializable, SettingContainer {
 	/**
 	 * @var array
 	 */
@@ -217,7 +219,7 @@ abstract class AbstractSettingsDictionary implements \ArrayAccess, \JsonSerializ
 	 * @param $settingIdOrPath
 	 * @return AbstractSetting|null
 	 */
-	public function findSetting($settingIdOrPath) {
+	public function findSetting($settingIdOrPath): ?AbstractSetting {
 		$settings = $this->getRegisteredSettings();
 
 		//Try the plain ID.
@@ -237,6 +239,10 @@ abstract class AbstractSettingsDictionary implements \ArrayAccess, \JsonSerializ
 		}
 
 		return null;
+	}
+
+	function findDirectChildSetting(string $key): ?AbstractSetting {
+		return $this->findSetting($key);
 	}
 
 	/**
@@ -423,7 +429,7 @@ abstract class AbstractSettingsDictionary implements \ArrayAccess, \JsonSerializ
 		return new SettingFactory($this->store, $this->defaults, $this->idPrefix);
 	}
 
-	public function ref($settingIdOrPath): DynamicBinding {
-		return new DynamicBinding($settingIdOrPath, $this);
+	public function ref($settingIdOrPath): Binding {
+		return Wire::bind($settingIdOrPath);
 	}
 }

@@ -339,6 +339,8 @@ ame-cpe-permission-options-dropdown {
 	}
 
 	.ame-radio-bar-button {
+		$buttonTextColor: wpColor(gray-70);
+
 		position: relative;
 		z-index: 10;
 		user-select: none;
@@ -350,11 +352,17 @@ ame-cpe-permission-options-dropdown {
 		background-color: wpColor(gray-0);
 		--ame-rb-box-shadow-color: transparent;
 
-		color: wpColor(gray-70);
+		color: $buttonTextColor;
 
 		.dashicons {
 			//display: none;
 			margin-left: -0.2em;
+		}
+
+		//Elementor compatibility: Set the Dashicon color with higher specificity to override Elementor's
+		//styles that make icons inside buttons blue.
+		.dashicons.dashicons {
+			color: $buttonTextColor;
 		}
 	}
 
@@ -363,8 +371,11 @@ ame-cpe-permission-options-dropdown {
 	}
 
 	input[type="radio"]:checked ~ .ame-radio-bar-button {
-		color: white;
 		z-index: 20;
+
+		&, .dashicons { //Elementor compatibility - see above.
+			color: white;
+		}
 
 		.ame-cpe-rb-label {
 			font-weight: bold;

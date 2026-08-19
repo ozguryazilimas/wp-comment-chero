@@ -5565,7 +5565,7 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 				$label,
 				array($category),
 				$parent,
-				isset($item['grant_access']) ? $item['grant_access'] : array(),
+				$item['grant_access'] ?? array(),
 				'admin-menu'
 			);
 
@@ -5638,6 +5638,10 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 	private function update_hideable_menu_items($hideableItems, &$menus, $level) {
 		$hasChanged = false;
 
+		$isNotTrue = function($value) {
+			return ($value !== true);
+		};
+
 		//Iterate over all admin menus and find the corresponding hideable items.
 		//We could do it the other way around, but parsing IDs is more complex.
 		foreach ($menus as &$menuItem) {
@@ -5645,7 +5649,21 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 			if ( isset($hideableItems[$id]) ) {
 				$settings = $hideableItems[$id];
 				$newAccess = !empty($settings['enabled']) ? $settings['enabled'] : array();
-				$oldAccess = isset($menuItem['grant_access']) ? $menuItem['grant_access'] : array();
+				$oldAccess = $menuItem['grant_access'] ?? array();
+
+				//Easy Hide cannot explicitly enable access to menu items. This is to prevent a bug
+				//where a user might unintentionally grant a role access by checking and then unchecking
+				//an item. Therefore, throw away any "true" values in the new list.
+				$newAccess = array_filter($newAccess, $isNotTrue);
+
+				//Easy Hide also shouldn't overwrite existing "true" values with "null". While these
+				//are often equivalent, "true" has a special meaning in the menu editor (explicitly enabled),
+				//and losing that setting can cause confusion.
+				foreach($oldAccess as $key => $value) {
+					if ( ($value === true) && !isset($newAccess[$key]) ) {
+						$newAccess[$key] = true;
+					}
+				}
 
 				$changes1 = array_diff_assoc($oldAccess, $newAccess);
 				$changes2 = array_diff_assoc($newAccess, $oldAccess);

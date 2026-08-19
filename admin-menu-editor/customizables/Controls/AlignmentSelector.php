@@ -2,32 +2,39 @@
 
 namespace YahnisElsts\AdminMenuEditor\Customizable\Controls;
 
+use YahnisElsts\AdminMenuEditor\WireDSL\EvaluationContext;
+
 class AlignmentSelector extends RadioButtonBar {
 	protected $type = 'alignment-selector';
 
 	public function __construct($settings = array(), $params = array(), $children = []) {
 		parent::__construct($settings, $params, $children);
+	}
+
+	protected function initOptions(EvaluationContext $context): array {
+		$options = parent::initOptions($context);
 
 		//Set default choice labels and icons for recognized values.
 		$choices = array(
-			'none' => array(
+			'none'   => array(
 				'description' => 'None',
-				'icon' => 'dashicons-editor-justify',
+				'icon'        => 'dashicons-editor-justify',
 			),
 			'left'   => array(
 				'description' => 'Align left',
-				'icon'  => 'dashicons-editor-alignleft',
+				'icon'        => 'dashicons-editor-alignleft',
 			),
 			'center' => array(
 				'description' => 'Align center',
-				'icon'  => 'dashicons-editor-aligncenter',
+				'icon'        => 'dashicons-editor-aligncenter',
 			),
 			'right'  => array(
 				'description' => 'Align right',
-				'icon'  => 'dashicons-editor-alignright',
+				'icon'        => 'dashicons-editor-alignright',
 			),
 		);
-		foreach ($this->options as $option) {
+
+		foreach ($options as $option) {
 			if ( isset($choices[$option->value]) ) {
 				//No label, just an icon and a description in a tooltip.
 				$option->label = '';
@@ -35,5 +42,9 @@ class AlignmentSelector extends RadioButtonBar {
 				$option->icon = $choices[$option->value]['icon'];
 			}
 		}
+
+		return $options;
 	}
+
+
 }

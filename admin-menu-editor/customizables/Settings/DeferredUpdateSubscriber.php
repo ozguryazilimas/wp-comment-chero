@@ -35,8 +35,8 @@ class DeferredUpdateSubscriber implements UpdateNotificationSender {
 	}
 
 	public function receiveNotification(AbstractSetting $setting) {
-		if ( !$this->updatedSettings->contains($setting) ) {
-			$this->updatedSettings->attach($setting, true);
+		if ( !$this->updatedSettings->offsetExists($setting) ) {
+			$this->updatedSettings[$setting] = true;
 			$this->ownerQueue->enqueueDeferred($this);
 		}
 	}

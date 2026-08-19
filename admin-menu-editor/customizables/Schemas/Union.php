@@ -6,7 +6,7 @@ class Union extends Schema {
 	/**
 	 * @var Schema[]
 	 */
-	private $options;
+	private array $options;
 
 	public function __construct(array $options, $label = null) {
 		$this->options = array_values($options);
@@ -35,5 +35,15 @@ class Union extends Schema {
 		}
 
 		return self::addError($errors, 'union_value_invalid', $message);
+	}
+
+	public function serialize(SchemaSerializer $serializer): array {
+		$result = parent::serialize($serializer);
+		$result['options'] = array_map(fn($schema) => $serializer->serialize($schema), $this->options);
+		return $result;
+	}
+
+	protected function getJsonSerializeType(): string {
+		return 'union';
 	}
 }

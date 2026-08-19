@@ -1,0 +1,26 @@
+@use '../../../css/wp-admin-colors';
+
+.ame-rev-event-button {
+	&.ame-rev-compact-event-button {
+		$compactHeight: 30px;
+		$compactLineHeight: $compactHeight - 2px;
+		$compactHorizontalPadding: 8px;
+
+		min-height: $compactHeight;
+		line-height: $compactLineHeight;
+		padding: 0 $compactHorizontalPadding;
+
+		.dashicons {
+			line-height: $compactLineHeight;
+		}
+	}
+}
+
+.ame-rev-event-button-link {
+	display: inline-flex;
+	align-items: center;
+
+	text-decoration: none;
+	color: wp-admin-colors.wpColor(gray-50);
+	cursor: pointer;
+}

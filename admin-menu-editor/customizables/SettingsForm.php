@@ -4,10 +4,12 @@ namespace YahnisElsts\AdminMenuEditor\Customizable;
 
 use WP_Error;
 use YahnisElsts\AdminMenuEditor\Customizable\Builders\FormBuilder;
+
 use YahnisElsts\AdminMenuEditor\Customizable\Rendering\FormTableRenderer;
 use YahnisElsts\AdminMenuEditor\Customizable\Settings\AbstractSetting;
 use YahnisElsts\AdminMenuEditor\Utils\Forms\GenericSettingsForm;
 use YahnisElsts\AdminMenuEditor\Utils\Forms\ParsedFormSubmission;
+use YahnisElsts\AdminMenuEditor\WireDSL\WireContext;
 
 class SettingsForm extends GenericSettingsForm {
 	const DIE_ON_ERRORS = 1;
@@ -55,7 +57,7 @@ class SettingsForm extends GenericSettingsForm {
 		//phpcs:enable
 
 		$renderer = $this->config->renderer;
-		$renderer->renderStructure($this->config->structure);
+		$renderer->renderStructure($this->config->structure, new WireContext());
 
 		if ( !empty($this->config->action) ) {
 			//phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped

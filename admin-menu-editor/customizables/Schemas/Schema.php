@@ -2,10 +2,13 @@
 
 namespace YahnisElsts\AdminMenuEditor\Customizable\Schemas;
 
+use YahnisElsts\AdminMenuEditor\Customizable\Describable;
+
 use YahnisElsts\AdminMenuEditor\Customizable\Settings;
 use YahnisElsts\AdminMenuEditor\Options\Option;
+use YahnisElsts\AdminMenuEditor\WireDSL\EvaluationContext;
 
-abstract class Schema {
+abstract class Schema implements \JsonSerializable, Describable {
 	protected $defaultValueOption;
 	protected $_nullable = false;
 	protected $convertEmptyStringsToNull = false;
@@ -86,6 +89,40 @@ abstract class Schema {
 	}
 
 	/**
+	 * Convert a value that matches this schema to a string usable in HTML forms.
+	 *
+	 * This does NOT encode special HTML characters. It's only intended to convert
+	 * non-string values to a format suitable for form field values.
+	 *
+	 * @param mixed $value
+	 * @return string
+	 * @see Settings\AbstractSetting::encodeForForm() main usage of this method.
+	 *
+	 */
+	public function encodeValueForForm($value): string {
+		if ( $this->isStringConversionSafe() ) {
+			return (string)$value;
+		} else {
+			return wp_json_encode($value);
+		}
+	}
+
+	/**
+	 * Convert submitted form data to a type suitable for validation.
+	 *
+	 * @param mixed $value
+	 * @return mixed
+	 */
+	public function decodeSubmittedFormValue($value) {
+		if ( $this->isStringConversionSafe() ) {
+			return $value;
+		} else if ( is_string($value) ) {
+			return @json_decode($value, true);
+		}
+		return $value;
+	}
+
+	/**
 	 * Add an error to a WP_Error instance, or create a new instance if it's not provided.
 	 *
 	 * @param \WP_Error|null $errorObject
@@ -118,6 +155,16 @@ abstract class Schema {
 	 */
 	public function getSimplifiedDataType() {
 		return '';
+	}
+
+	/**
+	 * Get the schema for a child value, if applicable.
+	 *
+	 * @param $key
+	 * @return Schema|null
+	 */
+	public function getChildSchema($key): ?Schema {
+		return null;
 	}
 
 	//region Setting helpers
@@ -213,5 +260,71 @@ abstract class Schema {
 		$this->getOrCreateSettingHints()->addSettingReference($paramName, $siblingSettingKey);
 		return $this;
 	}
+
+	/**
+	 * Get the label for settings created from this schema, if any.
+	 *
+	 * Defaults to an empty string.
+	 *
+	 * @param EvaluationContext|null $context
+	 * @return string
+	 */
+	public function getLabel(?EvaluationContext $context = null): string {
+		$hints = $this->getSettingBuilderHints();
+		if ( $hints && $hints->hasParam('label') ) {
+			return (string)$hints->getParam('label', '');
+		}
+		return '';
+	}
+
+	/**
+	 * Get the description for settings created from this schema, if any.
+	 *
+	 * Defaults to an empty string.
+	 *
+	 * @param EvaluationContext|null $context
+	 * @return string
+	 */
+	public function getDescription(?EvaluationContext $context = null): string {
+		$hints = $this->getSettingBuilderHints();
+		if ( $hints && $hints->hasParam('description') ) {
+			return (string)$hints->getParam('description', '');
+		}
+		return '';
+	}
+
 	//endregion
+
+	public function jsonSerialize(): array {
+		return $this->serialize($this->getDefaultSerializer());
+	}
+
+	public function serialize(SchemaSerializer $serializer): array {
+		$result = ['type' => $this->getJsonSerializeType()];
+
+		if ( $this->isNullable() ) {
+			$result['nullable'] = true;
+		}
+		if ( $this->convertEmptyStringsToNull ) {
+			$result['convertEmptyStringsToNull'] = true;
+		}
+		if ( $this->hasDefaultValue() ) {
+			$result['defaultValue'] = $this->getDefaultValue();
+		}
+
+		return $result;
+	}
+
+	protected ?SchemaSerializer $defaultSerializer = null;
+
+	protected function getDefaultSerializer(): SchemaSerializer {
+		if ( $this->defaultSerializer === null ) {
+			//The default serializer doesn't use schema sharing, because we can't ensure that
+			//whoever is calling jsonSerialize() will include the shared schemas in the output.
+			$this->defaultSerializer = new SchemaSerializer(false);
+		}
+		return $this->defaultSerializer;
+	}
+
+	abstract protected function getJsonSerializeType(): string;
 }

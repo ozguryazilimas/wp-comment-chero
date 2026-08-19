@@ -1,6 +1,7 @@
 /* Admin Menu Editor CSS file */
 
 @use 'sass:math';
+@use 'wp-admin-colors';
 @import "boxes";
 @import "input-group";
 @import "forms";
@@ -2339,5 +2340,11 @@ span.description {
 }
 
 @import "test-access-screen";
+
+.ame-delete-action-button {
+	&:hover, &:active {
+		color: wp-admin-colors.wpColor('red-60');
+	}
+}
 
 @import "main-tabs";

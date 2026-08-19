@@ -25,6 +25,11 @@ abstract class BaseElementBuilder implements ElementBuilder {
 	protected $children = array();
 
 	/**
+	 * @var array<string,array<ElementBuilder|UiElement>>
+	 */
+	protected array $slots = [];
+
+	/**
 	 * @param class-string<\YahnisElsts\AdminMenuEditor\Customizable\Controls\UiElement> $elementClass
 	 * @param array $params
 	 */
@@ -166,6 +171,50 @@ abstract class BaseElementBuilder implements ElementBuilder {
 	 */
 	protected function buildChildren(): array {
 		return self::buildItems($this->children);
+	}
+
+	/**
+	 * Set the children for a named slot. This will overwrite any existing children in that slot.
+	 *
+	 * @param string $slotName
+	 * @param ...$children
+	 * @return $this
+	 */
+	public function slot(string $slotName, ...$children): self {
+		$this->slots[$slotName] = $children;
+		return $this;
+	}
+
+	/**
+	 * Add one or more children to a named slot. This will append to any existing children in that slot.
+	 *
+	 * @param string $slotName
+	 * @param ElementBuilder|UiElement ...$children
+	 * @return $this
+	 */
+	public function addToSlot(string $slotName, ...$children): self {
+		if ( !isset($this->slots[$slotName]) ) {
+			$this->slots[$slotName] = [];
+		}
+		$this->slots[$slotName] = array_merge($this->slots[$slotName], $children);
+		return $this;
+	}
+
+	protected function buildSlots(): array {
+		return array_map(function ($slotChildren) {
+			return self::buildItems($slotChildren);
+		}, $this->slots);
+	}
+
+	protected function buildParams(): array {
+		$params = $this->params;
+
+		$slots = $this->buildSlots();
+		if ( !empty($slots) ) {
+			$params['slots'] = $slots;
+		}
+
+		return $params;
 	}
 
 	/**

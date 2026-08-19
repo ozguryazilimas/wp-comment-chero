@@ -3,10 +3,10 @@
 namespace YahnisElsts\AdminMenuEditor\Customizable\Controls;
 
 use YahnisElsts\AdminMenuEditor\Customizable\HtmlHelper;
-use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Context;
 use YahnisElsts\AdminMenuEditor\Customizable\Settings;
 use YahnisElsts\AdminMenuEditor\Customizable\Schemas;
 use YahnisElsts\AdminMenuEditor\Options\Option;
+use YahnisElsts\AdminMenuEditor\WireDSL\EvaluationContext;
 
 abstract class AbstractNumericControl extends ClassicControl {
 	const NUMBER_VALIDATION_PATTERN = '\\s*-?[0-9]+(?:[.,]\\d*)?\s*';
@@ -57,8 +57,8 @@ abstract class AbstractNumericControl extends ClassicControl {
 	private $cachedNumberConfig = null;
 	private $configCacheKey = null;
 
-	protected function getNumberConfig(?Context $context = null): NumberConfig {
-		$cacheKey = ($this->mainBinding ? $this->mainBinding->getBindingString() : '-') . '|';
+	protected function getNumberConfig(?EvaluationContext $context = null): NumberConfig {
+		$cacheKey = ($this->mainBinding ? $this->mainBinding->getInternalStringId() : '-') . '|';
 		if ( $context ) {
 			$cacheKey .= $context->getId() . '|' . $context->getVersion();
 		} else {
@@ -108,21 +108,21 @@ abstract class AbstractNumericControl extends ClassicControl {
 		return $this->cachedNumberConfig;
 	}
 
-	protected static function createDefaultNumberConfig(?Binding $binding, ?Context $context = null): NumberConfig {
+	protected static function createDefaultNumberConfig(?Binding $binding, ?EvaluationContext $context = null): NumberConfig {
 		$setting = $binding;
 		$valueSchema = null;
 
 		if ( $context && $binding ) {
 			$setting = null;
-			$option = $context->resolveBinding($binding);
+			$option = $context->resolve($binding);
 			if ( $option->isDefined() ) {
 				$resolution = $option->get();
 				$path = $resolution->getPathInSetting();
 				if ( empty($path) ) {
 					//It's just the setting itself.
-					$setting = $resolution->getSetting();
+					$setting = $resolution->getNearestSetting();
 				} else {
-					$valueSchema = $resolution->getSchema();
+					$valueSchema = $resolution->getValueSchema();
 				}
 			}
 		}
@@ -190,6 +190,7 @@ abstract class AbstractNumericControl extends ClassicControl {
 
 	protected function renderUnitDropdown(
 		Settings\AbstractSetting $unitSetting,
+		EvaluationContext        $context,
 		                         $elementAttributes = [],
 		                         $includeKoBindings = true
 	) {
@@ -204,7 +205,8 @@ abstract class AbstractNumericControl extends ClassicControl {
 		list($optionHtml, $optionBindings) = ChoiceControlOption::generateSelectOptions(
 			$units,
 			$selectedUnit,
-			$unitSetting
+			$unitSetting,
+			$context
 		);
 
 		if ( $includeKoBindings ) {
@@ -223,8 +225,8 @@ abstract class AbstractNumericControl extends ClassicControl {
 		return true;
 	}
 
-	protected function getKoComponentParams(): array {
-		$params = parent::getKoComponentParams();
+	protected function getKoComponentParams(EvaluationContext $context): array {
+		$params = parent::getKoComponentParams($context);
 		$config = $this->getNumberConfig();
 		$params['min'] = $config->getMin();
 		$params['max'] = $config->getMax();

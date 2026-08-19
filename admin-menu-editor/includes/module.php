@@ -24,10 +24,13 @@ abstract class ameModule {
 	 */
 	protected $menuEditor;
 
-	public function __construct($menuEditor) {
+	public function __construct($menuEditor, $moduleDir = null) {
 		$this->menuEditor = $menuEditor;
 
-		if ( class_exists('ReflectionClass', false) ) {
+		if ( $moduleDir !== null ) {
+			$this->moduleDir = rtrim($moduleDir, '/');
+			$this->moduleId = basename($this->moduleDir);
+		} else if ( class_exists('ReflectionClass', false) ) {
 			//This should never throw an exception since the current class must exist for this constructor to be run.
 			$reflector = new ReflectionClass(get_class($this));
 			$this->moduleDir = dirname($reflector->getFileName());

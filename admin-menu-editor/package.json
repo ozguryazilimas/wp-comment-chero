@@ -1,8 +1,0 @@
-{
-  "name": "admin-menu-editor",
-  "author": "Janis Elsts",
-  "devDependencies": {
-    "@types/lodash": "^4.17.10",
-    "type-fest": "^4.30.2"
-  }
-}

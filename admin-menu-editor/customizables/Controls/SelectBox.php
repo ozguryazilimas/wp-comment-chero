@@ -2,21 +2,22 @@
 
 namespace YahnisElsts\AdminMenuEditor\Customizable\Controls;
 
-use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Context;
 use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Renderer;
+use YahnisElsts\AdminMenuEditor\WireDSL\EvaluationContext;
 
 class SelectBox extends ChoiceControl {
 	protected $type = 'select';
 	protected $koComponentName = 'ame-select-box';
 
-	public function renderContent(Renderer $renderer, Context $context) {
-		$currentValue = $this->mainBinding->getValue();
+	public function renderContent(Renderer $renderer, EvaluationContext $context) {
+		$currentValue = $context->resolveValue($this->mainBinding);
 		$classes = array_merge(['ame-select-box-control'], $this->classes);
 
 		list($optionHtml, $optionBindings) = ChoiceControlOption::generateSelectOptions(
-			$this->options,
+			$this->getOptions($context),
 			$currentValue,
-			$this->mainBinding
+			$this->mainBinding,
+			$context
 		);
 
 		//phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -34,5 +35,11 @@ class SelectBox extends ChoiceControl {
 		echo $optionHtml;
 		//phpcs:enable
 		echo '</select>';
+
+		$tooltip = $this->getTooltip();
+		if ( $tooltip ) {
+			echo ' ';
+			$renderer->renderTooltipTrigger($tooltip);
+		}
 	}
 }

@@ -18,4 +18,8 @@ class Record extends Collection {
 	public function getSimplifiedDataType() {
 		return 'map'; //Helps ensure that empty records are serialized as {} instead of [].
 	}
+
+	protected function getJsonSerializeType(): string {
+		return 'record';
+	}
 }

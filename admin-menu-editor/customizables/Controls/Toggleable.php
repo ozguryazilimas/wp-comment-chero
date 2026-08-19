@@ -2,8 +2,10 @@
 
 namespace YahnisElsts\AdminMenuEditor\Customizable\Controls;
 
-use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Context;
 use YahnisElsts\AdminMenuEditor\Customizable\SettingCondition;
+use YahnisElsts\AdminMenuEditor\Customizable\Settings\AbstractSetting;
+use YahnisElsts\AdminMenuEditor\WireDSL\EvaluationContext;
+use YahnisElsts\AdminMenuEditor\WireDSL\Resolvers\Resolution;
 
 trait Toggleable {
 	/**
@@ -23,17 +25,24 @@ trait Toggleable {
 				$this->enabled = $params['enabled'];
 			}
 		} else if ( !empty($this->mainBinding) ) {
-			$this->enabled = function (?Context $context = null) {
-				return $this->mainBinding->isEditableByUser($context);
+			$this->enabled = function (?EvaluationContext $context = null) {
+				if ( $context ) {
+					return $context->resolve($this->mainBinding)
+						->map(fn(Resolution $r) => $r->isEditableByUser($context))
+						->getOrElse(true);
+				} else if ( $this->mainBinding instanceof AbstractSetting ) {
+					return $this->mainBinding->isEditableByUser();
+				}
+				return true;
 			};
 		}
 	}
 
 	/**
-	 * @param Context|null $context
+	 * @param EvaluationContext|null $context
 	 * @return bool
 	 */
-	public function isEnabled(?Context $context = null) {
+	public function isEnabled(?EvaluationContext $context = null) {
 		return call_user_func($this->enabled, $context);
 	}
 

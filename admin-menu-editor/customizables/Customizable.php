@@ -3,8 +3,9 @@
 namespace YahnisElsts\AdminMenuEditor\Customizable;
 
 use YahnisElsts\AdminMenuEditor\Customizable\Storage\StorageInterface;
+use YahnisElsts\AdminMenuEditor\WireDSL\EvaluationContext;
 
-abstract class Customizable {
+abstract class Customizable implements Describable {
 	protected $id;
 
 	/**
@@ -46,16 +47,18 @@ abstract class Customizable {
 	}
 
 	/**
+	 * @param EvaluationContext|null $context
 	 * @return string
 	 */
-	public function getLabel() {
+	public function getLabel(?EvaluationContext $context = null): string {
 		return $this->label;
 	}
 
 	/**
+	 * @param EvaluationContext|null $context
 	 * @return string
 	 */
-	public function getDescription() {
+	public function getDescription(?EvaluationContext $context = null): string {
 		return $this->description;
 	}
 

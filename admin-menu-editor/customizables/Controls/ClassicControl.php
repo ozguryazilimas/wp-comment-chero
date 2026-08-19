@@ -2,13 +2,13 @@
 
 namespace YahnisElsts\AdminMenuEditor\Customizable\Controls;
 
-use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Context;
+use YahnisElsts\AdminMenuEditor\WireDSL\EvaluationContext;
 
 abstract class ClassicControl extends Control {
 	/**
 	 * Output description before or after the control.
 	 */
-	protected function outputSiblingDescription(?Context $context = null) {
+	protected function outputSiblingDescription(?EvaluationContext $context = null) {
 		$description = $this->getDescription($context);
 		if ( !empty($description) ) {
 			//HTML is intentionally allowed. The description should never contain user input.
@@ -21,7 +21,7 @@ abstract class ClassicControl extends Control {
 	 * Output description inside the control. This is primarily intended
 	 * for controls that are wrapped in a label element.
 	 */
-	protected function outputNestedDescription(?Context $context = null) {
+	protected function outputNestedDescription(?EvaluationContext $context = null) {
 		$description = $this->getDescription($context);
 		if ( !empty($description) ) {
 			//phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped

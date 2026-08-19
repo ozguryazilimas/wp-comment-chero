@@ -23,12 +23,12 @@ abstract class amePersistentModule extends ameModule {
 
 	protected $lastModifiedSettingEnabled = false;
 
-	public function __construct($menuEditor) {
+	public function __construct($menuEditor, $moduleDir = null) {
 		if ( $this->optionName === '' ) {
 			throw new LogicException(__CLASS__ . '::$optionName is an empty string. You must set it to a valid option name.');
 		}
 
-		parent::__construct($menuEditor);
+		parent::__construct($menuEditor, $moduleDir);
 	}
 
 	public function loadSettings() {

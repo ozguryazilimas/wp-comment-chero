@@ -183,4 +183,17 @@ class Enum extends Schema {
 
 		return true;
 	}
+
+	public function serialize(SchemaSerializer $serializer): array {
+		$result = parent::serialize($serializer);
+		$result['values'] = $this->getEnumValues();
+		if ( !empty($this->valueDetails) ) {
+			$result['valueDetails'] = $this->valueDetails;
+		}
+		return $result;
+	}
+
+	protected function getJsonSerializeType(): string {
+		return 'enum';
+	}
 }

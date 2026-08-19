@@ -1,8 +1,8 @@
 @use "sass:math";
-@import "../../css/forms";
+@use "../../css/forms";
 
 .ame-number-input-control {
-	@include ame-invalid-input-styles;
+	@include forms.ame-invalid-input-styles;
 }
 
 $smallInputWidth: 5.1em;

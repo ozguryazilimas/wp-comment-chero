@@ -9,7 +9,6 @@ use WPMenuEditor;
 use YahnisElsts\AdminMenuEditor\Customizable\Builders\ElementBuilderFactory;
 use YahnisElsts\AdminMenuEditor\Customizable\Builders\SettingFactory;
 use YahnisElsts\AdminMenuEditor\Customizable\Controls\Tooltip;
-use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Context;
 use YahnisElsts\AdminMenuEditor\Customizable\Schemas\Boolean;
 use YahnisElsts\AdminMenuEditor\Customizable\Settings\WithSchema\SingularSetting;
 use YahnisElsts\AdminMenuEditor\Customizable\SettingsForm;
@@ -17,6 +16,7 @@ use YahnisElsts\AdminMenuEditor\Customizable\Storage\AbstractSettingsDictionary;
 use YahnisElsts\AdminMenuEditor\Customizable\Storage\CompressedStorage;
 use YahnisElsts\AdminMenuEditor\Customizable\Storage\ScopedOptionStorage;
 use YahnisElsts\AdminMenuEditor\Customizable\Storage\StorageInterface;
+use YahnisElsts\AdminMenuEditor\WireDSL\EvaluationContext;
 
 //todo: This can be in a namespaces because that requires PHP 5.3 and we already require PHP 5.6.
 
@@ -553,7 +553,7 @@ class AmeHidePluginSetting extends SingularSetting {
 		return $success;
 	}
 
-	public function isEditableByUser(?Context $context = null): bool {
+	public function isEditableByUser(?EvaluationContext $context = null): bool {
 		if ( !self::isProVersion() ) {
 			return false;
 		}

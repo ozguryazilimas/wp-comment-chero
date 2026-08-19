@@ -3,8 +3,9 @@
 namespace YahnisElsts\AdminMenuEditor\Customizable\Controls;
 
 use YahnisElsts\AdminMenuEditor\Customizable\HtmlHelper;
-use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Context;
+
 use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Renderer;
+use YahnisElsts\AdminMenuEditor\WireDSL\EvaluationContext;
 
 //TODO: Could this conceivably be a subclass of ControlGroup? It can generate the controls dynamically.
 class RadioGroup extends ChoiceControl implements ControlContainer {
@@ -47,9 +48,13 @@ class RadioGroup extends ChoiceControl implements ControlContainer {
 		}
 	}
 
-	public function renderContent(Renderer $renderer, Context $context) {
+	public function renderContent(Renderer $renderer, EvaluationContext $context) {
 		$fieldName = $this->getFieldName($context);
 		$currentValue = $this->getMainSettingValue(null, $context);
+
+		//Note: Option initialization needs to happen before checking if any options have nested
+		//controls. Otherwise, we'll always get the "no nested controls" case.
+		$options = $this->getOptions($context);
 
 		$classes = $this->classes;
 		$hasNestedControls = !empty($this->optionChildIndex);
@@ -76,7 +81,7 @@ class RadioGroup extends ChoiceControl implements ControlContainer {
 				'data-bind' => $this->makeKoDataBind($this->getKoEnableBinding()),
 			]
 		);
-		foreach ($this->options as $option) {
+		foreach ($options as $option) {
 			$isChecked = ($currentValue === $option->value);
 
 			echo $beforeOption;
@@ -91,7 +96,7 @@ class RadioGroup extends ChoiceControl implements ControlContainer {
 				array_merge([
 					'type'      => 'radio',
 					'name'      => $fieldName,
-					'value'     => $this->mainBinding->encodeForForm($option->value),
+					'value'     => $context->encodeValueForForm($this->mainBinding, $option->value),
 					'class'     => $this->getInputClasses($context),
 					'checked'   => $isChecked,
 					'disabled'  => !$option->enabled,
@@ -146,8 +151,8 @@ class RadioGroup extends ChoiceControl implements ControlContainer {
 		return self::INPUT_ID_PREFIX . $this->instanceNumber . '-';
 	}
 
-	protected function getKoComponentParams(): array {
-		$params = parent::getKoComponentParams();
+	protected function getKoComponentParams(EvaluationContext $context): array {
+		$params = parent::getKoComponentParams($context);
 
 		$hasNestedControls = !empty($this->optionChildIndex);
 		$params['wrapStyle'] = $hasNestedControls ? self::WRAP_NONE : $this->wrapStyle;

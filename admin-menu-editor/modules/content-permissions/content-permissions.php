@@ -613,6 +613,8 @@ class ContentPermissionsEnforcer {
 	 * @return EvaluationResult|null
 	 */
 	protected function evaluatePostPolicy($post, ?Action $action = null, $userId = null) {
+		static $inProgress = [];
+
 		//The action can be NULL for convenience, so that calling code doesn't have to check
 		//if the action registry returned NULL.
 		if ( $action === null ) {
@@ -642,7 +644,21 @@ class ContentPermissionsEnforcer {
 			return null;
 		}
 
-		return $this->recursivelyEvaluatePostPolicy($postId, $postObject, $action, $userActor, $postId);
+		//Prevent infinite recursion in case another plugin/theme triggers a capability check while
+		//we're evaluating a policy. This can happen, for example, if a plugin calls current_user_can()
+		//inside a filter like "get_post_metadata" (which we trigger when loading the post policy).
+		$requestKey = $postId . '|' . $action->getName() . '|' . $userActor->getId();
+		if ( isset($inProgress[$requestKey]) ) {
+			return null;
+		}
+		$inProgress[$requestKey] = true;
+
+		try {
+			$result = $this->recursivelyEvaluatePostPolicy($postId, $postObject, $action, $userActor, $postId);
+		} finally {
+			unset($inProgress[$requestKey]);
+		}
+		return $result;
 	}
 
 	private function getEvaluationActor($user): ?Actor {

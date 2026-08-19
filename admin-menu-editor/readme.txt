@@ -4,8 +4,8 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: admin, dashboard, menu, security, wpmu
 License: GPLv3
 Requires at least: 5.9
-Tested up to: 7.0
-Stable tag: 1.15.1
+Tested up to: 7.1
+Stable tag: 1.15.2
 
 Lets you edit the WordPress admin menu. You can re-order, hide or rename menus, add custom menus and more. 
 
@@ -83,6 +83,13 @@ Plugins installed in the `mu-plugins` directory are treated as "always on", so y
 3. Re-ordering menu items via drag and drop
 
 == Changelog ==
+
+= 1.15.2 =
+* Fixed a conflict with Flatsome 3.20.8 where Flatsome UX Builder would get stuck on the "Loading UX Builder" screen if the "Content Permissions" module was enabled.
+* Fixed a number of PHP 8.5 deprecation notices about SplObjectStorage.
+* Fixed a minor conflict with Elementor that made the allow/deny icons in the "Content Permissions" panel blue.
+* Fixed some minor button layout issues.
+* Tested with WP 7.1-RC3 and WP 7.2-alpha.
 
 = 1.15.1 =
 * Added improved SVG menu icon support. It was already possible to use SVG icons for admin menu items, but you had to manually encode them in the format that WordPress expects. Now the icon selector has a new "SVG" tab, and you can just paste the SVG code in the text box and click "Apply".

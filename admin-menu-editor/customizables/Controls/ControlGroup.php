@@ -2,7 +2,7 @@
 
 namespace YahnisElsts\AdminMenuEditor\Customizable\Controls;
 
-use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Context;
+use YahnisElsts\AdminMenuEditor\WireDSL\EvaluationContext;
 
 /**
  * A group of closely related controls.
@@ -117,7 +117,7 @@ class ControlGroup extends Container {
 		return 'control-group';
 	}
 
-	public function serializeForJs(Context $context): array {
+	public function serializeForJs(EvaluationContext $context): array {
 		$result = parent::serializeForJs($context);
 		$labelFor = $this->getLabelFor();
 		if ( $labelFor !== null ) {
@@ -127,8 +127,8 @@ class ControlGroup extends Container {
 	}
 
 
-	protected function getKoComponentParams(): array {
-		$params = parent::getKoComponentParams();
+	protected function getKoComponentParams(EvaluationContext $context): array {
+		$params = parent::getKoComponentParams($context);
 		$params['enabled'] = $this->serializeConditionForJs();
 
 		//The "full width" flag is not directly relevant to group components because they
@@ -140,5 +140,11 @@ class ControlGroup extends Container {
 		}
 
 		return $params;
+	}
+
+	public function serializeForRevisedJs(EvaluationContext $context): array {
+		$result = parent::serializeForRevisedJs($context);
+		$result['role'] = 'group';
+		return $result;
 	}
 }

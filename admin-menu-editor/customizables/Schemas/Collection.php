@@ -6,12 +6,12 @@ abstract class Collection extends CheckableSchema {
 	/**
 	 * @var Schema
 	 */
-	protected $keySchema;
+	protected Schema $keySchema;
 
 	/**
 	 * @var Schema
 	 */
-	protected $itemSchema;
+	protected Schema $itemSchema;
 
 	public function __construct(Schema $itemSchema, ?Schema $keySchema = null, $label = null) {
 		parent::__construct($label);
@@ -23,11 +23,11 @@ abstract class Collection extends CheckableSchema {
 		}
 	}
 
-	public function min($minItems) {
+	public function min($minItems): self {
 		return $this->addCheck('minItems', $minItems);
 	}
 
-	public function max($maxItems) {
+	public function max($maxItems): self {
 		return $this->addCheck('maxItems', $maxItems);
 	}
 
@@ -107,5 +107,20 @@ abstract class Collection extends CheckableSchema {
 
 	public function getItemSchema(): Schema {
 		return $this->itemSchema;
+	}
+
+	public function getChildSchema($key): ?Schema {
+		//All items in the collection have the same schema.
+		return $this->itemSchema;
+	}
+
+	public function serialize(SchemaSerializer $serializer): array {
+		return array_merge(
+			parent::serialize($serializer),
+			[
+				'keySchema'  => $serializer->serialize($this->keySchema),
+				'itemSchema' => $serializer->serialize($this->itemSchema),
+			]
+		);
 	}
 }

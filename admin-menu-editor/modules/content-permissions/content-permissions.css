@@ -336,12 +336,17 @@ ame-cpe-permission-options-dropdown {
 .ame-cpe-permission-bar .ame-radio-bar-button .dashicons {
   margin-left: -0.2em;
 }
+.ame-cpe-permission-bar .ame-radio-bar-button .dashicons.dashicons {
+  color: #3c434a;
+}
 .ame-cpe-permission-bar .ame-cpe-option-default {
   min-width: 9em;
 }
 .ame-cpe-permission-bar input[type=radio]:checked ~ .ame-radio-bar-button {
-  color: white;
   z-index: 20;
+}
+.ame-cpe-permission-bar input[type=radio]:checked ~ .ame-radio-bar-button, .ame-cpe-permission-bar input[type=radio]:checked ~ .ame-radio-bar-button .dashicons {
+  color: white;
 }
 .ame-cpe-permission-bar input[type=radio]:checked ~ .ame-radio-bar-button .ame-cpe-rb-label {
   font-weight: bold;

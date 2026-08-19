@@ -34,4 +34,8 @@ class Url extends StringSchema {
 	public function getSimplifiedDataType() {
 		return 'url';
 	}
+
+	protected function getJsonSerializeType(): string {
+		return 'url';
+	}
 }

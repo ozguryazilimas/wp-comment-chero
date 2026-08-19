@@ -56,11 +56,7 @@ class SingularSetting extends Settings\AbstractSetting implements SettingWithSch
 	 * @return string
 	 */
 	public function encodeForForm($value) {
-		if ( $this->schema->isStringConversionSafe() ) {
-			return (string)$value;
-		} else {
-			return wp_json_encode($value);
-		}
+		return $this->schema->encodeValueForForm($value);
 	}
 
 	/**
@@ -70,12 +66,7 @@ class SingularSetting extends Settings\AbstractSetting implements SettingWithSch
 	 * @param string $value
 	 */
 	public function decodeSubmittedValue($value) {
-		if ( $this->schema->isStringConversionSafe() ) {
-			return $value;
-		} else if ( is_string($value) ) {
-			return @json_decode($value, true);
-		}
-		return $value;
+		return $this->schema->decodeSubmittedFormValue($value);
 	}
 
 	public function validateFormValue($errors, $value, $stopOnFirstError = false) {

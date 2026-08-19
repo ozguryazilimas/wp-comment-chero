@@ -5,9 +5,12 @@ namespace YahnisElsts\AdminMenuEditor\Customizable\Controls\ControlFlow;
 use YahnisElsts\AdminMenuEditor\Customizable\Builders\ElementBuilder;
 use YahnisElsts\AdminMenuEditor\Customizable\Controls\StaticHtml;
 use YahnisElsts\AdminMenuEditor\Customizable\Controls\UiElement;
-use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Context;
 use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Renderer;
 use YahnisElsts\AdminMenuEditor\Customizable\Controls\Binding;
+use YahnisElsts\AdminMenuEditor\Customizable\Schemas\Collection;
+use YahnisElsts\AdminMenuEditor\Customizable\Settings\AbstractSetting;
+use YahnisElsts\AdminMenuEditor\WireDSL\EvaluationContext;
+use YahnisElsts\AdminMenuEditor\WireDSL\Resolvers\Resolution;
 
 class ForEachBlock extends ControlFlowBlock {
 	/**
@@ -29,13 +32,17 @@ class ForEachBlock extends ControlFlowBlock {
 		return 'foreach';
 	}
 
-	public function renderContent(Renderer $renderer, Context $context) {
-		$optionResult = $context->resolveBinding($this->items);
+	protected function getRevisedJsUiElementType(): string {
+		return $this->getJsUiElementType();
+	}
+
+	public function renderContent(Renderer $renderer, EvaluationContext $context) {
+		$optionResult = $context->resolve($this->items);
 		if ( $optionResult->isEmpty() ) {
 			$renderer->renderElement(
 				new StaticHtml(sprintf(
 					'<p><em>ForEachBlock: could not resolve "%s".</em></p>',
-					esc_html($this->items->getBindingString())
+					esc_html($this->items->getInternalStringId())
 				)),
 				$context,
 				$this
@@ -44,13 +51,16 @@ class ForEachBlock extends ControlFlowBlock {
 		}
 
 		$resolved = $optionResult->get();
-		$itemList = $resolved->getCachedValue();
+		$itemList = $resolved->getValue();
+		if ( $itemList === null ) {
+			$itemList = [];
+		}
 
 		if ( !is_array($itemList) ) {
 			$renderer->renderElement(
 				new StaticHtml(sprintf(
 					'<p><em>ForEachBlock: "%s" did not resolve to an array.</em></p>',
-					esc_html($this->items->getBindingString())
+					esc_html($this->items->getInternalStringId())
 				)),
 				$context,
 				$this
@@ -58,17 +68,30 @@ class ForEachBlock extends ControlFlowBlock {
 			return;
 		}
 
-		$innerContext = $context->withDataSource($resolved, 'foreach');
+		$itemSchema = null;
+		$listSchema = $resolved->getValueSchema();
+		if ( $listSchema instanceof Collection ) {
+			$itemSchema = $listSchema->getItemSchema();
+		}
+
 		$templateElements = $this->getBuiltTemplateElements();
+		$innerContext = $context->createChildContext();
 		foreach ($itemList as $key => $item) {
-			$innerContext->setAttribute(Context::CURRENT_KEY_ATTRIBUTE, $key);
-			$innerContext->setAttribute(Context::CURRENT_ITEM_ATTRIBUTE, $item);
+			$path = $resolved->getPathInSetting();
+			$path[] = $key;
+
+			$innerContext->setCurrentItem(new Resolution(
+				$item,
+				$itemSchema,
+				$resolved->getNearestSetting(),
+				$path
+			));
 
 			$renderer->renderItems($templateElements, $innerContext, $this);
 		}
 	}
 
-	protected $isTemplateBuilt = false;
+	protected bool $isTemplateBuilt = false;
 
 	protected function getBuiltTemplateElements(): array {
 		//Build the template children only once.
@@ -93,20 +116,63 @@ class ForEachBlock extends ControlFlowBlock {
 		return $this->itemTemplateChildren;
 	}
 
-	public function serializeForJs(Context $context): array {
+	public function serializeForJs(EvaluationContext $context): array {
 		$result = parent::serializeForJs($context);
 
-		$result['items'] = self::serializeBindingForJs($this->items, $context);
+		$result['items'] = self::serializeMinimalBindingForJs($this->items, $context);
 
 		$templateElements = $this->getBuiltTemplateElements();
 		if ( !empty($templateElements) ) {
 			$result['children'] = [];
 			foreach ($templateElements as $child) {
 				//Commented out because the JS side doesn't support references yet.
-				//$result['children'][] = $child->serializeForJs();
+				//$result['children'][] = $child->serializeForJs($context);
 			}
 		}
 
 		return $result;
+	}
+
+	public function serializeForRevisedJs(EvaluationContext $context): array {
+		$result = parent::serializeForRevisedJs($context);
+
+		$result['items'] = self::serializeMinimalBindingForJs($this->items, $context);
+
+		$templateElements = $this->getBuiltTemplateElements();
+		if ( !empty($templateElements) ) {
+			$innerContext = $context->createChildContext();
+
+			//Try to resolve the items binding to get the schema of the items.
+			//The children can use this schema to set up control properties like labels, descriptions,
+			//ranges for number inputs, etc.
+			$resolvedOption = $context->partialResolve($this->items);
+			if ( $resolvedOption->isDefined() ) {
+				$resolved = $resolvedOption->get();
+				$itemSchema = null;
+				$listSchema = $resolved->getValueSchema();
+				if ( $listSchema instanceof Collection ) {
+					$itemSchema = $listSchema->getItemSchema();
+				}
+				$innerContext->setCurrentItem(new Resolution(
+					null,
+					$itemSchema,
+					$resolved->getNearestSetting(),
+					$resolved->getPathInSetting()
+				));
+			}
+
+			$serializedElements = [];
+			foreach ($templateElements as $child) {
+				$serializedElements[] = $child->serializeForRevisedJs($innerContext);
+			}
+			$result['slots'] = ['default' => $serializedElements];
+		}
+
+		return $result;
+	}
+
+
+	public function getAllReferencedSettings(EvaluationContext $context) {
+		yield from self::getSettingsReferencedByBinding($this->items, $context);
 	}
 }

@@ -2,8 +2,9 @@
 
 namespace YahnisElsts\AdminMenuEditor\Customizable\Controls;
 
-use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Context;
+
 use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Renderer;
+use YahnisElsts\AdminMenuEditor\WireDSL\EvaluationContext;
 
 class RadioButtonBar extends ChoiceControl {
 	protected $type = 'radio-bar';
@@ -13,13 +14,13 @@ class RadioButtonBar extends ChoiceControl {
 
 	protected string $controlClass = 'ame-radio-button-bar-control';
 
-	public function renderContent(Renderer $renderer, Context $context) {
+	public function renderContent(Renderer $renderer, EvaluationContext $context) {
 		$fieldName = $this->getFieldName($context);
 		$currentValue = $this->mainBinding->getValue();
 
 		//phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo $this->buildFieldsetContainer($context, [$this->controlClass]);
-		foreach ($this->options as $option) {
+		foreach ($this->getOptions($context) as $option) {
 			$isChecked = ($currentValue === $option->value);
 
 			echo $this->buildTag('label', array(

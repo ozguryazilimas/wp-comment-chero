@@ -3,8 +3,9 @@
 namespace YahnisElsts\AdminMenuEditor\Customizable\Controls;
 
 use YahnisElsts\AdminMenuEditor\Customizable\HtmlHelper;
-use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Context;
+
 use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Renderer;
+use YahnisElsts\AdminMenuEditor\WireDSL\EvaluationContext;
 
 class ImageSelector extends ClassicControl {
 	protected $type = 'imageSelector';
@@ -15,7 +16,7 @@ class ImageSelector extends ClassicControl {
 	 */
 	protected $mainBinding;
 
-	public function renderContent(Renderer $renderer, Context $context) {
+	public function renderContent(Renderer $renderer, EvaluationContext $context) {
 		self::enqueueDependencies();
 
 		$attachmentId = $this->mainBinding->getChildValue('attachmentId', 0);
@@ -128,7 +129,7 @@ class ImageSelector extends ClassicControl {
 			}
 			?>>Remove Image</a>
 		</div>
-		<?php $this->outputSiblingDescription(); ?>
+		<?php $this->outputSiblingDescription($context); ?>
 		<?php
 		echo '</div>'; //Close the container div.
 	}
@@ -156,8 +157,8 @@ class ImageSelector extends ClassicControl {
 		);
 	}
 
-	protected function getKoComponentParams(): array {
-		$params = parent::getKoComponentParams();
+	protected function getKoComponentParams(EvaluationContext $context): array {
+		$params = parent::getKoComponentParams($context);
 		$params['externalUrlsAllowed'] = $this->mainBinding->areExternalUrlsAllowed();
 		$params['canSelectMedia'] = current_user_can('upload_files');
 		return $params;

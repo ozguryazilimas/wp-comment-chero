@@ -2,9 +2,10 @@
 
 namespace YahnisElsts\AdminMenuEditor\Customizable\Controls;
 
-use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Context;
+
 use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Renderer;
 use YahnisElsts\AdminMenuEditor\Customizable\Settings\StringSetting;
+use YahnisElsts\AdminMenuEditor\WireDSL\EvaluationContext;
 
 class TextInputControl extends ClassicControl {
 	protected $type = 'text';
@@ -20,6 +21,12 @@ class TextInputControl extends ClassicControl {
 	 */
 	protected $isCode = false;
 
+	/**
+	 * @var bool Whether to use the Knockout textInput binding instead of the value binding.
+	 *           Has no effect if the control is used without Knockout.
+	 */
+	protected bool $useTextInputBinding = false;
+
 	protected $inputType = 'text';
 
 	public function __construct($settings = array(), $params = array(), $children = []) {
@@ -30,9 +37,10 @@ class TextInputControl extends ClassicControl {
 		if ( !empty($params['inputType']) ) {
 			$this->inputType = $params['inputType'];
 		}
+		$this->useTextInputBinding = !empty($params['useTextInputBinding']);
 	}
 
-	public function renderContent(Renderer $renderer, Context $context) {
+	public function renderContent(Renderer $renderer, EvaluationContext $context) {
 		$classes = array('regular-text');
 		if ( $this->isCode ) {
 			$classes[] = 'code';
@@ -48,18 +56,21 @@ class TextInputControl extends ClassicControl {
 				'class'     => $classes,
 				'style'     => $this->styles,
 				'data-bind' => $this->makeKoDataBind(array_merge([
-					'value' => $this->getKoObservableExpression($value),
+					($this->useTextInputBinding ? 'textInput' : 'value') => $this->getKoObservableExpression($value),
 				], $this->getKoEnableBinding())),
 			)
 		);
 		//phpcs:enable
-		$this->outputSiblingDescription();
+		$this->outputSiblingDescription($context);
 	}
 
-	protected function getKoComponentParams(): array {
-		$params = parent::getKoComponentParams();
+	protected function getKoComponentParams(EvaluationContext $context): array {
+		$params = parent::getKoComponentParams($context);
 		$params['isCode'] = $this->isCode;
 		$params['inputType'] = $this->inputType;
+		if ( $this->useTextInputBinding ) {
+			$params['useTextInputBinding'] = $this->useTextInputBinding;
+		}
 		return $params;
 	}
 

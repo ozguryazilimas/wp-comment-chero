@@ -8,13 +8,13 @@ use YahnisElsts\AdminMenuEditor\Customizable\Controls\InterfaceStructure;
 use YahnisElsts\AdminMenuEditor\Customizable\HtmlHelper;
 use YahnisElsts\AdminMenuEditor\Customizable\Controls\Section;
 use YahnisElsts\AdminMenuEditor\Customizable\Controls\Tooltip;
+use YahnisElsts\AdminMenuEditor\WireDSL\EvaluationContext;
 
 class AdminCustomizerListRenderer extends Renderer {
 	protected $pendingSections = [];
 	protected $pendingSectionContext = null;
 
-	public function renderStructure(InterfaceStructure $structure) {
-		$context = new Context();
+	public function renderStructure(InterfaceStructure $structure, EvaluationContext $context) {
 		$this->pendingSectionContext = $context;
 
 		$rootSection = new Section(
@@ -32,7 +32,7 @@ class AdminCustomizerListRenderer extends Renderer {
 		}
 	}
 
-	public function renderSection(Section $section, Context $context) {
+	public function renderSection(Section $section, EvaluationContext $context) {
 		echo HtmlHelper::tag('ul', [
 			'class' => 'ame-ac-section',
 			'id'    => $this->getSectionElementId($section),
@@ -57,7 +57,7 @@ class AdminCustomizerListRenderer extends Renderer {
 		$this->renderPendingSections();
 	}
 
-	protected function renderChildSection(Section $section, Context $context) {
+	protected function renderChildSection(Section $section, EvaluationContext $context) {
 		if ( $section->hasChildren() ) {
 			$this->pendingSections[] = $section;
 		}
@@ -73,7 +73,7 @@ class AdminCustomizerListRenderer extends Renderer {
 		echo '</li>';
 	}
 
-	protected function renderControlGroup(ControlGroup $group, Context $context) {
+	protected function renderControlGroup(ControlGroup $group, EvaluationContext $context) {
 		$title = $group->getTitle();
 		if ( !empty($title) ) {
 			echo '<li class="ame-ac-control ame-ac-control-group">';
@@ -86,11 +86,11 @@ class AdminCustomizerListRenderer extends Renderer {
 		$this->renderGroupChildren($group, $context);
 	}
 
-	protected function renderUngroupedControl(Control $control, Context $context) {
+	protected function renderUngroupedControl(Control $control, EvaluationContext $context) {
 		$this->renderControl($control, $context);
 	}
 
-	public function renderControl(Control $control, Context $context) {
+	public function renderControl(Control $control, EvaluationContext $context) {
 		$settings = $control->getSettings();
 		$settingIds = array_map(function ($setting) {
 			return $setting->getId();
@@ -134,10 +134,10 @@ class AdminCustomizerListRenderer extends Renderer {
 
 	/**
 	 * @param Control $control
-	 * @param Context $context
+	 * @param EvaluationContext $context
 	 * @return void
 	 */
-	protected function renderControlLabel($control, ?Context $context) {
+	protected function renderControlLabel($control, ?EvaluationContext $context) {
 		$label = $control->getLabel($context);
 		if ( empty($label) ) {
 			return;

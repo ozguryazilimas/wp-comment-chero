@@ -2,13 +2,14 @@
 
 namespace YahnisElsts\AdminMenuEditor\Customizable\Controls;
 
-use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Context;
+
 use YahnisElsts\AdminMenuEditor\Customizable\Schemas\Enum;
 use YahnisElsts\AdminMenuEditor\ProCustomizable\Settings\CssLengthSetting;
 use YahnisElsts\AdminMenuEditor\ProCustomizable\Settings\WithSchema\CssLengthSetting as CssLengthSettingWithSchema;
 use YahnisElsts\AdminMenuEditor\Customizable\HtmlHelper;
 use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Renderer;
 use YahnisElsts\AdminMenuEditor\Customizable\Settings;
+use YahnisElsts\AdminMenuEditor\WireDSL\EvaluationContext;
 
 class NumberInput extends AbstractNumericControl {
 	protected $type = 'fancyNumber';
@@ -53,7 +54,7 @@ class NumberInput extends AbstractNumericControl {
 		}
 	}
 
-	public function renderContent(Renderer $renderer, Context $context) {
+	public function renderContent(Renderer $renderer, EvaluationContext $context) {
 		$hasUnitDropdown = (
 			($this->unitSetting instanceof Settings\EnumSetting)
 			|| (
@@ -118,7 +119,7 @@ class NumberInput extends AbstractNumericControl {
 		echo $this->buildInputElement($context, $attributes);
 
 		if ( $hasUnitDropdown ) {
-			$this->renderUnitDropdown($this->unitSetting, [
+			$this->renderUnitDropdown($this->unitSetting, $context, [
 				'name'               => $this->getFieldName($context, null, $this->unitSetting),
 				'id'                 => $unitElementId,
 				'class'              => 'ame-input-group-secondary ame-number-input-unit',
@@ -160,11 +161,11 @@ class NumberInput extends AbstractNumericControl {
 		return $this->fixedUnit;
 	}
 
-	protected function getUnitElementId(?Context $context = null) {
+	protected function getUnitElementId(?EvaluationContext $context = null) {
 		return $this->getPrimaryInputId($context) . '__unit';
 	}
 
-	public function getInputClasses(?Context $context = null): array {
+	public function getInputClasses(?EvaluationContext $context = null): array {
 		$classes = parent::getInputClasses($context);
 
 		//Add the "ame-small-number-input" class to controls where the expected
@@ -183,8 +184,8 @@ class NumberInput extends AbstractNumericControl {
 	}
 
 
-	protected function getKoComponentParams(): array {
-		$params = parent::getKoComponentParams();
+	protected function getKoComponentParams(EvaluationContext $context): array {
+		$params = parent::getKoComponentParams($context);
 
 		$unitText = $this->getCurrentUnit();
 		$hasUnitDropdown = false;
@@ -205,7 +206,7 @@ class NumberInput extends AbstractNumericControl {
 		return $params;
 	}
 
-	public function serializeForJs(Context $context): array {
+	public function serializeForJs(EvaluationContext $context): array {
 		$result = parent::serializeForJs($context);
 
 		if ( $this->unitSetting instanceof Settings\AbstractSetting ) {

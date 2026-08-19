@@ -140,4 +140,8 @@ class Number extends CheckableSchema {
 			return 'float';
 		}
 	}
+
+	protected function getJsonSerializeType(): string {
+		return 'number';
+	}
 }

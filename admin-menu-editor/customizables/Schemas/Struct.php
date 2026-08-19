@@ -123,7 +123,24 @@ class Struct extends Schema {
 		return $this->fieldSchemas[$fieldName] ?? null;
 	}
 
+	public function getChildSchema($key): ?Schema {
+		return $this->getFieldShema($key);
+	}
+
 	public function getSimplifiedDataType() {
 		return 'map';
+	}
+
+	public function serialize(SchemaSerializer $serializer): array {
+		$result = parent::serialize($serializer);
+		$result['fieldSchemas'] = array_map(fn($schema) => $serializer->serialize($schema), $this->fieldSchemas);
+		if ( !empty($this->requiredFields) ) {
+			$result['requiredFields'] = array_keys($this->requiredFields);
+		}
+		return $result;
+	}
+
+	protected function getJsonSerializeType(): string {
+		return 'struct';
 	}
 }

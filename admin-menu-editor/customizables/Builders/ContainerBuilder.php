@@ -22,7 +22,7 @@ abstract class ContainerBuilder extends BaseElementBuilder {
 
 	public function build() {
 		$className = $this->elementClass;
-		return new $className($this->title, $this->params,  $this->buildChildren());
+		return new $className($this->title, $this->buildParams(),  $this->buildChildren());
 	}
 
 	public function getTitle(): string {

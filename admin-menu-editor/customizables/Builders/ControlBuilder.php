@@ -2,7 +2,9 @@
 
 namespace YahnisElsts\AdminMenuEditor\Customizable\Builders;
 
+use YahnisElsts\AdminMenuEditor\Customizable\Controls\Binding;
 use YahnisElsts\AdminMenuEditor\Customizable\Settings;
+use YahnisElsts\AdminMenuEditor\WireDSL\Expression;
 
 /**
  * @template ElementClass
@@ -24,7 +26,7 @@ class ControlBuilder extends BaseElementBuilder {
 	}
 
 	/**
-	 * @param string|null $text
+	 * @param string|Expression|Binding|null $text
 	 * @return $this
 	 */
 	public function label($text) {
@@ -102,6 +104,6 @@ class ControlBuilder extends BaseElementBuilder {
 	 */
 	public function build() {
 		$className = $this->elementClass;
-		return new $className($this->settings, $this->params, $this->buildChildren());
+		return new $className($this->settings, $this->buildParams(), $this->buildChildren());
 	}
 }

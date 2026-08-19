@@ -28,6 +28,14 @@ class SettingBuilderHints {
 		return $this->params;
 	}
 
+	public function hasParam($paramName): bool {
+		return array_key_exists($paramName, $this->params);
+	}
+
+	public function getParam($paramName, $default = null) {
+		return $this->hasParam($paramName) ? $this->params[$paramName] : $default;
+	}
+
 	/**
 	 * @param class-string<AbstractSetting> $className
 	 * @return $this

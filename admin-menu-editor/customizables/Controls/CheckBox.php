@@ -2,9 +2,9 @@
 
 namespace YahnisElsts\AdminMenuEditor\Customizable\Controls;
 
-use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Context;
 use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Renderer;
 use YahnisElsts\AdminMenuEditor\Customizable\Settings\AbstractSetting;
+use YahnisElsts\AdminMenuEditor\WireDSL\EvaluationContext;
 
 class CheckBox extends ClassicControl {
 	protected $type = 'checkbox';
@@ -15,7 +15,7 @@ class CheckBox extends ClassicControl {
 		parent::__construct($settings, $params, $children);
 	}
 
-	public function renderContent(Renderer $renderer, Context $context) {
+	public function renderContent(Renderer $renderer, EvaluationContext $context) {
 		//buildInputElement() is safe, and we intentionally allow HTML in the label and description.
 		//phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo '<label>';
@@ -46,9 +46,9 @@ class CheckBox extends ClassicControl {
 		return true;
 	}
 
-	protected function getKoComponentParams(): array {
+	protected function getKoComponentParams(EvaluationContext $context): array {
 		return array_merge(
-			parent::getKoComponentParams(),
+			parent::getKoComponentParams($context),
 			[
 				'onValue'  => true,
 				'offValue' => false,

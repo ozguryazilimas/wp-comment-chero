@@ -1,0 +1,7 @@
+@use "../../../css/checkbox-description";
+
+.ame-rev-toggle-checkbox {
+	.description {
+		@include checkbox-description.ame-nested-checkbox-description();
+	}
+}

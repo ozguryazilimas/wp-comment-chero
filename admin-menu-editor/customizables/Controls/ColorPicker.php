@@ -2,9 +2,10 @@
 
 namespace YahnisElsts\AdminMenuEditor\Customizable\Controls;
 
-use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Context;
+
 use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Renderer;
 use YahnisElsts\AdminMenuEditor\Customizable\Settings\AbstractSetting;
+use YahnisElsts\AdminMenuEditor\WireDSL\EvaluationContext;
 
 class ColorPicker extends ClassicControl {
 	protected $type = 'colorPicker';
@@ -20,7 +21,7 @@ class ColorPicker extends ClassicControl {
 		parent::__construct($settings, $params, $children);
 	}
 
-	public function renderContent(Renderer $renderer, Context $context) {
+	public function renderContent(Renderer $renderer, EvaluationContext $context) {
 		$value = $this->getMainSettingValue(null, $context);
 		if ( !is_string($value) ) {
 			$value = '';

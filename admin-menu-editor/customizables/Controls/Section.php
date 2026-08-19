@@ -2,7 +2,8 @@
 
 namespace YahnisElsts\AdminMenuEditor\Customizable\Controls;
 
-use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Context;
+
+use YahnisElsts\AdminMenuEditor\WireDSL\EvaluationContext;
 
 class Section extends Container {
 	const NAVIGATION_ROLE = 'navigation';
@@ -38,7 +39,7 @@ class Section extends Container {
 		return 'section';
 	}
 
-	public function serializeForJs(Context $context): array {
+	public function serializeForJs(EvaluationContext $context): array {
 		$result = parent::serializeForJs($context);
 		if ( $this->preferredRole !== self::NAVIGATION_ROLE ) {
 			$result['preferredRole'] = $this->preferredRole;

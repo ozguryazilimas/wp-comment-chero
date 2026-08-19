@@ -42,4 +42,16 @@ class Color extends StringSchema {
 	public function getSimplifiedDataType() {
 		return 'color';
 	}
+
+	public function serialize(SchemaSerializer $serializer): array {
+		$result = parent::serialize($serializer);
+		if ( $this->transparentAllowed ) {
+			$result['transparentAllowed'] = $this->transparentAllowed;
+		}
+		return $result;
+	}
+
+	protected function getJsonSerializeType(): string {
+		return 'color';
+	}
 }

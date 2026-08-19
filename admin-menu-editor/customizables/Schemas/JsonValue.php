@@ -30,4 +30,8 @@ class JsonValue extends Schema {
 
 		return $this->parsedValueSchema->parse($parsedValue, $errors, $stopOnFirstError);
 	}
+
+	protected function getJsonSerializeType(): string {
+		return 'jsonValue';
+	}
 }

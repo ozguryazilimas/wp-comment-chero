@@ -5,12 +5,13 @@ namespace YahnisElsts\AdminMenuEditor\Customizable\Builders;
 use YahnisElsts\AdminMenuEditor\Customizable\Controls;
 use YahnisElsts\AdminMenuEditor\Customizable\Controls\Container;
 use YahnisElsts\AdminMenuEditor\Customizable\Controls\InterfaceStructure;
+use YahnisElsts\AdminMenuEditor\Customizable\Controls\UiElement;
 
 class InterfaceBuilder {
 	protected $children = array();
 
 	/**
-	 * @param Container|ContainerBuilder $container
+	 * @param ElementBuilder|UiElement $container
 	 * @return $this
 	 */
 	public function add($container) {

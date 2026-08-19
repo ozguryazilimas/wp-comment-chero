@@ -2,8 +2,8 @@
 
 namespace YahnisElsts\AdminMenuEditor\Customizable\Controls;
 
-use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Context;
 use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Renderer;
+use YahnisElsts\AdminMenuEditor\WireDSL\EvaluationContext;
 
 /**
  * This control just outputs a predefined HTML string.
@@ -30,14 +30,14 @@ class StaticHtml extends ClassicControl {
 		}
 	}
 
-	public function renderContent(Renderer $renderer, Context $context) {
+	public function renderContent(Renderer $renderer, EvaluationContext $context) {
 		//phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML is the point.
 		echo $this->html;
 	}
 
-	protected function getKoComponentParams(): array {
+	protected function getKoComponentParams(EvaluationContext $context): array {
 		return array_merge(
-			parent::getKoComponentParams(),
+			parent::getKoComponentParams($context),
 			[
 				'html'      => $this->html,
 				'container' => $this->koComponentContainerType,

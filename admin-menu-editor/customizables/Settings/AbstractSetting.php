@@ -5,8 +5,9 @@ namespace YahnisElsts\AdminMenuEditor\Customizable\Settings;
 use WP_Error;
 use YahnisElsts\AdminMenuEditor\Customizable\Controls\Binding;
 use YahnisElsts\AdminMenuEditor\Customizable\Customizable;
-use YahnisElsts\AdminMenuEditor\Customizable\Rendering\Context;
+use YahnisElsts\AdminMenuEditor\Customizable\Schemas\SchemaSerializer;
 use YahnisElsts\AdminMenuEditor\Customizable\Storage\StorageInterface;
+use YahnisElsts\AdminMenuEditor\WireDSL\EvaluationContext;
 
 abstract class AbstractSetting extends Customizable implements UpdateNotificationSender, Binding {
 	const SERIALIZE_INCLUDE_VALUE = 1;
@@ -17,7 +18,7 @@ abstract class AbstractSetting extends Customizable implements UpdateNotificatio
 	const SERIALIZE_INCLUDE_TAGS = 32;
 	const SERIALIZE_INCLUDE_VALIDATION = 64;
 
-	const SERIALIZE_INCLUDE_ALL = (self::SERIALIZE_INCLUDE_ID | self::SERIALIZE_INCLUDE_VALUE
+	const SERIALIZE_INCLUDE_CLASSIC = (self::SERIALIZE_INCLUDE_ID | self::SERIALIZE_INCLUDE_VALUE
 		| self::SERIALIZE_INCLUDE_DEFAULT | self::SERIALIZE_INCLUDE_GROUP_TITLE
 		| self::SERIALIZE_INCLUDE_POST_MESSAGE_SUPPORT
 		| self::SERIALIZE_INCLUDE_TAGS
@@ -25,6 +26,8 @@ abstract class AbstractSetting extends Customizable implements UpdateNotificatio
 	);
 
 	const SERIALIZE_LEAVES_ONLY = 128;
+
+	const SERIALIZE_INCLUDE_SCHEMA = 1 << 8;
 
 	const TAG_ADMIN_THEME = 'admin_theme';
 
@@ -207,10 +210,10 @@ abstract class AbstractSetting extends Customizable implements UpdateNotificatio
 	/**
 	 * Is the current user allowed to change this setting?
 	 *
-	 * @param Context|null $context
+	 * @param EvaluationContext|null $context
 	 * @return bool
 	 */
-	public function isEditableByUser(?Context $context = null): bool {
+	public function isEditableByUser(?EvaluationContext $context = null): bool {
 		if ( isset($this->isEditableCallback) ) {
 			return (bool)call_user_func($this->isEditableCallback);
 		}
@@ -387,7 +390,7 @@ abstract class AbstractSetting extends Customizable implements UpdateNotificatio
 		$stores = new \SplObjectStorage();
 		foreach ($settings as $setting) {
 			if ( $setting->store ) {
-				$stores->attach($setting->store->getSmallestSavable());
+				$stores[$setting->store->getSmallestSavable()] = null;
 			}
 		}
 
@@ -464,20 +467,22 @@ abstract class AbstractSetting extends Customizable implements UpdateNotificatio
 	 *
 	 * @param AbstractSetting[] $settings
 	 * @param int|null $flags
-	 * @param callable $customizer Optional. A callback that can be used to modify each
+	 * @param callable|null $customizer Optional. A callback that can be used to modify each
 	 *                             setting's serialized data.
+	 * @param SchemaSerializer|null $schemaSerializer
 	 * @return array<string,array> A map of setting IDs to serialized settings.
 	 */
 	public static function serializeSettingsForJs(
-		$settings,
-		$flags = self::SERIALIZE_INCLUDE_ALL,
-		$customizer = null
+		array            $settings,
+		?int             $flags = self::SERIALIZE_INCLUDE_CLASSIC,
+		?callable        $customizer = null,
+		?SchemaSerializer $schemaSerializer = null
 	) {
 		//Right now, the serialization process is fairly straightforward, so we
 		//just do it here. If it becomes more complex, we could add a serializeForJs()
 		//method to individual settings, or add a separate serializer class.
 		if ( $flags === null ) {
-			$flags = self::SERIALIZE_INCLUDE_ALL;
+			$flags = self::SERIALIZE_INCLUDE_CLASSIC;
 		}
 
 		$leavesOnly = (bool)($flags & self::SERIALIZE_LEAVES_ONLY);
@@ -531,6 +536,15 @@ abstract class AbstractSetting extends Customizable implements UpdateNotificatio
 				}
 			}
 
+			if ( $flags & self::SERIALIZE_INCLUDE_SCHEMA && $schemaSerializer ) {
+				if ( $setting instanceof WithSchema\SettingWithSchema ) {
+					$schema = $setting->getSchema();
+					if ( $schema ) {
+						$data['schema'] = $schemaSerializer->serialize($schema);
+					}
+				}
+			}
+
 			if ( $customizer ) {
 				$data = call_user_func($customizer, $data, $setting);
 				//Skip settings excluded by the callback.
@@ -542,6 +556,51 @@ abstract class AbstractSetting extends Customizable implements UpdateNotificatio
 			$serialized[$setting->id] = $data;
 		}
 		return $serialized;
+	}
+
+	/**
+	 * Recursively serialize a collection of settings for use in the revised UI JavaScript.
+	 *
+	 * @param AbstractSetting[] $settings
+	 * @return array<string,array>  An associative array with two keys:
+	 *                               - 'settings': The serialized settings.
+	 *                               - 'sharedSchemas': The shared serialized schemas.
+	 */
+	public static function serializeSettingsForRevisedJs(array $settings): array {
+		$schemaSerializer = new SchemaSerializer();
+		$serialized = self::serializeSettingsForJs(
+			$settings,
+			self::SERIALIZE_INCLUDE_CLASSIC | self::SERIALIZE_INCLUDE_SCHEMA,
+			null,
+			$schemaSerializer
+		);
+
+		//Remove any settings that are children of other settings in the list. This both avoids sending
+		//redundant data to the client and prevents the client from trying to create child settings before
+		//their parents.
+		//(Unlike the old implementation, the revised UI builds a tree of settings, not a flat list.)
+		$roots = [];
+		foreach ($serialized as $id => $data) {
+			$keep = true;
+
+			$idPrefix = $id;
+			while (($pos = strrpos($idPrefix, '.')) !== false) {
+				$idPrefix = substr($idPrefix, 0, $pos);
+				if ( isset($serialized[$idPrefix]) ) {
+					$keep = false;
+					break;
+				}
+			}
+
+			if ( $keep ) {
+				$roots[$id] = $data;
+			}
+		}
+
+		return [
+			'settings'      => $roots,
+			'sharedSchemas' => $schemaSerializer->getSharedSerializedSchemas(),
+		];
 	}
 
 	/**
@@ -569,15 +628,33 @@ abstract class AbstractSetting extends Customizable implements UpdateNotificatio
 		return $value;
 	}
 
-	public function resolveLabel(?Context $context = null): string {
+	public function resolveLabel(?EvaluationContext $context = null): string {
 		return $this->getLabel();
 	}
 
-	public function resolveDescription(?Context $context = null): string {
+	public function resolveDescription(?EvaluationContext $context = null): string {
+		return $this->getDescription();
+	}
+
+	public function serializeLabelForJs(?EvaluationContext $context = null): string {
+		return $this->getLabel();
+	}
+
+	public function serializeDescriptionForJs(?EvaluationContext $context = null): string {
 		return $this->getDescription();
 	}
 
 	public function getBindingString(): string {
 		return $this->getId();
+	}
+
+	public function getInternalStringId(): string {
+		return $this->getId();
+	}
+
+	const RESOLUTION_KEY = 'setting';
+
+	public function getResolutionStrategyKey(): string {
+		return self::RESOLUTION_KEY;
 	}
 }

@@ -3,7 +3,7 @@ Contributors: shinephp
 Tags: user, role, editor, security, access
 Requires at least: 4.6
 Tested up to: 7.1
-Stable tag: 4.66
+Stable tag: 4.66.1
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -80,6 +80,14 @@ https://translate.wordpress.org/projects/wp-plugins/user-role-editor/
 
 == Changelog =
 
+= [4.66.1] 25.08.2026 =
+* Fix: URE_Assign_Role::$lib property was changed to protected.
+* Fix: URE_Uninstall::delete_options() private function changed to protected.
+* Fix: URE_Uninstall::init_options_list() referenced 'ure_task_queue', which never matched URE_Task_Queue::OPTION_NAME ('ure_tasks_queue'), so that option was never deleted on uninstall.
+* Fix: URE_Core::define_files() - class URE_Uninstall was not added correctly, null was written instead of class name.
+* Fix: activating Pro while free was already active caused a fatal "Cannot redeclare ure_log_error()" error; the function declaration is now guarded with function_exists().
+* Fix: activating this plugin while the paired Pro plugin was already active silently left both active instead of deactivating the paired one, because the register_activation_hook() call never ran in that request; it's now registered as a standalone function directly in the main plugin file, ahead of the class_exists('URE_Loader') guard that was skipping it.
+
 = [4.66] 19.08.2026 =
 * Update: Marked as compatible with WordPress 7.1
 * Required PHP version increased up to 7.4
@@ -123,5 +131,5 @@ I am ready to answer on your questions about plugin usage. Use [plugin page comm
 
 == Upgrade Notice ==
 
-= [4.66] 19.08.2026 =
-Security hardening: escaped output, hardened SQL/nonce checks. Now requires PHP 7.4+ and WordPress 4.6+ (was 4.4+).
+= [4.66.1] 23.08.2026 =
+Bugfix release: fixes an uninstall option-name mismatch that left a stray option behind, plus two property-visibility fixes.

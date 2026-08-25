@@ -24,14 +24,14 @@ class URE_Uninstall {
         $this->options[] = 'ure_show_deprecated_caps';
         $this->options[] = 'ure_hide_pro_banner';
         $this->options[] = 'ure_role_additional_options_values';
-        $this->options[] = 'ure_task_queue';
+        $this->options[] = URE_Task_Queue::OPTION_NAME;
         $this->options[] = 'user_role_editor';
         
     }
     // end fo init_options_list()
     
     
-    private function delete_options() {
+    protected function delete_options() {
         global $wpdb;
 
         $backup_option_name = $wpdb->prefix . 'backup_user_roles';

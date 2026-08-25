@@ -17,7 +17,7 @@ class URE_Assign_Role {
 
     private static $counter = 0;    
     
-    private $lib = null;
+    protected $lib = null;
     private $quick_count = true;
     
     

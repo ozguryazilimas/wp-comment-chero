@@ -12,7 +12,7 @@
 defined( 'ABSPATH' ) || exit;
 
 class URE_Core {
-    const PLUGIN_VERSION = '4.66';
+    const PLUGIN_VERSION = '4.66.1';
     const PLUGIN_SLUG = 'user-role-editor';
     const PLUGIN_NAME = 'User Role Editor';
     const TEXT_DOMAIN = 'user-role-editor';
@@ -134,34 +134,8 @@ class URE_Core {
         
     }
     // end of get_plugin_file()
-    
-    
-    public static function get_paired_plugin() {
-        
-        // Path to the Pro version main file
-        $plugin_file = 'user-role-editor-pro/user-role-editor-pro.php';
-        
-        return $plugin_file;
-    }
-    // end of get_paired_plugin()
-    
 
-    public static function prevent_dual_activation() {
-        
-        // Path to the paired plugin main file (Pro for free one and backforward)
-        $plugin_file = self::get_paired_plugin();
 
-        if ( file_exists( WP_PLUGIN_DIR . '/' . $plugin_file ) ) {
-            // Check if Pro version is active            
-            if ( is_plugin_active( $plugin_file ) ) {
-                deactivate_plugins( $plugin_file );
-            }
-        }
-        
-    }
-    // end of prevent_dual_activation()
-    
-    
     private static function deactivate_with_notice( string $message ): void {
 
         deactivate_plugins( self::get_plugin_full_path() );
@@ -184,7 +158,7 @@ class URE_Core {
     public static function version_compare( $version1, $version2, $message ) {
         if ( version_compare($version1, $version2, '<') ) {
              self::log( $message );
-             deactivate_with_notice( $message );
+             self::deactivate_with_notice( $message );
              return false;
         }
         
@@ -260,7 +234,7 @@ class URE_Core {
         URE_Loader::add_def( $classes_dir . 'editor.php', 'URE_Editor' );
         URE_Loader::add_def( $classes_dir . 'tools.php', 'URE_Tools' );
         URE_Loader::add_def( $classes_dir . 'settings.php', 'URE_Settings' );
-        URE_Loader::add_def( $classes_dir . 'uninstall.php', null );
+        URE_Loader::add_def( $classes_dir . 'uninstall.php', 'URE_Uninstall' );
         URE_Loader::add_def( $classes_dir . 'user-role-editor.php', 'User_Role_Editor' );
         
     }
@@ -276,10 +250,7 @@ class URE_Core {
         self::$initialized = true;
         
         self::set_plugin_full_path( $plugin_full_path );
-        
-        // Checks if there is already an active instance of User Role Editor Pro and automatically deactivates it
-        register_activation_hook( self::get_plugin_full_path(), array('URE_Core', 'prevent_dual_activation') );
-                
+
         if ( !self::valid_php_version() ) {
             return;
         }

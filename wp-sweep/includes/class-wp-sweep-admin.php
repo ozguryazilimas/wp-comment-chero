@@ -67,15 +67,40 @@ class WP_Sweep_Admin {
 	private static $details = array();
 
 	/**
-	 * Hook the screen into WordPress.
+	 * Hook registration.
 	 *
 	 * @return void
 	 */
 	public static function init() {
-		add_action( 'admin_menu', array( __CLASS__, 'admin_menu' ) );
-		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'admin_enqueue_scripts' ) );
+		add_action( 'admin_menu', array( __CLASS__, 'add_page' ) );
+		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue' ) );
 		add_action( 'wp_ajax_sweep', array( __CLASS__, 'ajax_sweep' ) );
 		add_action( 'wp_ajax_sweep_details', array( __CLASS__, 'ajax_sweep_details' ) );
+		add_action( 'wp_ajax_wp_sweep_count', array( __CLASS__, 'ajax_sweep_count' ) );
+		add_action( 'wp_ajax_wp_sweep_totals', array( __CLASS__, 'ajax_sweep_totals' ) );
+		add_filter(
+			'plugin_action_links_' . plugin_basename( WP_SWEEP_MAIN_FILE ),
+			array( __CLASS__, 'action_links' )
+		);
+	}
+
+	/**
+	 * Add a Sweep link on the Plugins screen row.
+	 *
+	 * @param string[] $links Existing action links.
+	 * @return string[]
+	 */
+	public static function action_links( $links ) {
+		array_unshift(
+			$links,
+			sprintf(
+				'<a href="%s">%s</a>',
+				esc_url( add_query_arg( 'page', self::PAGE, admin_url( 'tools.php' ) ) ),
+				esc_html__( 'Sweep', 'wp-sweep' )
+			)
+		);
+
+		return $links;
 	}
 
 	/**
@@ -94,7 +119,7 @@ class WP_Sweep_Admin {
 	 *
 	 * @return void
 	 */
-	public static function admin_menu() {
+	public static function add_page() {
 		// Tools, where this screen lived for its whole released life. Sweeping is
 		// maintenance against the installation, which is what core keeps under
 		// Tools beside Site Health, Export and Erase Personal Data.
@@ -128,7 +153,7 @@ class WP_Sweep_Admin {
 	 * @param string $hook Hook suffix of the screen being rendered.
 	 * @return void
 	 */
-	public static function admin_enqueue_scripts( $hook ) {
+	public static function enqueue( $hook ) {
 		if ( '' === self::$hook_suffix || self::$hook_suffix !== $hook ) {
 			return;
 		}
@@ -247,6 +272,26 @@ class WP_Sweep_Admin {
 				?>
 			</p>
 
+			<?php if ( WP_Sweep_List_Table::defer_counts() ) : ?>
+				<?php
+				/*
+				 * The counts are fetched by the script once the screen is up,
+				 * which is what lets the screen come up at all on a database
+				 * where a single count takes half a minute. Without the script
+				 * nothing fetches them, so this link -- and only readers
+				 * without JavaScript ever see it -- is the real, reloading
+				 * path to the same numbers.
+				 */
+				?>
+				<noscript>
+					<p>
+						<a href="<?php echo esc_url( add_query_arg( 'counts', 'now', self::page_url() ) ); ?>">
+							<?php esc_html_e( 'Show the counts now. On a large database this can take a while.', 'wp-sweep' ); ?>
+						</a>
+					</p>
+				</noscript>
+			<?php endif; ?>
+
 			<?php self::render_totals(); ?>
 
 			<?php $table->views(); ?>
@@ -270,13 +315,19 @@ class WP_Sweep_Admin {
 	 * @return string
 	 */
 	private static function page_url() {
-		return add_query_arg(
-			array(
-				'page'  => self::PAGE,
-				'group' => WP_Sweep_List_Table::current_group(),
-			),
-			admin_url( 'tools.php' )
+		$args = array(
+			'page'  => self::PAGE,
+			'group' => WP_Sweep_List_Table::current_group(),
 		);
+
+		// The bulk form posts here, and a reader who asked for the counts with
+		// the page is a reader without the script to fetch them afterwards --
+		// so the view they chose has to survive the round trip.
+		if ( WP_Sweep_List_Table::counts_requested_now() ) {
+			$args['counts'] = 'now';
+		}
+
+		return add_query_arg( $args, admin_url( 'tools.php' ) );
 	}
 
 	/**
@@ -289,12 +340,21 @@ class WP_Sweep_Admin {
 	 */
 	private static function render_totals() {
 		$sweep = WP_Sweep::get_instance();
+		$defer = WP_Sweep_List_Table::defer_counts();
 
 		// A widefat table rather than a bullet list. These are six rows of
 		// numbers, and as a list they ran together as prose with nothing lining
 		// up; in a table the counts sit in a column and can be read down. It uses
 		// core's own admin classes, so it needs no stylesheet of its own.
-		echo '<table class="widefat striped sweep-totals">';
+		//
+		// When the counts are deferred the table carries the nonce for the one
+		// request that fills every total at once. On the row counts the nonce
+		// rides on each cell; here twelve cells share one fetch, so it rides on
+		// their table.
+		printf(
+			'<table class="widefat striped sweep-totals"%s>',
+			$defer ? ' data-nonce="' . esc_attr( wp_create_nonce( 'wp_sweep_totals' ) ) . '"' : ''
+		);
 		echo '<thead><tr>';
 		printf( '<th scope="col">%s</th>', esc_html__( 'Group', 'wp-sweep' ) );
 		printf( '<th scope="col">%s</th>', esc_html__( 'Currently in your database', 'wp-sweep' ) );
@@ -311,9 +371,10 @@ class WP_Sweep_Admin {
 				// and a site with none of something is as much a fact as a site
 				// with a thousand.
 				$parts[] = sprintf(
-					'<strong class="sweep-count-type-%1$s">%2$s</strong> %3$s',
+					'<strong class="sweep-count-type-%1$s%2$s">%3$s</strong> %4$s',
 					esc_attr( $type ),
-					esc_html( number_format_i18n( $sweep->total_count( $type ) ) ),
+					$defer ? ' sweep-total-pending' : '',
+					$defer ? '&hellip;' : esc_html( number_format_i18n( $sweep->total_count( $type ) ) ),
 					esc_html( $type_label )
 				);
 			}
@@ -619,6 +680,71 @@ class WP_Sweep_Admin {
 				'stats'      => self::related_totals( $type ),
 			)
 		);
+	}
+
+	/**
+	 * Count one sweep over AJAX, for a screen that rendered without counts.
+	 *
+	 * The screen defers its counts so it can render before the queries run;
+	 * this is where the script gets each number afterwards. The shape matches
+	 * the fields ajax_sweep() responds with, so the script fills a cell the
+	 * same way whichever request produced the value.
+	 *
+	 * @return void
+	 */
+	public static function ajax_sweep_count() {
+		$sweep = WP_Sweep::get_instance();
+
+		$name = isset( $_GET['sweep_name'] ) ? sanitize_key( wp_unslash( $_GET['sweep_name'] ) ) : '';
+		$type = isset( $_GET['sweep_type'] ) ? sanitize_key( wp_unslash( $_GET['sweep_type'] ) ) : '';
+
+		if (
+			! current_user_can( WP_Sweep::capability( 'ajax' ) )
+			|| ! $sweep->is_sweep_name_valid( $name )
+			|| ! $sweep->is_sweep_type_valid( $type )
+		) {
+			wp_send_json_error( array( 'error' => __( 'Invalid AJAX request.', 'wp-sweep' ) ) );
+		}
+
+		check_admin_referer( 'wp_sweep_count_' . $name );
+
+		$count       = (int) $sweep->count( $name );
+		$total_count = (int) $sweep->total_count( $type );
+
+		wp_send_json_success(
+			array(
+				'count'      => $count,
+				'total'      => $total_count,
+				'percentage' => $sweep->format_percentage( $count, $total_count ),
+			)
+		);
+	}
+
+	/**
+	 * Count every table's rows over AJAX, for the running totals table.
+	 *
+	 * One request for all twelve, rather than a total on each count response:
+	 * the totals are COUNT(*) scans of whole tables, and answering them once
+	 * is the point of deferring them.
+	 *
+	 * @return void
+	 */
+	public static function ajax_sweep_totals() {
+		$sweep = WP_Sweep::get_instance();
+
+		if ( ! current_user_can( WP_Sweep::capability( 'ajax' ) ) ) {
+			wp_send_json_error( array( 'error' => __( 'Invalid AJAX request.', 'wp-sweep' ) ) );
+		}
+
+		check_admin_referer( 'wp_sweep_totals' );
+
+		$totals = array();
+
+		foreach ( $sweep->get_sweep_types() as $type ) {
+			$totals[ $type ] = (int) $sweep->total_count( $type );
+		}
+
+		wp_send_json_success( array( 'stats' => $totals ) );
 	}
 
 	/**

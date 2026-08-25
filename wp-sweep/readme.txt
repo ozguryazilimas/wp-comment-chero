@@ -3,8 +3,8 @@ Contributors: GamerZ
 Donate link: https://lesterchan.net/site/donation/  
 Tags: sweep, cleanup, optimize, database, revisions  
 Requires at least: 6.8  
-Tested up to: 7.0  
-Stable tag: 2.0.0  
+Tested up to: 7.1  
+Stable tag: 2.0.1  
 Requires PHP: 8.2  
 License: GPLv2 or later  
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -104,6 +104,7 @@ DELETE /wp-json/sweep/v1/sweep/<name>
 * `wp_sweep_excluded_taxonomies` (array) — taxonomies left out of the orphaned term relationships sweep. Default: `array( 'link_category' )`.
 * `wp_sweep_excluded_termids` (array) — term IDs left out of the unused terms sweep. Default: each taxonomy's default term, plus any term that is the parent of another.
 * `wp_sweep_limit_details` (int) — how many items a Details list shows. Default: 500.
+* `wp_sweep_defer_counts` (bool) — whether the Sweep screen renders first and fetches its counts afterwards, one at a time. Return `false` to compute every count with the page, as versions before 2.0.1 always did. Default: `true`.
 * `wp_sweep_capability` (string `$capability`, string `$context`) — the capability required. `$context` is one of `sweep`, `ajax` or `rest`.
 * `wp_sweep_total_count` (int `$count`, string `$name`) — the total number of rows a sweep's percentage is measured against.
 * `wp_sweep_count` (int `$count`, string `$name`) — how many items a sweep would remove.
@@ -187,6 +188,11 @@ Nothing. WP-Sweep stores no option rows, creates no database tables, registers n
 3. The same screen after a bulk sweep, reporting what went
 
 ## Changelog
+### 2.0.1
+* NEW: A Sweep link on the plugin's row of the Plugins screen, opening Tools -> Sweep.
+* FIXED: The Sweep screen timed out on large databases. 2.0.0 computed every count before printing a byte — and asked for each table's total row count once per row instead of once, so `SELECT COUNT(*)` ran against the postmeta table four times per load. The screen now renders at once and fetches the counts afterwards, one request at a time, so no single request outlives PHP's time limit. Without JavaScript, a link computes them with the page the way 2.0.0 always did, and the new `wp_sweep_defer_counts` filter restores that behaviour outright.
+* FIXED: Counting the duplicated meta sweeps fetched every duplicate row's ids into PHP through `GROUP_CONCAT`, just to add them up. On a postmeta table with millions of duplicates that alone could exhaust the request. The count now reads per-key totals only; the ids are read where they are needed, by the sweep that deletes them.
+
 ### 2.0.0
 * FIXED: Unused Terms read "unused" off the count column, and core's own counter counts *published* posts — so a term used only by drafts, pending posts, private posts or posts in the trash showed a count of zero and was deleted, taking its relationships with it. Those posts came back untagged with nothing to say why. A term now has to be attached to nothing at all
 * FIXED: Sweeping the terms of a taxonomy nothing registers any more finished with `DELETE FROM wp_terms WHERE term_id NOT IN ( SELECT term_id FROM wp_term_taxonomy )`, which is every stray row in the table rather than the ones the sweep had just orphaned. Rows the screen had neither counted nor listed were deleted along with them. It names the terms it orphaned now
@@ -194,7 +200,7 @@ Nothing. WP-Sweep stores no option rows, creates no database tables, registers n
 * FIXED: The oEmbed sweep matched `%_oembed_%`, and in a LIKE pattern an underscore matches any single character — so it meant "any meta key containing oembed with a character either side", and it was a *contains* match rather than a prefix one. Keys belonging to other plugins were hard-deleted along with the caches. WordPress writes these as `_oembed_{hash}`, so the pattern is now anchored at the start with its underscores escaped
 * FIXED: The oEmbed sweep was the one meta sweep that never consulted the protected-keys list, so a key a site had explicitly added to `wp_sweep_postmeta_whitelist` was deleted anyway — the list was even read for it and then ignored
 * FIXED: Optimising the database ran `SHOW TABLES` with no prefix, which is every table in the *schema*. On a database shared between installs — an ordinary hosting arrangement — the details view listed every co-tenant's tables, and the sweep issued `OPTIMIZE TABLE` against installs this administrator does not administer. It is scoped to this install's prefix now, with `wp_sweep_optimize_tables` for a site that wants more
-* BREAKING: Requires WordPress 6.8 and PHP 8.2, up from 6.0 and 7.4.
+* BREAKING: Requires WordPress 6.8 and PHP 8.2.
 * BREAKING: The screen stays under Tools but its address changed, from `tools.php?page=wp-sweep/admin.php` to `tools.php?page=wp-sweep`. The old form put the installation directory name into the URL.
 * BREAKING: The classes are renamed `WPSweep` -> `WP_Sweep`, `WPSweep_Api` -> `WP_Sweep_API` and `WPSweep_Command` -> `WP_Sweep_Command`. Every filter and action keeps its name.
 * BREAKING: `WP_Sweep::$limit_details` is gone. Read it with `limit_details()` and change it with the `wp_sweep_limit_details` filter.

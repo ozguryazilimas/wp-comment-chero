@@ -72,13 +72,13 @@ class WP_Sweep {
 	private static $instance;
 
 	/**
-	 * Wire the plugin up.
+	 * Register hooks.
 	 *
 	 * There is no load_plugin_textdomain() call. Since WordPress 6.7, loading a
 	 * text domain this early triggers _doing_it_wrong; core loads translations
 	 * for plugins hosted on WordPress.org by itself, at the right moment.
 	 */
-	public function __construct() {
+	private function __construct() {
 		require_once WP_SWEEP_DIR . 'includes/class-wp-sweep-api.php';
 
 		new WP_Sweep_API();
@@ -89,9 +89,9 @@ class WP_Sweep {
 	}
 
 	/**
-	 * Initialise the plugin object and return its instance.
+	 * Get the instance, creating it on first call.
 	 *
-	 * @return WP_Sweep The plugin object instance.
+	 * @return WP_Sweep
 	 */
 	public static function get_instance() {
 		if ( ! isset( self::$instance ) ) {
@@ -107,7 +107,7 @@ class WP_Sweep {
 	 * @return void
 	 */
 	public function add_hooks() {
-		add_action( 'init', array( $this, 'init' ) );
+		self::register_command();
 
 		/*
 		 * Not gated on is_admin(). The admin-ajax.php endpoint is an admin
@@ -125,14 +125,21 @@ class WP_Sweep {
 	/**
 	 * Register the WP-CLI command.
 	 *
+	 * The class file is required here rather than at plugin load because it
+	 * extends WP_CLI_Command, which only exists when WP-CLI is the one running
+	 * WordPress. Requiring it unconditionally is a fatal error on every web
+	 * request.
+	 *
 	 * @return void
 	 */
-	public function init() {
-		if ( defined( 'WP_CLI' ) && WP_CLI ) {
-			require_once WP_SWEEP_DIR . 'includes/class-wp-sweep-command.php';
-
-			WP_CLI::add_command( 'sweep', 'WP_Sweep_Command' );
+	public static function register_command() {
+		if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
+			return;
 		}
+
+		require_once WP_SWEEP_DIR . 'includes/class-wp-sweep-command.php';
+
+		WP_CLI::add_command( 'sweep', 'WP_Sweep_Command' );
 	}
 
 	/**
@@ -143,14 +150,17 @@ class WP_Sweep {
 	 */
 	public static function capability( $context = 'sweep' ) {
 		/**
-		 * Filters the capability required to count, inspect or run a sweep.
+		 * Filters the capability required to reach a WP-Sweep screen.
+		 *
+		 * The same filter gates the AJAX and REST surfaces, through their own
+		 * contexts.
 		 *
 		 * @since 2.0.0
 		 *
 		 * @param string $capability The required capability.
 		 * @param string $context    What the capability is being checked for.
 		 */
-		return apply_filters( 'wp_sweep_capability', self::CAPABILITY, $context );
+		return (string) apply_filters( 'wp_sweep_capability', self::CAPABILITY, $context );
 	}
 
 	/**
@@ -551,7 +561,7 @@ class WP_Sweep {
 			case 'duplicated_commentmeta':
 			case 'duplicated_usermeta':
 			case 'duplicated_termmeta':
-				$count = array_sum( wp_list_pluck( $this->duplicated_meta( $name ), 'num' ) );
+				$count = $this->count_protected_meta( $this->duplicated_meta_counts( $name ), $name );
 				break;
 			case 'optimize_database':
 				$count = count( $this->tables() );
@@ -634,7 +644,7 @@ class WP_Sweep {
 			case 'duplicated_commentmeta':
 			case 'duplicated_usermeta':
 			case 'duplicated_termmeta':
-				$details = array_slice( wp_list_pluck( $this->duplicated_meta( $name ), 'meta_key' ), 0, $limit );
+				$details = array_slice( wp_list_pluck( $this->drop_protected_meta( $this->duplicated_meta_counts( $name ), $name ), 'meta_key' ), 0, $limit );
 				break;
 			case 'optimize_database':
 				$details = $this->tables();
@@ -1097,7 +1107,40 @@ class WP_Sweep {
 	}
 
 	/**
+	 * How many duplicated meta rows there are, broken down by meta key.
+	 *
+	 * The same grouping as duplicated_meta() but none of its baggage: no
+	 * GROUP_CONCAT buffer per group and no row ids shipped back to PHP, because
+	 * a count needs neither. duplicated_meta() pulls every duplicate row's ids
+	 * across the wire, and on a site whose postmeta has millions of duplicates
+	 * that is the difference between the Sweep screen loading and timing out.
+	 *
+	 * @param string $name Sweep name.
+	 * @return array Rows carrying a meta_key and a num.
+	 */
+	private function duplicated_meta_counts( $name ) {
+		global $wpdb;
+
+		switch ( $name ) {
+			case 'duplicated_postmeta':
+				return (array) $this->db( 'get_results', "SELECT meta_key, COUNT(meta_id) AS num FROM $wpdb->postmeta GROUP BY post_id, meta_key, meta_value HAVING num > 1" );
+			case 'duplicated_commentmeta':
+				return (array) $this->db( 'get_results', "SELECT meta_key, COUNT(meta_id) AS num FROM $wpdb->commentmeta GROUP BY comment_id, meta_key, meta_value HAVING num > 1" );
+			case 'duplicated_usermeta':
+				return (array) $this->db( 'get_results', "SELECT meta_key, COUNT(umeta_id) AS num FROM $wpdb->usermeta GROUP BY user_id, meta_key, meta_value HAVING num > 1" );
+			case 'duplicated_termmeta':
+				return (array) $this->db( 'get_results', "SELECT meta_key, COUNT(meta_id) AS num FROM $wpdb->termmeta GROUP BY term_id, meta_key, meta_value HAVING num > 1" );
+		}
+
+		return array();
+	}
+
+	/**
 	 * Meta rows that appear more than once with the same key and value.
+	 *
+	 * Only sweep() reads this: the ids are what the delete needs, and hauling
+	 * them into PHP is only worth it when they are about to be deleted. A count
+	 * or a sample comes from duplicated_meta_counts() instead.
 	 *
 	 * @param string $name Sweep name.
 	 * @return array Rows carrying ids, object_id, meta_key and num.

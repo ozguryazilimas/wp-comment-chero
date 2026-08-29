@@ -1,6 +1,7 @@
 <?php
 /**
- * Front end wiring: assets, shortcodes and the scheduled poll-closing job.
+ * The bootstrap, plus the front end: assets, shortcodes and the scheduled
+ * poll-closing job.
  *
  * @package WP-Polls
  */
@@ -8,24 +9,69 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Boots the front end side of the plugin.
+ * Boots the plugin and owns the front end hooks.
  */
 class WP_Polls {
 
 	/**
-	 * Hook registration.
+	 * Boot the plugin: the tables, the hooks and every component.
+	 *
+	 * Called once from wp-polls.php, at file load, which is what lets the
+	 * activation hook below be registered here.
 	 *
 	 * @return void
 	 */
 	public static function init() {
-		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'poll_scripts' ) );
+		self::register_table();
+
+		// Must be registered at file-load time, which is when this runs.
+		register_activation_hook( WP_POLLS_MAIN_FILE, array( 'WP_Polls_Install', 'activate' ) );
+		// On init rather than admin_init, so an automatic background update --
+		// a cron request, not an admin one -- is migrated as soon as it serves
+		// anything at all rather than when somebody next logs in.
+		add_action( 'init', array( 'WP_Polls_Install', 'upgrade' ), 5 );
+
+		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'scripts' ) );
+		// Priority 10, ahead of core printing footer scripts and late styles at 20.
+		add_action( 'wp_footer', array( __CLASS__, 'footer_scripts' ) );
 		add_action( 'enqueue_block_assets', array( __CLASS__, 'block_editor_styles' ) );
-		add_action( 'widgets_init', array( __CLASS__, 'widget_polls_init' ) );
+		add_action( 'widgets_init', array( __CLASS__, 'register_widget' ) );
 		add_action( 'polls_cron', array( __CLASS__, 'cron_polls_status' ) );
 		add_shortcode( 'page_polls', array( __CLASS__, 'poll_page_shortcode' ) );
 		add_shortcode( 'poll', array( __CLASS__, 'poll_shortcode' ) );
 
+		WP_Polls_Install::init();
+		WP_Polls_Vote::init();
+		WP_Polls_Display::init();
+		WP_Polls_Admin::init();
+		WP_Polls_WPStats::init();
+		WP_Polls_Settings::init();
+		WP_Polls_Blocks::init();
+
+		new WP_Polls_API();
+
 		self::register_command();
+	}
+
+	/**
+	 * Register the three poll tables with $wpdb.
+	 *
+	 * The tables[] entry is what makes the names survive switch_to_blog():
+	 * wpdb::set_blog_id() rebuilds every registered table name against the new
+	 * prefix, while a bare assignment keeps pointing at the site that happened
+	 * to be current when this file loaded.
+	 *
+	 * @return void
+	 */
+	private static function register_table() {
+		global $wpdb;
+
+		foreach ( array( 'pollsq', 'pollsa', 'pollsip' ) as $poll_table ) {
+			if ( ! in_array( $poll_table, $wpdb->tables, true ) ) {
+				$wpdb->tables[] = $poll_table;
+			}
+			$wpdb->$poll_table = $wpdb->prefix . $poll_table;
+		}
 	}
 
 	/**
@@ -48,15 +94,79 @@ class WP_Polls {
 		WP_CLI::add_command( 'polls', 'WP_Polls_Command' );
 	}
 
-	// Function: Enqueue Polls JavaScripts/CSS.
+	/**
+	 * Enqueue the front end assets, where the head can already see a poll coming.
+	 *
+	 * A page showing no poll carries neither the stylesheet nor the script. The
+	 * shapes visible this early are the active widget and a shortcode or block
+	 * in the current post; anything rendering later than the head -- a template
+	 * tag, a poll in a loop page -- asks via WP_Polls_Display::request_assets()
+	 * and footer_scripts() picks it up.
+	 *
+	 * @return void
+	 */
+	public static function scripts() {
+		if ( ! self::needs_assets() ) {
+			return;
+		}
+
+		self::enqueue_assets();
+	}
 
 	/**
-	 * Poll scripts.
+	 * Whether the current request is already known to render a poll.
 	 *
-	 * @return mixed
+	 * @return bool
 	 */
-	public static function poll_scripts() {
-		self::poll_styles();
+	protected static function needs_assets() {
+		if ( is_active_widget( false, false, 'polls-widget', true ) ) {
+			return true;
+		}
+
+		$post = get_post();
+
+		if ( ! $post instanceof WP_Post ) {
+			return false;
+		}
+
+		return has_shortcode( $post->post_content, 'poll' )
+			|| has_shortcode( $post->post_content, 'page_polls' )
+			|| has_block( 'wp-polls/poll', $post )
+			|| has_block( 'wp-polls/page-polls', $post );
+	}
+
+	/**
+	 * Enqueue late, for a poll the head could not see coming.
+	 *
+	 * Runs at `wp_footer` priority 10, before core prints footer scripts and
+	 * late styles at 20, so both assets still make it onto the page.
+	 *
+	 * @return void
+	 */
+	public static function footer_scripts() {
+		if ( ! WP_Polls_Display::needs_assets() ) {
+			return;
+		}
+
+		self::enqueue_assets();
+	}
+
+	/**
+	 * The stylesheet with its inline custom properties, and the script with its
+	 * strings and the AJAX endpoint.
+	 *
+	 * Guarded on the style handle because both passes can run on one request,
+	 * and wp_add_inline_style() appends rather than replaces -- a second pass
+	 * would emit the bar's custom properties twice.
+	 *
+	 * @return void
+	 */
+	protected static function enqueue_assets() {
+		if ( wp_style_is( 'wp-polls', 'enqueued' ) ) {
+			return;
+		}
+
+		self::styles();
 
 		wp_enqueue_script( 'wp-polls', WP_POLLS_URL . 'js/wp-polls.js', array(), WP_POLLS_VERSION, true );
 		wp_localize_script(
@@ -86,9 +196,9 @@ class WP_Polls {
 	 * editor.
 	 *
 	 * Guarded on is_admin() because `enqueue_block_assets` fires on the front
-	 * end too, where poll_scripts() has already done this on
-	 * `wp_enqueue_scripts` -- and wp_add_inline_style() appends rather than
-	 * replaces, so running twice would emit the bar's custom properties twice.
+	 * end too, where the conditional enqueue owns the decision -- and
+	 * wp_add_inline_style() appends rather than replaces, so running here as
+	 * well would emit the bar's custom properties twice.
 	 *
 	 * @return void
 	 */
@@ -97,26 +207,32 @@ class WP_Polls {
 			return;
 		}
 
-		self::poll_styles();
+		self::styles();
 	}
 
 	/**
 	 * Register and enqueue the stylesheet, with the bar's custom properties.
 	 *
-	 * Split out of poll_scripts() so the block editor can have the styles
+	 * Split out of scripts() so the block editor can have the styles
 	 * without the script.
 	 *
 	 * @return void
 	 */
-	public static function poll_styles() {
+	public static function styles() {
+		// The theme may override the stylesheet with its own wp-polls.css: the
+		// child theme is looked in first, then the parent, then the plugin's
+		// copy -- so a child theme inherits its parent's override.
 		if ( file_exists( get_stylesheet_directory() . '/wp-polls.css' ) ) {
 			wp_enqueue_style( 'wp-polls', get_stylesheet_directory_uri() . '/wp-polls.css', array(), WP_POLLS_VERSION );
+		} elseif ( file_exists( get_template_directory() . '/wp-polls.css' ) ) {
+			wp_enqueue_style( 'wp-polls', get_template_directory_uri() . '/wp-polls.css', array(), WP_POLLS_VERSION );
 		} else {
 			wp_enqueue_style( 'wp-polls', WP_POLLS_URL . 'css/wp-polls.css', array(), WP_POLLS_VERSION );
 		}
 		$pollbar = WP_Polls_Options::get( 'bar' );
-		// This lands in an inline <style> block on every front end page, so never
-		// trust the stored values even though only 'manage_polls' can set them.
+		// This lands in an inline <style> block on every page that shows a poll,
+		// so never trust the stored values even though only 'manage_polls' can
+		// set them.
 		$pollbar_height     = (int) $pollbar['height'];
 		$pollbar_background = self::sanitize_bar_color( $pollbar['background'] );
 		$pollbar_border     = self::sanitize_bar_color( $pollbar['border'] );
@@ -132,8 +248,6 @@ class WP_Polls {
 		wp_add_inline_style( 'wp-polls', $pollbar_css );
 	}
 
-	// Function: Short Code For Inserting Polls Archive Into Page.
-
 	/**
 	 * Poll page shortcode.
 	 *
@@ -148,14 +262,12 @@ class WP_Polls {
 		return WP_Polls_Display::polls_archive();
 	}
 
-	// Function: Short Code For Inserting Polls Into Posts.
-
 	/**
 	 * Poll shortcode.
 	 *
-	 * @param mixed $atts Value.
+	 * @param array|string $atts Shortcode attributes.
 	 *
-	 * @return mixed
+	 * @return string
 	 */
 	public static function poll_shortcode( $atts ) {
 		$attributes = shortcode_atts(
@@ -180,9 +292,9 @@ class WP_Polls {
 	}
 
 	/**
-	 * Place Cron.
+	 * Schedule the hourly job that opens and closes polls on time.
 	 *
-	 * @return mixed
+	 * @return void
 	 */
 	public static function cron_polls_place() {
 		wp_clear_scheduled_hook( 'polls_cron' );
@@ -191,12 +303,10 @@ class WP_Polls {
 		}
 	}
 
-	// Funcion: Check All Polls Status To Check If It Expires.
-
 	/**
-	 * Cron polls status.
+	 * Close expired polls and open scheduled ones, hourly.
 	 *
-	 * @return mixed
+	 * @return void
 	 */
 	public static function cron_polls_status() {
 		global $wpdb;
@@ -228,9 +338,9 @@ class WP_Polls {
 	}
 
 	/**
-	 * Get Latest Poll ID.
+	 * The id of the most recently opened poll.
 	 *
-	 * @return mixed
+	 * @return int
 	 */
 	public static function polls_latest_id() {
 		global $wpdb;
@@ -238,15 +348,12 @@ class WP_Polls {
 		return (int) $poll_id;
 	}
 
-	// Class: WP-Polls Widget
-	// Function: Init WP-Polls Widget.
-
 	/**
-	 * Widget polls init.
+	 * Register the Polls widget.
 	 *
-	 * @return mixed
+	 * @return void
 	 */
-	public static function widget_polls_init() {
+	public static function register_widget() {
 		register_widget( 'WP_Polls_Widget' );
 	}
 
@@ -259,7 +366,7 @@ class WP_Polls {
 	 * <input type="color"> will show, so a value carried over from 2.x has to be
 	 * expanded before the field can display it.
 	 *
-	 * @param mixed $color Value.
+	 * @param string $color Colour as stored or posted, with or without the '#'.
 	 *
 	 * @return string Six hex digits, without a leading '#'.
 	 */
@@ -288,7 +395,7 @@ class WP_Polls {
 	 * Background setting. The gradient is a translucent overlay rather than a
 	 * fixed pair of colours, so it now shades whatever colour is configured.
 	 *
-	 * @param mixed $style Stored bar style.
+	 * @param string $style Stored bar style.
 	 *
 	 * @return string A CSS background-image value.
 	 */

@@ -241,18 +241,17 @@ class WP_Polls_Options {
 	 * Record both markers in one write.
 	 *
 	 * Together rather than one at a time, so a half finished upgrade never
-	 * records itself as complete.
+	 * records itself as complete. Always the two constants: the only thing
+	 * ever recorded is "this install is now current".
 	 *
-	 * @param string $plugin Plugin version just brought up to date.
-	 * @param string $db     Schema version just brought up to date.
 	 * @return bool
 	 */
-	public static function save_markers( $plugin, $db ) {
+	public static function update_markers() {
 		return update_option(
 			self::VERSION,
 			array(
-				'plugin' => (string) $plugin,
-				'db'     => (string) $db,
+				'plugin' => WP_POLLS_VERSION,
+				'db'     => WP_POLLS_DB_VERSION,
 			)
 		);
 	}
@@ -326,7 +325,8 @@ class WP_Polls_Options {
 	 *
 	 * @param string $path    Dot separated path.
 	 * @param mixed  $fallback Returned when the path is absent.
-	 * @return mixed
+	 * @return mixed The stored value, or the fallback. Genuinely mixed: the
+	 *               structure holds strings, numbers, booleans and arrays.
 	 */
 	public static function get( $path, $fallback = null ) {
 		$value = self::all();
@@ -384,13 +384,13 @@ class WP_Polls_Options {
 	 * Two accidents keep this plugin out of that gap, and neither is a
 	 * guarantee. `update_option()` sanitises before it compares, and
 	 * `WP_Polls_Settings::sanitize()` does not return the defaults unchanged, so
-	 * the early return is never reached. And `wp-polls.php` calls
-	 * `WP_Polls_Install::init()` on line 71 and `WP_Polls_Settings::init()` on
-	 * line 77 -- both hooking `admin_init` at priority 10 -- so the migration
-	 * runs before the filter exists at all, on insertion order alone.
+	 * the early return is never reached. And the upgrade runs on `init` at
+	 * priority 5 while `WP_Polls_Settings::register()` waits for `admin_init`,
+	 * so the migration runs before the filter exists at all, on hook order
+	 * alone.
 	 *
-	 * Either could change without anything noticing: swapping two adjacent lines
-	 * in a file that does nothing but wire classes up, or a sanitiser that
+	 * Either could change without anything noticing: a hook moved in the
+	 * bootstrap that does nothing but wire classes up, or a sanitiser that
 	 * becomes a no-op for already-clean input. Passing an explicit default to
 	 * `get_option()` defeats the registered one, because
 	 * `filter_default_option()` returns early when a default was passed, which
@@ -448,7 +448,7 @@ class WP_Polls_Options {
 	 *
 	 * @return void
 	 */
-	public static function migrate_from_legacy_rows() {
+	public static function migrate_legacy_rows() {
 		// Start from whatever is already stored, not from the defaults. The
 		// version gate is the primary guard, but it is not sufficient on its
 		// own: an install whose marker row is missing while wp_polls_options

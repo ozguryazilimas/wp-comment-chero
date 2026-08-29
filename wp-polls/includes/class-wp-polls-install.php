@@ -13,55 +13,137 @@ defined( 'ABSPATH' ) || exit;
 class WP_Polls_Install {
 
 	/**
+	 * Row held for the duration of an upgrade, so only one request runs it.
+	 */
+	const UPGRADE_LOCK = 'wp_polls_upgrade_lock';
+
+	/**
+	 * How long a held lock is believed before it is treated as abandoned.
+	 */
+	const UPGRADE_LOCK_TIMEOUT = 300;
+
+	/**
 	 * Hook registration.
 	 *
 	 * @return void
 	 */
 	public static function init() {
-		register_activation_hook( WP_POLLS_MAIN_FILE, array( __CLASS__, 'activation' ) );
-		add_action( 'admin_init', array( __CLASS__, 'upgrade' ) );
 		add_action( 'admin_notices', array( __CLASS__, 'onclick_notice' ) );
 	}
 
-	// Function: Activate Plugin.
-
 	/**
-	 * Activation.
+	 * Activation hook: install every site the activation covers.
 	 *
-	 * @param mixed $network_wide Value.
+	 * @param bool $network_wide Whether the plugin is being activated network-wide.
 	 *
-	 * @return mixed
+	 * @return void
 	 */
-	public static function activation( $network_wide ) {
+	public static function activate( $network_wide = false ) {
 		if ( is_multisite() && $network_wide ) {
-			// get_sites(), not the wp_get_sites() this used to call. That one has
-			// been deprecated since WP 4.6 and still ships in ms-deprecated.php,
-			// so the old call raised a deprecation notice rather than failing
-			// outright — and silently activated on only the first 100 sites,
-			// because that is its default limit. get_sites() returns WP_Site
-			// objects rather than arrays, and 'number' => 0 lifts the limit.
-			$ms_sites = get_sites( array( 'number' => 0 ) );
+			// get_sites(), not the wp_get_sites() this used to call: deprecated
+			// since WP 4.6, it still ships in ms-deprecated.php, so it raised a
+			// notice rather than failing outright while capped at 100 sites.
+			// 'number' => 0 lifts WP_Site_Query's default cap of 100, which would otherwise skip every site past the hundredth while reporting success.
+			$ms_site_ids = get_sites(
+				array(
+					'fields' => 'ids',
+					'number' => 0,
+				)
+			);
 
-			foreach ( $ms_sites as $ms_site ) {
-				switch_to_blog( (int) $ms_site->blog_id );
-				self::activate();
+			// Inside the loop: switch_to_blog() pushes onto a stack, so restoring once after the loop unwinds it by exactly one.
+			foreach ( $ms_site_ids as $ms_site_id ) {
+				switch_to_blog( (int) $ms_site_id );
+				self::install();
 				restore_current_blog();
 			}
 		} else {
-			self::activate();
+			self::install();
 		}
 	}
 
-	// Function: Run Version Specific Upgrades
-	// Plugin updates do not fire the activation hook, so the stored version is
-	// checked on every admin request and the outstanding upgrades are run once.
-
 	/**
-	 * Upgrade.
+	 * Run the outstanding version gated upgrades, once.
 	 *
-	 * @return mixed
+	 * Activation does not fire on a plugin update, which is the single most
+	 * common reason a migration never runs. The stored markers are therefore
+	 * checked on every request, on `init` at priority 5, and anything they say
+	 * is outstanding runs before the rest of the plugin reads the options.
+	 *
+	 * @return void
 	 */
 	public static function upgrade() {
+		// Nothing owed is the case on every request but a handful in an install's
+		// life, and it must stay a read: the lock below costs two writes.
+		if ( ! self::is_behind() ) {
+			return;
+		}
+
+		// Running on init means running on front-end requests, so a busy site can
+		// have two of these in the migration at once -- and the fold is a
+		// read-modify-write of one row. The loser of that race writes the values
+		// it read before the winner saved, over the top of the winner's, and by
+		// then the legacy rows it would have read them back from are deleted.
+		if ( ! self::lock() ) {
+			return;
+		}
+
+		// Re-read behind the lock: the request that held it may have finished the
+		// whole upgrade between the check above and the lock coming free.
+		WP_Polls_Options::flush();
+		$steps = self::outstanding();
+
+		if ( ! in_array( true, $steps, true ) ) {
+			self::unlock();
+
+			return;
+		}
+
+		// Version 3.0.0: fold the ~30 scattered option rows into a single one.
+		// Must run before anything else that touches templates, so there is only
+		// one place they live by the time the later steps read them.
+		if ( $steps['legacy_rows'] ) {
+			WP_Polls_Options::migrate_legacy_rows();
+		}
+
+		// Version 3.0.0: the poll bar became a track holding a fill, styled from
+		// CSS custom properties.
+		if ( $steps['poll_bar'] ) {
+			self::upgrade_poll_bar();
+		}
+
+		// Version 3.0.0: Inline onclick handlers were replaced by data-poll-* attributes.
+		if ( $steps['onclick'] ) {
+			self::upgrade_templates_onclick();
+		}
+
+		if ( $steps['markers'] ) {
+			// Both markers in one write, at the end, so a half finished upgrade
+			// never records itself as complete.
+			WP_Polls_Options::update_markers();
+		}
+
+		self::unlock();
+	}
+
+	/**
+	 * Whether this install still owes any upgrade step.
+	 *
+	 * @return bool
+	 */
+	protected static function is_behind() {
+		return in_array( true, self::outstanding(), true );
+	}
+
+	/**
+	 * Which upgrade steps this install still owes, keyed by step.
+	 *
+	 * Every gate is derived in one place and read twice -- once before the lock
+	 * and once behind it -- so the two answers cannot be computed differently.
+	 *
+	 * @return array<string,bool>
+	 */
+	protected static function outstanding() {
 		$markers = WP_Polls_Options::markers();
 
 		// An install that has not run this yet has no marker row at all, so the
@@ -69,40 +151,56 @@ class WP_Polls_Install {
 		// ran. Read through to it once; the migration deletes it.
 		$installed_version = '' !== $markers['plugin'] ? $markers['plugin'] : (string) get_option( WP_Polls_Options::LEGACY_VERSION, '' );
 		$is_pre_3          = '' === $installed_version || version_compare( $installed_version, '3.0.0', '<' );
+		$stored            = get_option( WP_Polls_Options::OPTION, array() );
 
-		// Version 3.0.0: fold the ~30 scattered option rows into a single one.
-		// Must run before anything else that touches templates, so there is only
-		// one place they live by the time the later steps read them.
-		//
-		// Gated on the stored shape as well as the version. 3.0.0 spent a while
-		// unreleased on the development branch, so an install can be stamped
-		// 3.0.0 and still hold the scattered rows; a version-only gate would
-		// skip it and quietly drop that site to defaults. Checking for the
-		// nested 'templates' key catches those, and the migration is a no-op
-		// when there is nothing left to fold in.
-		$stored = get_option( WP_Polls_Options::OPTION, array() );
-		if ( $is_pre_3 || ! is_array( $stored ) || ! isset( $stored['templates'] ) ) {
-			WP_Polls_Options::migrate_from_legacy_rows();
+		return array(
+			// Gated on the stored shape as well as the version. 3.0.0 spent a
+			// while unreleased on the development branch, so an install can be
+			// stamped 3.0.0 and still hold the scattered rows; a version-only
+			// gate would skip it and quietly drop that site to defaults.
+			'legacy_rows' => $is_pre_3 || ! is_array( $stored ) || ! isset( $stored['templates'] ),
+			// Gated on the stored shape too, for the same reason: a development
+			// install can be stamped 3.0.0 and still hold the old bar.
+			'poll_bar'    => $is_pre_3 || self::needs_poll_bar_upgrade( $stored ),
+			'onclick'     => $is_pre_3,
+			'markers'     => WP_POLLS_VERSION !== $markers['plugin'] || WP_POLLS_DB_VERSION !== $markers['db'],
+		);
+	}
+
+	/**
+	 * Take the upgrade lock for this site.
+	 *
+	 * The atomic half is add_option(): the options table has a unique key on
+	 * option_name, so a second request's INSERT fails rather than overwriting,
+	 * and only one caller is told it succeeded. wp_cache_add() would not do --
+	 * with no persistent object cache it succeeds in every request, and a site
+	 * with no object cache is exactly the one at risk.
+	 *
+	 * @return bool Whether this request now holds the lock.
+	 */
+	protected static function lock() {
+		$held = get_option( self::UPGRADE_LOCK, false );
+
+		if ( false !== $held ) {
+			// A request that died mid-upgrade must not stop every later one from
+			// ever finishing it.
+			if ( ( time() - (int) $held ) < self::UPGRADE_LOCK_TIMEOUT ) {
+				return false;
+			}
+
+			delete_option( self::UPGRADE_LOCK );
 		}
 
-		// Version 3.0.0: the poll bar became a track holding a fill, styled from
-		// CSS custom properties. Gated on the stored shape as well as the version
-		// for the same reason the migration above is - a development install can
-		// be stamped 3.0.0 and still hold the old bar.
-		if ( $is_pre_3 || self::needs_poll_bar_upgrade( $stored ) ) {
-			self::upgrade_poll_bar();
-		}
+		return add_option( self::UPGRADE_LOCK, time(), '', false );
+	}
 
-		// Version 3.0.0: Inline onclick handlers were replaced by data-poll-* attributes.
-		if ( $is_pre_3 ) {
-			self::upgrade_templates_onclick();
-		}
-
-		if ( WP_POLLS_VERSION !== $markers['plugin'] || WP_POLLS_DB_VERSION !== $markers['db'] ) {
-			// Both markers in one write, at the end, so a half finished upgrade
-			// never records itself as complete.
-			WP_Polls_Options::save_markers( WP_POLLS_VERSION, WP_POLLS_DB_VERSION );
-		}
+	/**
+	 * Release the upgrade lock.
+	 *
+	 * @return void
+	 */
+	protected static function unlock() {
+		delete_option( self::UPGRADE_LOCK );
 	}
 
 	/**
@@ -136,7 +234,7 @@ class WP_Polls_Install {
 	}
 
 	/**
-	 * Function: Move The Stored Poll Bar Onto The 3.0.0 Markup And Styles.
+	 * Move the stored poll bar onto the 3.0.0 markup and styles.
 	 *
 	 * The two result templates are replaced outright rather than patched, and
 	 * customised copies are not spared. The markup, the class names and the
@@ -146,7 +244,7 @@ class WP_Polls_Install {
 	 * had customised these gets the stock bar back and re-applies their changes;
 	 * the changelog and the upgrade notice both say so.
 	 *
-	 * @return mixed
+	 * @return void
 	 */
 	public static function upgrade_poll_bar() {
 		foreach ( array( 'resultbody', 'resultbody2' ) as $key ) {
@@ -172,9 +270,10 @@ class WP_Polls_Install {
 	}
 
 	/**
-	 * Function: Convert Inline onclick Handlers In The Footer Templates To data-poll-* Attributes.
+	 * Convert inline onclick handlers in the footer templates to data-poll-*
+	 * attributes.
 	 *
-	 * @return mixed
+	 * @return void
 	 */
 	public static function upgrade_templates_onclick() {
 		foreach ( array( 'votefooter', 'resultfooter2' ) as $key ) {
@@ -197,16 +296,15 @@ class WP_Polls_Install {
 		}
 	}
 
-	// Function: Warn When A Poll Template Still Relies On An Inline onclick Handler
-	// Since 3.0.0 the scripts export nothing, so an onclick left behind by a
-	// customised template no longer calls anything at all. The upgrade converts
-	// the stock templates automatically; this covers the ones too customised to
-	// convert, which would otherwise fail silently on the front end.
-
 	/**
-	 * Onclick notice.
+	 * Warn when a poll template still relies on an inline onclick handler.
 	 *
-	 * @return mixed
+	 * Since 3.0.0 the scripts export nothing, so an onclick left behind by a
+	 * customised template no longer calls anything at all. The upgrade converts
+	 * the stock templates automatically; this covers the ones too customised to
+	 * convert, which would otherwise fail silently on the front end.
+	 *
+	 * @return void
 	 */
 	public static function onclick_notice() {
 		global $hook_suffix;
@@ -231,9 +329,9 @@ class WP_Polls_Install {
 	}
 
 	/**
-	 * Check Whether Any Poll Template Still Contains An Inline onclick Handler.
+	 * Whether any poll template still contains an inline onclick handler.
 	 *
-	 * @return mixed
+	 * @return bool
 	 */
 	public static function templates_have_onclick() {
 		foreach ( array( 'votefooter', 'resultfooter2' ) as $key ) {
@@ -263,19 +361,13 @@ class WP_Polls_Install {
 			array( WP_Polls_Options::OPTION, WP_Polls_Options::VERSION ),
 			array_keys( WP_Polls_Options::legacy_map() ),
 			WP_Polls_Options::legacy_extra_rows(),
-			array( 'widget_polls', 'widget_polls-widget' )
+			// The lock is the upgrade's own bookkeeping and is absent on a site
+			// that finished one, but a site uninstalling part way through an
+			// interrupted upgrade would otherwise keep it.
+			array( self::UPGRADE_LOCK, 'widget_polls', 'widget_polls-widget' )
 		);
 	}
 
-	/**
-	 * Remove every option row and drop the three tables for the current site.
-	 *
-	 * Before 3.0.0 the table drop was called from inside the loop over option
-	 * names, so it ran once per option rather than once per site - 36 times
-	 * over, issuing three DROP TABLE statements each.
-	 *
-	 * @return void
-	 */
 	/**
 	 * Grant the administrator role the capability the screens actually check.
 	 *
@@ -320,6 +412,38 @@ class WP_Polls_Install {
 	}
 
 	/**
+	 * Uninstall the plugin: every site on a network, or just the one.
+	 *
+	 * The whole job is delegated here by uninstall.php, so the loop over sites
+	 * lives beside the per-site work it drives and both are reachable from the
+	 * test suite.
+	 *
+	 * @return void
+	 */
+	public static function uninstall() {
+		if ( ! is_multisite() ) {
+			self::uninstall_site();
+
+			return;
+		}
+
+		// 'number' => 0 lifts WP_Site_Query's default cap of 100, which would otherwise skip every site past the hundredth while reporting success.
+		$site_ids = get_sites(
+			array(
+				'fields' => 'ids',
+				'number' => 0,
+			)
+		);
+
+		// Inside the loop: switch_to_blog() pushes onto a stack, so restoring once after the loop unwinds it by exactly one.
+		foreach ( $site_ids as $site_id ) {
+			switch_to_blog( (int) $site_id );
+			self::uninstall_site();
+			restore_current_blog();
+		}
+	}
+
+	/**
 	 * Remove every option row, the capability, and the three tables.
 	 *
 	 * Before 3.0.0 the table drop was called from inside the loop over option
@@ -348,16 +472,16 @@ class WP_Polls_Install {
 	}
 
 	/**
-	 * Activate.
+	 * Install one site: the tables, the sample poll, the options, the
+	 * capability and the cron job.
 	 *
-	 * @return mixed
+	 * @return void
 	 */
-	public static function activate() {
+	public static function install() {
 		global $wpdb;
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
-		// Create Poll Tables (3 Tables).
 		$charset_collate = $wpdb->get_charset_collate();
 
 		$create_table            = array();
@@ -413,11 +537,10 @@ class WP_Polls_Install {
 				}
 			}
 		}
-		// Check Whether It is Install Or Upgrade.
+		// A fresh install gets the sample poll; a reactivation already has
+		// rows and must not gain a duplicate.
 		$first_poll = $wpdb->get_var( "SELECT pollq_id FROM $wpdb->pollsq LIMIT 1" );
-		// If Install, Insert 1st Poll Question With 5 Poll Answers.
 		if ( empty( $first_poll ) ) {
-			// Insert Poll Question (1 Record).
 			$insert_pollq = $wpdb->insert(
 				$wpdb->pollsq,
 				array(
@@ -427,7 +550,6 @@ class WP_Polls_Install {
 				array( '%s', '%s' )
 			);
 			if ( $insert_pollq ) {
-				// Insert Poll Answers  (5 Records).
 				$wpdb->insert(
 					$wpdb->pollsa,
 					array(
@@ -482,7 +604,8 @@ class WP_Polls_Install {
 			$wpdb->query( "UPDATE $wpdb->pollsq SET pollq_totalvoters = pollq_totalvotes" );
 		}
 
-		// Index.
+		// The explicit index work the dbDelta gate above points at: bring the
+		// vote log's indexes up to date whatever schema the site started on.
 		$index    = $wpdb->get_results( "SHOW INDEX FROM $wpdb->pollsip;" );
 		$key_name = array();
 		if ( count( $index ) > 0 ) {
@@ -499,12 +622,13 @@ class WP_Polls_Install {
 		if ( ! in_array( 'pollip_ip_qid_aid', $key_name, true ) ) {
 			$wpdb->query( "ALTER TABLE $wpdb->pollsip ADD INDEX pollip_ip_qid_aid (pollip_ip, pollip_qid, pollip_aid);" );
 		}
-		// No longer needed index.
+		// Superseded by pollip_ip_qid_aid, which covers the same lookups.
 		if ( in_array( 'pollip_ip_qid', $key_name, true ) ) {
 			$wpdb->query( "ALTER TABLE $wpdb->pollsip DROP INDEX pollip_ip_qid;" );
 		}
 
-		// Change column datatype for wp_pollsip.
+		// Very old installs stored these columns as varchar(10); the DESCRIBE
+		// detects that shape so the widening runs exactly once.
 		$col_pollip_qid = $wpdb->get_row( "DESCRIBE $wpdb->pollsip pollip_qid" );
 		if ( 'varchar(10)' === $col_pollip_qid->Type ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- Column name returned by DESCRIBE.
 			$wpdb->query( "ALTER TABLE $wpdb->pollsip MODIFY COLUMN pollip_qid int(10) NOT NULL default '0';" );
@@ -516,8 +640,8 @@ class WP_Polls_Install {
 		self::add_capability();
 
 		// Run any outstanding version upgrades and record the current version.
-		// Called here as well as on 'admin_init' so that network activation
-		// upgrades every site while it is switched to.
+		// Called here as well as on 'init' so that network activation upgrades
+		// every site while it is switched to.
 		self::upgrade();
 
 		WP_Polls::cron_polls_place();

@@ -203,14 +203,24 @@ class About_Us extends Abstract_Module {
 	private function get_about_localization_data() {
 		$links         = isset( $this->about_data['page_menu'] ) ? $this->about_data['page_menu'] : [];
 		$product_pages = isset( $this->about_data['product_pages'] ) ? $this->about_data['product_pages'] : [];
+		$page_slug     = $this->get_about_page_slug();
 
 		return [
 			'links'              => $links,
 			'logoUrl'            => $this->about_data['logo'],
 			'productPages'       => $this->get_product_pages_data( $product_pages ),
 			'products'           => $this->get_other_products_data(),
+			'services'           => [
+				'websiteDesignUrl' => tsdk_utmify( 'https://themeisle.com/wordpress-website-design/', 'services-website-design', $page_slug ),
+				'supportUrl'       => tsdk_utmify( 'https://themeisle.com/wordpress-support/', 'services-support', $page_slug ),
+				'speedUrl'         => tsdk_utmify( 'https://themeisle.com/wordpress-speed-optimization/', 'services-speed-optimization', $page_slug ),
+				'seoFoundationUrl' => tsdk_utmify( 'https://themeisle.com/wordpress-seo-foundation/', 'services-seo-foundation', $page_slug ),
+				'maintenanceUrl'   => tsdk_utmify( 'https://themeisle.com/wordpress-maintenance/', 'services-maintenance', $page_slug ),
+				'hackedRepairUrl'  => tsdk_utmify( 'https://themeisle.com/wordpress-hacked-site-repair/', 'services-hacked-site-repair', $page_slug ),
+				'exploreAllUrl'    => tsdk_utmify( 'https://themeisle.com/services/', 'services-explore-all', $page_slug ),
+			],
 			'homeUrl'            => esc_url( home_url() ),
-			'pageSlug'           => $this->get_about_page_slug(),
+			'pageSlug'           => $page_slug,
 			'currentProduct'     => [
 				'slug' => $this->product->get_key(),
 				'name' => $this->product->get_name(),
@@ -225,6 +235,7 @@ class About_Us extends Abstract_Module {
 				'newsHeading'      => Loader::$labels['about_us']['newsHeading'],
 				'emailPlaceholder' => Loader::$labels['about_us']['emailPlaceholder'],
 				'signMeUp'         => Loader::$labels['about_us']['signMeUp'],
+				'services'         => Loader::$labels['about_us']['services'],
 				'installNow'       => Loader::$labels['about_us']['installNow'],
 				'activate'         => Loader::$labels['about_us']['activate'],
 				'learnMore'        => Loader::$labels['about_us']['learnMore'],

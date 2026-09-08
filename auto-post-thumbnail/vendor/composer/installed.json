@@ -2,24 +2,24 @@
     "packages": [
         {
             "name": "codeinwp/themeisle-sdk",
-            "version": "3.3.52",
-            "version_normalized": "3.3.52.0",
+            "version": "3.3.61",
+            "version_normalized": "3.3.61.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Codeinwp/themeisle-sdk.git",
-                "reference": "d1ae68cbd4f84934b4d982e9eeff317b9f4c814a"
+                "reference": "9fe698b52dec768a0dd8b500fb51efe40962ee99"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Codeinwp/themeisle-sdk/zipball/d1ae68cbd4f84934b4d982e9eeff317b9f4c814a",
-                "reference": "d1ae68cbd4f84934b4d982e9eeff317b9f4c814a",
+                "url": "https://api.github.com/repos/Codeinwp/themeisle-sdk/zipball/9fe698b52dec768a0dd8b500fb51efe40962ee99",
+                "reference": "9fe698b52dec768a0dd8b500fb51efe40962ee99",
                 "shasum": ""
             },
             "require-dev": {
                 "codeinwp/phpcs-ruleset": "dev-main",
                 "yoast/phpunit-polyfills": "^4.0"
             },
-            "time": "2026-05-14T19:43:56+00:00",
+            "time": "2026-08-24T15:59:27+00:00",
             "type": "library",
             "installation-source": "dist",
             "notification-url": "https://packagist.org/downloads/",
@@ -33,14 +33,14 @@
                     "homepage": "https://themeisle.com"
                 }
             ],
-            "description": "Themeisle SDK.",
+            "description": "Themeisle SDK library.",
             "homepage": "https://github.com/Codeinwp/themeisle-sdk",
             "keywords": [
                 "wordpress"
             ],
             "support": {
                 "issues": "https://github.com/Codeinwp/themeisle-sdk/issues",
-                "source": "https://github.com/Codeinwp/themeisle-sdk/tree/v3.3.52"
+                "source": "https://github.com/Codeinwp/themeisle-sdk/tree/v3.3.61"
             },
             "install-path": "../codeinwp/themeisle-sdk"
         },

@@ -139,7 +139,8 @@ class Uninstall_Feedback extends Abstract_Module {
 		?>
 		<div class="ti-theme-uninstall-feedback-drawer ti-feedback">
 			<div class="popup--header">
-				<h5><?php echo wp_kses( $heading, array( 'span' => true ) ); ?> </h5>
+				<h5><?php echo wp_kses( $heading, array( 'span' => true ) ); ?></h5>
+				<?php $this->do_popup_header_after_heading_action( 'theme' ); ?>
 				<button class="toggle"><span>&times;</span></button>
 			</div><!--/.popup--header-->
 			<div class="popup--body">
@@ -485,6 +486,19 @@ class Uninstall_Feedback extends Abstract_Module {
 	}
 
 	/**
+	 * Fires after the popup header heading, allowing products to output extra markup.
+	 *
+	 * @param string $context Popup context. Either `theme` or `plugin`.
+	 */
+	private function do_popup_header_after_heading_action( $context ) {
+		do_action(
+			$this->product->get_key() . '_uninstall_feedback_popup_header_after_heading',
+			$this->product,
+			$context
+		);
+	}
+
+	/**
 	 * Render the options list.
 	 *
 	 * @param array $options the options for the feedback form.
@@ -535,6 +549,7 @@ class Uninstall_Feedback extends Abstract_Module {
 			 id="<?php echo esc_attr( $this->product->get_slug() . '_uninstall_feedback_popup' ); ?>">
 			<div class="popup--header">
 				<h5><?php echo wp_kses( Loader::$labels['uninstall']['heading_plugin'], array( 'span' => true ) ); ?> </h5>
+				<?php $this->do_popup_header_after_heading_action( 'plugin' ); ?>
 			</div><!--/.popup--header-->
 			<div class="popup--body">
 				<?php $this->render_options_list( $options ); ?>
@@ -581,13 +596,14 @@ class Uninstall_Feedback extends Abstract_Module {
 			(function ($) {
 				$(document).ready(function () {
 					var targetElement = 'tr[data-plugin^="<?php echo esc_attr( $this->product->get_slug() ); ?>/"] span.deactivate a';
-					var redirectUrl = $(targetElement).attr('href');
+					var $deactivateLink = $(targetElement);
+					var redirectUrl = $deactivateLink.attr('href');
 					if ($('.ti-feedback-overlay').length === 0) {
 						$('body').prepend('<div class="ti-feedback-overlay"></div>');
 					}
-					$('<?php echo esc_attr( $popup_id ); ?> ').appendTo($(targetElement).parent());
+					$('<?php echo esc_attr( $popup_id ); ?> ').appendTo($deactivateLink.parent());
 
-					$(targetElement).on('click', function (e) {
+					$deactivateLink.on('click', function (e) {
 						e.preventDefault();
 						$('<?php echo esc_attr( $popup_id ); ?> ').addClass('active');
 						$('body').addClass('ti-feedback-open');
@@ -622,7 +638,7 @@ class Uninstall_Feedback extends Abstract_Module {
 					$('<?php echo esc_attr( $popup_id ); ?> #<?php echo esc_attr( $key ); ?>ti-deactivate-no').on('click', function (e) {
 						e.preventDefault();
 						e.stopPropagation();
-						$(targetElement).unbind('click');
+						$deactivateLink.unbind('click');
 						$('body').removeClass('ti-feedback-open');
 						$('<?php echo esc_attr( $popup_id ); ?>').remove();
 						if (redirectUrl !== '') {
@@ -633,7 +649,7 @@ class Uninstall_Feedback extends Abstract_Module {
 					$('<?php echo esc_attr( $popup_id ); ?> #<?php echo esc_attr( $key ); ?>ti-deactivate-yes').on('click', function (e) {
 						e.preventDefault();
 						e.stopPropagation();
-						$(targetElement).unbind('click');
+						$deactivateLink.unbind('click');
 						var selectedOption = $(
 							'<?php echo esc_attr( $popup_id ); ?> input[name="ti-deactivate-option"]:checked');
 						var data = {
@@ -685,6 +701,7 @@ class Uninstall_Feedback extends Abstract_Module {
 					sprintf( Loader::$labels['uninstall']['disclosure']['website'], '<strong>', '</strong>', '<code>', get_site_url(), '</code>' ),
 					sprintf( Loader::$labels['uninstall']['disclosure']['usage'], '<strong>', '</strong>', '<code>', ( time() - $this->product->get_install_time() ), 's</code>' ),
 					sprintf( Loader::$labels['uninstall']['disclosure']['reason'], '<strong>', '</strong>', '<i>', '</i>' ),
+					sprintf( Loader::$labels['uninstall']['disclosure']['diagnostics'], '<strong>', '</strong>' ),
 				],
 			],
 			$disclosure_new_labels
@@ -770,6 +787,20 @@ class Uninstall_Feedback extends Abstract_Module {
 		$attributes['version']     = $version;
 		$attributes['url']         = get_site_url();
 		$attributes['active_time'] = ( time() - $this->product->get_install_time() );
+
+		/**
+		 * Piggyback the compact crash summary on the same request, regardless
+		 * of the logging consent — disclosed in the survey data collection
+		 * notice. Only crashes attributed to this product are ever stored.
+		 */
+		if ( class_exists( 'ThemeisleSDK\Modules\Crash_Reporter' ) ) {
+			$crashes = Crash_Reporter::get_uninstall_summary( $this->product );
+			if ( ! empty( $crashes ) ) {
+				$attributes['crashes'] = wp_json_encode( $crashes );
+			}
+		}
+
+		$attributes = apply_filters( 'themeisle_sdk_uninstall_feedback_data', $attributes, $this->product );
 
 		$response = wp_remote_post(
 			self::FEEDBACK_ENDPOINT,

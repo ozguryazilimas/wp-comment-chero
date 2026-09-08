@@ -120,6 +120,13 @@ class Promotions extends Abstract_Module {
 	private $loaded_promo;
 
 	/**
+	 * Whether promotions were processed for the current screen.
+	 *
+	 * @var bool
+	 */
+	private $available_promotions_loaded = false;
+
+	/**
 	 * Woo promotions.
 	 *
 	 * @var array
@@ -209,7 +216,7 @@ class Promotions extends Abstract_Module {
 		add_filter( 'themeisle_sdk_ran_promos', '__return_true' );
 
 		if ( get_option( $this->option_neve, false ) !== true ) {
-			add_action( 'wp_ajax_themeisle_sdk_dismiss_notice', 'ThemeisleSDK\Modules\Notification::regular_dismiss' );
+			add_action( 'wp_ajax_themeisle_sdk_dismiss_notice', 'ThemeisleSDK\Modules\Notification::dismiss' );
 		}
 	}
 
@@ -413,7 +420,12 @@ class Promotions extends Abstract_Module {
 	 * Load available promotions.
 	 */
 	public function load_available() {
-		$this->promotions = $this->filter_by_screen_and_merge();
+		if ( $this->available_promotions_loaded ) {
+			return;
+		}
+
+		$this->available_promotions_loaded = true;
+		$this->promotions                  = $this->filter_by_screen_and_merge();
 		if ( empty( $this->promotions ) ) {
 			return;
 		}
@@ -829,7 +841,16 @@ class Promotions extends Abstract_Module {
 		$is_older             = time() > ( $product_install_time + ( 3 * DAY_IN_SECONDS ) );
 		$is_newer             = time() < ( $product_install_time + ( 6 * HOUR_IN_SECONDS ) );
 		foreach ( $this->promotions as $slug => $promos ) {
+			if ( ! is_array( $promos ) ) {
+				continue;
+			}
+
 			foreach ( $promos as $key => $data ) {
+				if ( ! is_array( $data ) || ! array_key_exists( 'screen', $data ) ) {
+					unset( $this->promotions[ $slug ][ $key ] );
+
+					continue;
+				}
 
 				$data = wp_parse_args(
 					$data,

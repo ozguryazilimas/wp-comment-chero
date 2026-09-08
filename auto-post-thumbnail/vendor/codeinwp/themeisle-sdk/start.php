@@ -22,6 +22,7 @@ $files_to_load          = [
 	$themeisle_library_path . '/src/Common/Abstract_module.php',
 	$themeisle_library_path . '/src/Common/Module_factory.php',
 
+	$themeisle_library_path . '/src/Modules/Crash_reporter.php',
 	$themeisle_library_path . '/src/Modules/Script_loader.php',
 	$themeisle_library_path . '/src/Modules/Dashboard_widget.php',
 	$themeisle_library_path . '/src/Modules/Rollback.php',

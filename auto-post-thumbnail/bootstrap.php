@@ -15,7 +15,7 @@ if ( defined( 'WAPT_PLUGIN_ACTIVE' ) ) {
 
 define( 'WAPT_PATH', defined( 'WAPT_PRO_PATH' ) ? WAPT_PRO_PATH : WAPT_FREE_PATH );
 define( 'WAPT_PLUGIN_ACTIVE', true );
-define( 'WAPT_PLUGIN_VERSION', '5.0.5' );
+define( 'WAPT_PLUGIN_VERSION', '5.0.6' );
 define( 'WAPT_PLUGIN_FILE', WAPT_PATH );
 define( 'WAPT_ABSPATH', __DIR__ );
 define( 'WAPT_PLUGIN_BASENAME', plugin_basename( WAPT_PATH ) );

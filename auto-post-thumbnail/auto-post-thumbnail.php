@@ -3,7 +3,7 @@
  * Plugin Name: Auto Featured Image - Auto Post Thumbnail
  * Plugin URI: https://themeisle.com/plugins/auto-featured-image
  * Description: Automatically sets the Featured Image from the first image in a post — for any post type. Generate images from post titles or search for images natively in Elementor, Gutenberg, and Classic Editor.
- * Version: 5.0.5
+ * Version: 5.0.6
  * Requires PHP: 7.4
  * Author: Themeisle <contact@themeisle.com>
  * Author URI: https://themeisle.com
@@ -86,7 +86,7 @@ function wpapt_check_premium_compatibility() {
 				echo '<div class="notice notice-error"><p>' . wp_kses_post(
 					sprintf(
 						/* translators: %1$s: plugin name, %2$s: required plugin. */
-						__( 'The %1$s plugin has been deactivated because it requires %2$s version 5.0.0 or higher. Please update %2$s to restore its functionality.', 'auto-post-thumbnail' ),
+						__( 'The %1$s plugin has been deactivated and needs to be updated to restore its functionality, as version 1.5.0 or lower is incompatible with %2$s.', 'auto-post-thumbnail' ),
 						'<strong>' . __( 'Auto Featured Image Premium', 'auto-post-thumbnail' ) . '</strong>',
 						'<strong>' . __( 'Auto Featured Image', 'auto-post-thumbnail' ) . '</strong>'
 					)

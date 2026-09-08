@@ -1,3 +1,41 @@
+##### [Version 3.3.61](https://github.com/Codeinwp/themeisle-sdk-main/compare/v3.3.60...v3.3.61) (2026-08-24)
+
+- Fix stale plugin update notices after upgrades ([#336](https://github.com/Codeinwp/themeisle-sdk-main/issues/336))
+
+##### [Version 3.3.60](https://github.com/Codeinwp/themeisle-sdk-main/compare/v3.3.59...v3.3.60) (2026-08-24)
+
+Fixes lowercase wordpress occurrences shipped to consumer themes (CHANGELOG.md and composer.json keywords), flagged as REQUIRED errors by the latest Theme Check plugin.
+
+##### [Version 3.3.59](https://github.com/Codeinwp/themeisle-sdk-main/compare/v3.3.58...v3.3.59) (2026-08-21)
+
+- Guard repeated promotion loading
+
+##### [Version 3.3.58](https://github.com/Codeinwp/themeisle-sdk-main/compare/v3.3.57...v3.3.58) (2026-07-29)
+
+Development
+
+##### [Version 3.3.57](https://github.com/Codeinwp/themeisle-sdk-main/compare/v3.3.56...v3.3.57) (2026-07-23)
+
+> Things are getting better every day. 🚀
+
+##### [Version 3.3.56](https://github.com/Codeinwp/themeisle-sdk-main/compare/v3.3.55...v3.3.56) (2026-07-23)
+
+> Things are getting better every day. 🚀
+
+##### [Version 3.3.55](https://github.com/Codeinwp/themeisle-sdk-main/compare/v3.3.54...v3.3.55) (2026-07-20)
+
+- improve migration routine
+
+##### [Version 3.3.54](https://github.com/Codeinwp/themeisle-sdk-main/compare/v3.3.53...v3.3.54) (2026-06-23)
+
+- Adds hook to uninstall feedback popup header & fixes JS interference
+
+##### [Version 3.3.53](https://github.com/Codeinwp/themeisle-sdk-main/compare/v3.3.52...v3.3.53) (2026-06-18)
+
+- Fixes dashboard widget header placement on latest WordPress core version;
+- Adds about us services section;
+- Fixes notice dismiss using wrong function name as callback;
+
 ##### [Version 3.3.52](https://github.com/Codeinwp/themeisle-sdk-main/compare/v3.3.51...v3.3.52) (2026-05-14)
 
 - Add SPC to plugin path list
@@ -581,7 +619,7 @@ Fix rollback call for private products
 
 ### Bug Fixes
 
-* **build:** fix exit code when is running outside wordpress context ([d298bb5](https://github.com/Codeinwp/themeisle-sdk/commit/d298bb5))
+* **build:** fix exit code when is running outside WordPress context ([d298bb5](https://github.com/Codeinwp/themeisle-sdk/commit/d298bb5))
 
 ## [3.0.2](https://github.com/Codeinwp/themeisle-sdk/compare/v3.0.1...v3.0.2) (2018-12-28)
 

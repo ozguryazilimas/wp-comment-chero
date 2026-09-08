@@ -1,3 +1,8 @@
+#####   Version 5.0.6 (2026-09-07)
+
+- Fixed duplicate Media Library images from post images without attachment classes.
+- Fixed the notice for incompatible legacy Premium versions.
+
 #####   Version 5.0.5 (2026-07-10)
 
 - Enhanced security

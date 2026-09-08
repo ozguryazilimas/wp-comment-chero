@@ -152,9 +152,7 @@ class Product {
 		self::$cached_products[ crc32( $basefile ) ] = $this;
 		$current_version                             = get_option( $this->slug . '_version', '' );
 
-		if ( $current_version !== $this->version && wp_cache_get( "{$this->slug}_version_upgrade" ) === false ) {
-			// Set the cache lock to avoid multiple calls.
-			wp_cache_set( "{$this->slug}_version_upgrade", true, HOUR_IN_SECONDS );
+		if ( $current_version !== $this->version && wp_cache_add( "{$this->slug}_version_upgrade", true, '', HOUR_IN_SECONDS ) ) {
 			/**
 			 * Action to be triggered when the product is updated.
 			 *
@@ -166,7 +164,6 @@ class Product {
 
 			// Update the version of the product.
 			update_option( "{$this->slug}_version", $this->version );
-			// Delete the cache lock.
 			wp_cache_delete( "{$this->slug}_version_upgrade" );
 		}
 	}

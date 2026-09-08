@@ -155,13 +155,17 @@ class Apt {
 			}
 		}
 
+		if ( ! $thumb_id && ! empty( $image['id'] ) ) {
+			$thumb_id = $image['id'];
+		}
+
 		if ( ! $thumb_id ) {
 			// If thumb id is not found, try to look for the image in the database.
 			if ( isset( $image['url'] ) && ! empty( $image['url'] ) ) {
 				$image_url = $image['url'];
 				// if the link is a thumbnail, then the regular expression will make the link to the original. removes the file name at the end -150x150
-				$image_url = preg_replace( '/-[0-9]{1,}x[0-9]{1,}\./', ' . ', $image_url );
-				$thumb_id  = $wpdb->get_var( "SELECT ID FROM {$wpdb->posts} WHERE guid LIKE ' % " . esc_sql( $image_url ) . " % '" );
+				$image_url = preg_replace( '/-[0-9]{1,}x[0-9]{1,}\./', '.', $image_url );
+				$thumb_id  = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE guid = %s", $image_url ) );
 			}
 		}
 

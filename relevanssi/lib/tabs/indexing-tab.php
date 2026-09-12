@@ -22,8 +22,28 @@
 function relevanssi_indexing_tab() {
 	global $wpdb, $relevanssi_variables;
 
+	$stopword_actions = array(
+		'relevanssi_stopwords_action',
+		'removestopword',
+		'removeallstopwords',
+		'repopulatestopwords',
+		'relevanssi_body_stopwords_action',
+		'removebodystopword',
+		'removeallbodystopwords',
+		'repopulatebodystopwords',
+		'term',
+		'body_term',
+	);
+	$stopwords_open   = false;
+	foreach ( $stopword_actions as $stopword_action ) {
+		if ( isset( $_REQUEST[ $stopword_action ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Used only to retain presentation state after a stopword action.
+			$stopwords_open = true;
+			break;
+		}
+	}
+
 	// --- Index Statistics & Counts ---
-	$is_premium  = defined( 'RELEVANSSI_PREMIUM' ) && RELEVANSSI_PREMIUM;
+	$is_premium  = relevanssi_is_premium();
 	$docs_count  = get_option( 'relevanssi_doc_count', 0 );
 	$terms_count = get_option( 'relevanssi_terms_count', 0 );
 
@@ -328,15 +348,10 @@ function relevanssi_indexing_tab() {
 	$post_exclusion        = get_option( 'relevanssi_post_exclusion', '' );
 	$has_legacy_exclusions = ( ! empty( $cat_restriction ) || ! empty( $cat_exclusion ) || ! empty( $post_exclusion ) );
 
-	$supported_locales = array( 'cs_CZ', 'de_DE', 'es_ES', 'fi', 'fr_CA', 'fr_FR', 'it_IT', 'ja', 'nl_NL', 'pl_PL', 'pt_BR', 'ru_RU', 'sv_SE' );
-	$current_lang      = determine_locale();
-	$lang_base         = substr( $current_lang, 0, 2 );
-	$show_translations = ( in_array( $current_lang, $supported_locales, true ) || in_array( $lang_base, $supported_locales, true ) );
-
 	$punctuation_options = get_option( 'relevanssi_punctuation', array() );
 
 	$advanced_config = array(
-		'relevanssi_expand_shortcodes'          => array(
+		'relevanssi_expand_shortcodes'  => array(
 			'type'          => 'checkbox',
 			'label'         => __( 'Expand shortcodes', 'relevanssi' ),
 			'description'   => __( 'Execute shortcodes during indexing to capture their text outputs.', 'relevanssi' ),
@@ -346,7 +361,7 @@ function relevanssi_indexing_tab() {
 			'sidebar_title' => __( 'Shortcode Execution:', 'relevanssi' ),
 			'sidebar_desc'  => __( 'Choose whether Relevanssi runs shortcodes and page builders to index the text content they generate inside your pages.', 'relevanssi' ),
 		),
-		'relevanssi_disable_shortcodes'         => array(
+		'relevanssi_disable_shortcodes' => array(
 			'type'          => 'text',
 			'label'         => __( 'Disable these shortcodes', 'relevanssi' ),
 			'description'   => __( 'Enter a comma-separated list of shortcode tags (without brackets). These will be ignored during indexing.', 'relevanssi' ),
@@ -356,7 +371,7 @@ function relevanssi_indexing_tab() {
 			'sidebar_desc'  => __( 'Enter a comma-separated list of shortcodes to skip. This is useful if a specific shortcode breaks your indexing process.', 'relevanssi' ),
 			'visible'       => $is_premium,
 		),
-		'relevanssi_min_word_length'            => array(
+		'relevanssi_min_word_length'    => array(
 			'type'          => 'number',
 			'label'         => __( 'Minimum word length', 'relevanssi' ),
 			'hover_target'  => 'sb-adv-wordlen',
@@ -368,13 +383,13 @@ function relevanssi_indexing_tab() {
 			'sidebar_title' => __( 'Minimum Length:', 'relevanssi' ),
 			'sidebar_desc'  => __( 'Words shorter than this are ignored to keep the search tables compact and fast.', 'relevanssi' ),
 		),
-		'legacy_exclusion_header'               => array(
+		'legacy_exclusion_header'       => array(
 			'type'        => 'subheader',
 			'title'       => __( 'Legacy Exclusions (Deprecated)', 'relevanssi' ),
 			'description' => __( 'These options are outdated and will be removed entirely in a future version.', 'relevanssi' ),
 			'visible'     => $has_legacy_exclusions,
 		),
-		'relevanssi_cat_restriction'            => array(
+		'relevanssi_cat_restriction'    => array(
 			'type'    => 'text',
 			'label'   => __( 'Category restriction', 'relevanssi' ),
 			'value'   => $cat_restriction,
@@ -384,7 +399,7 @@ function relevanssi_indexing_tab() {
 				'text' => __( 'Deprecated: Please use standard theme query parameters or tax_query filters instead.', 'relevanssi' ),
 			),
 		),
-		'relevanssi_cat_exclusion'              => array(
+		'relevanssi_cat_exclusion'      => array(
 			'type'    => 'text',
 			'label'   => __( 'Category exclusion', 'relevanssi' ),
 			'value'   => $cat_exclusion,
@@ -394,7 +409,7 @@ function relevanssi_indexing_tab() {
 				'text' => __( 'Deprecated: Use theme search parameters to exclude specific category IDs dynamically.', 'relevanssi' ),
 			),
 		),
-		'relevanssi_post_exclusion'             => array(
+		'relevanssi_post_exclusion'     => array(
 			'type'    => 'text',
 			'label'   => __( 'Post exclusion', 'relevanssi' ),
 			'value'   => $post_exclusion,
@@ -404,25 +419,12 @@ function relevanssi_indexing_tab() {
 				'text' => __( 'Deprecated: Target individual item exclusion rules during your search parsing loops.', 'relevanssi' ),
 			),
 		),
-		'translation_updates_header'            => array(
-			'type'        => 'subheader',
-			'title'       => __( 'Translation updates', 'relevanssi' ),
-			'description' => __( 'Configure translation updates and language options.', 'relevanssi' ),
-			'visible'     => $show_translations,
-		),
-		'relevanssi_update_translations_toggle' => array(
-			'type'        => 'checkbox',
-			'label'       => __( 'Automatic dictionary sync', 'relevanssi' ),
-			'description' => __( 'Download language translation dictionaries automatically.', 'relevanssi' ),
-			'value'       => get_option( 'relevanssi_update_translations_toggle', 'off' ),
-			'visible'     => $show_translations,
-		),
-		'punct_header'                          => array(
+		'punct_header'                  => array(
 			'type'        => 'subheader',
 			'title'       => __( 'Punctuation control', 'relevanssi' ),
 			'description' => __( 'Define how punctuation marks are parsed. Any changes here require rebuilding the index before results show up accurately.', 'relevanssi' ),
 		),
-		'relevanssi_punct_hyphens'              => array(
+		'relevanssi_punct_hyphens'      => array(
 			'type'          => 'select',
 			'label'         => __( 'Hyphens and dashes', 'relevanssi' ),
 			'hover_target'  => 'sb-punct-hyphens',
@@ -435,7 +437,7 @@ function relevanssi_indexing_tab() {
 			'sidebar_title' => __( 'Hyphen Rules:', 'relevanssi' ),
 			'sidebar_desc'  => __( 'Replacing hyphens with spaces splits compound words (like "e-commerce" into "e" and "commerce"), which generally reflects user search styles best.', 'relevanssi' ),
 		),
-		'relevanssi_punct_quotes'               => array(
+		'relevanssi_punct_quotes'       => array(
 			'type'          => 'select',
 			'label'         => __( 'Apostrophes and quotes', 'relevanssi' ),
 			'hover_target'  => 'sb-punct-quotes',
@@ -447,7 +449,7 @@ function relevanssi_indexing_tab() {
 			'sidebar_title' => __( 'Quote Settings:', 'relevanssi' ),
 			'sidebar_desc'  => __( 'Controls whether quotes break words into separate terms or are removed entirely.', 'relevanssi' ),
 		),
-		'relevanssi_punct_ampersands'           => array(
+		'relevanssi_punct_ampersands'   => array(
 			'type'          => 'select',
 			'label'         => __( 'Ampersands', 'relevanssi' ),
 			'hover_target'  => 'sb-punct-ampersands',
@@ -460,7 +462,7 @@ function relevanssi_indexing_tab() {
 			'sidebar_title' => __( 'Ampersand Symbols:', 'relevanssi' ),
 			'sidebar_desc'  => __( 'Keep the symbol if your content contains names that rely on them, like "AT&T" or "R&B".', 'relevanssi' ),
 		),
-		'relevanssi_punct_decimals'             => array(
+		'relevanssi_punct_decimals'     => array(
 			'type'          => 'select',
 			'label'         => __( 'Decimal separators', 'relevanssi' ),
 			'hover_target'  => 'sb-punct-decimals',
@@ -634,7 +636,7 @@ function relevanssi_indexing_tab() {
 
 				<div class="relevanssi-settings-row" style="margin-bottom: 24px;">
 					<div class="relevanssi-settings-content">
-						<details class="relevanssi-card" id="card-stopwords-indexing">
+						<details class="relevanssi-card" id="card-stopwords-indexing"<?php echo $stopwords_open ? ' open' : ''; ?>>
 							<summary style="cursor: pointer; outline: none;"><h2 style="display: inline-block; margin: 0;"><?php esc_html_e( 'Stopwords Exclusions', 'relevanssi' ); ?></h2></summary>
 							<div style="margin-top: 16px;">
 								<?php

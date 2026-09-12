@@ -9,6 +9,19 @@
  */
 
 /**
+ * Checks whether the separately distributed Premium engine is loaded.
+ *
+ * The RELEVANSSI_PREMIUM constant is edition metadata, not an authorization
+ * boundary: site owners can edit plugin files. Premium-only behavior in shared
+ * code must therefore depend on a function supplied by the Premium package.
+ *
+ * @return bool True when the Premium implementation has been loaded.
+ */
+function relevanssi_is_premium(): bool {
+	return function_exists( 'relevanssi_premium_init' );
+}
+
+/**
  * Adds the search result match breakdown to the post object.
  *
  * Reads in the number of matches and stores it in the relevanssi_hits field
@@ -599,7 +612,7 @@ function relevanssi_tokenize( $str, $remove_stops = true, int $min_word_length =
 	}
 
 	$phrase_words = array();
-	if ( RELEVANSSI_PREMIUM && 'search_query' === $context ) {
+	if ( relevanssi_is_premium() && 'search_query' === $context ) {
 		$string_for_phrases = is_array( $str ) ? implode( ' ', $str ) : $str;
 		$phrases            = relevanssi_extract_phrases( $string_for_phrases );
 		$phrase_words       = array();
@@ -672,7 +685,7 @@ function relevanssi_tokenize( $str, $remove_stops = true, int $min_word_length =
 			$accept = false;
 		}
 
-		if ( RELEVANSSI_PREMIUM && ! in_array( $token, $phrase_words, true ) ) {
+		if ( relevanssi_is_premium() && ! in_array( $token, $phrase_words, true ) ) {
 			/**
 			 * Fires Premium tokenizer.
 			 *
@@ -1008,6 +1021,12 @@ function relevanssi_switch_blog() {
 function relevanssi_add_highlight( $permalink, $link_post = null ) {
 	$highlight_docs = get_option( 'relevanssi_highlight_docs', 'off' );
 	$query          = get_search_query();
+
+	global $relevanssi_dym_fallback;
+	if ( isset( $relevanssi_dym_fallback ) && ! empty( $relevanssi_dym_fallback ) ) {
+		$query = $relevanssi_dym_fallback;
+	}
+
 	if ( isset( $highlight_docs ) && 'off' !== $highlight_docs && ! empty( $query ) ) {
 		if ( ! relevanssi_is_front_page_id( $link_post->ID ?? null ) ) {
 			global $wp_query;
@@ -1196,7 +1215,7 @@ function relevanssi_common_words( $limit = 25, $wp_cli = false ) {
 								</span>
 
 								<div class="relevanssi-word-actions" style="display: flex; gap: 6px;">
-									<button type="submit" name="term" value="<?php echo esc_attr( $word->term ); ?>" class="button button-small" aria-label="
+									<button type="submit" name="term" value="<?php echo esc_attr( $word->term ); ?>" class="button button-small" formaction="#card-stopwords-indexing" aria-label="
 									<?php
 										/* translators: %s is the literal keyword string token. */
 										echo esc_attr( sprintf( __( 'Add "%s" to global stopwords', 'relevanssi' ), $word->term ) );
@@ -1205,8 +1224,8 @@ function relevanssi_common_words( $limit = 25, $wp_cli = false ) {
 										<?php esc_html_e( 'Add to Stopwords', 'relevanssi' ); ?>
 									</button>
 
-									<?php if ( RELEVANSSI_PREMIUM ) : ?>
-										<button type="submit" name="body_term" value="<?php echo esc_attr( $word->term ); ?>" class="button button-small button-secondary" aria-label="
+									<?php if ( relevanssi_is_premium() ) : ?>
+										<button type="submit" name="body_term" value="<?php echo esc_attr( $word->term ); ?>" class="button button-small button-secondary" formaction="#card-stopwords-indexing" aria-label="
 										<?php
 											/* translators: %s is the literal keyword string token. */
 											echo esc_attr( sprintf( __( 'Add "%s" to content body stopwords only', 'relevanssi' ), $word->term ) );

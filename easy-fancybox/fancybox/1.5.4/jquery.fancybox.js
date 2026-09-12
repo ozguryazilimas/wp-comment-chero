@@ -94,6 +94,14 @@
 
 		href = selectedOpts.href || (obj.nodeName ? $(obj).attr('href') : obj.href) || null;
 
+		// Block script-capable / document-loading schemes that could execute when interpolated
+		// into object[data], embed[src], img[src] or a link href (javascript:, vbscript:, data:).
+		// Other schemes (mailto:, tel:, ftp:, custom app schemes), protocol-relative (//), relative
+		// URLs and in-page anchors (#) are intentionally left intact for compatibility.
+		if (href && /^\s*(?:javascript|vbscript|data)\s*:/i.test(href)) {
+			href = null;
+		}
+
 		if ((/^(?:javascript)/i).test(href) || href == '#') {
 			href = null;
 		}
@@ -246,9 +254,13 @@
 				selectedOpts.scrolling = 'no';
 				selectedOpts.keepRatio = true;
 
-				var str = '<object type="image/svg+xml" width="' + selectedOpts.width + '" height="' + selectedOpts.height + '" data="' + href + '"></object>';
+				var $svgObj = $('<object/>', {
+					type   : 'image/svg+xml',
+					width  : selectedOpts.width,
+					height : selectedOpts.height
+				}).attr('data', href);
 
-				tmp.html(str);
+				tmp.empty().append($svgObj);
 
 				_process_inline();
 			break;
@@ -257,9 +269,17 @@
 				selectedOpts.scrolling = 'no';
 				selectedOpts.enableSwipeNav = false;
 
-				var str = '<object type="application/pdf" width="100%" height="100%" data="' + href + '"><a href="' + href + '" style="display:block;position:absolute;top:48%;width:100%;text-align:center">' + $(obj).html() + '</a></object>';
+				var $pdfFallback = $('<a/>', {
+					style : 'display:block;position:absolute;top:48%;width:100%;text-align:center'
+				}).attr('href', href).html(DOMPurify.sanitize($(obj).html()));
 
-				tmp.html(str);
+				var $pdfObj = $('<object/>', {
+					type   : 'application/pdf',
+					width  : '100%',
+					height : '100%'
+				}).attr('data', href).append($pdfFallback);
+
+				tmp.empty().append($pdfObj);
 
 				_process_inline();
 			break;
@@ -617,10 +637,19 @@
 		}
 
 		if (currentOpts.type == 'iframe') {
-			$('<iframe id="fancybox-frame" name="fancybox-frame' + new Date().getTime() + '"'
-			+ ' style="border:0;margin:0;overflow:' + (currentOpts.scrolling == 'auto' ? 'auto' : (currentOpts.scrolling == 'yes' ? 'scroll' : 'hidden')) + '" src="'
-			+ currentOpts.href + '"' + (false === currentOpts.allowfullscreen ? '' : ' allowfullscreen') + ' allow="autoplay; encrypted-media" tabindex="999"></iframe>')
-			.appendTo(content).on('load',function() {
+			var $frame = $('<iframe/>', {
+				id       : 'fancybox-frame',
+				name     : 'fancybox-frame' + new Date().getTime(),
+				style    : 'border:0;margin:0;overflow:' + (currentOpts.scrolling == 'auto' ? 'auto' : (currentOpts.scrolling == 'yes' ? 'scroll' : 'hidden')),
+				allow    : 'autoplay; encrypted-media',
+				tabindex : 999
+			}).attr('src', currentOpts.href);
+
+			if (false !== currentOpts.allowfullscreen) {
+				$frame.attr('allowfullscreen', '');
+			}
+
+			$frame.appendTo(content).on('load',function() {
 				$.fancybox.hideActivity();
 			});
 		}

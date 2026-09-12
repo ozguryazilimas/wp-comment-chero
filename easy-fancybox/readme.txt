@@ -3,8 +3,8 @@ Contributors: firelightwp
 Tags: lightbox, gallery, image, photo, modal
 Requires at least: 5.0
 Requires PHP: 7.0
-Tested up to: 7.0.1
-Stable tag: 2.3.22
+Tested up to: 7.1
+Stable tag: 2.3.23
 License: GPLv3
 
 Formerly Easy Fancybox. The most popular WordPress lightbox plugin. Simple, fast, and responsive. Opens images, videos, PDFs, and custom popups.
@@ -109,6 +109,9 @@ When activated network wide with **Network Activate**, each sub-site will _not_ 
 5. The Firelight Lightbox options panel (with Fancybox Classic selected).
 
 == Changelog ==
+
+= 2.3.23 =
+* Fix: improve link handling in the bundled FancyBox lightboxes
 
 = 2.3.22 =
 * Fix: FancyBox 2 PDF dimensions

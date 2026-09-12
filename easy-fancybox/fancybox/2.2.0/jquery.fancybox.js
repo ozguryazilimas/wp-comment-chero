@@ -1202,11 +1202,18 @@
 
 			switch (type) {
 				case 'image':
-					content = current.tpl.image.replace(/\{href\}/g, href);
+					// Build the <img> via DOM APIs and set src with .attr() so an entity-decoded
+					// href cannot break out of the src="{href}" attribute (also covers auto-detected
+					// SVG, which is routed through isImage()).
+					content = $( current.tpl.image.replace(/\{href\}/g, '') ).attr('src', href);
 				break;
 
 				case 'svg':
-					content = '<object type="image/svg+xml" width="100%" height="100%" data="' + href + '"></object>';
+					content = $('<object/>', {
+						type   : 'image/svg+xml',
+						width  : '100%',
+						height : '100%'
+					}).attr('data', href);
 				break;
 
 				case 'inline':
